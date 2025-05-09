@@ -1,0 +1,33 @@
+{
+  "name": "animouse",
+  "version": "0.0.1",
+  "description": "lightweight animation state machine for three js",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsc"
+  },
+  "keywords": [],
+  "author": "jango",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jango-git/animouse.git"
+  },
+  "type": "module",
+  "dependencies": {},
+  "peerDependencies": {
+    "three": "^0.176.0",
+    "eventail": "^0.0.1"
+  },
+  "devDependencies": {
+    "@types/three": "^0.176.0",
+    "typescript": "^5.8.3"
+  }
+}
