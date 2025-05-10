@@ -1,6 +1,6 @@
 {
   "name": "animouse",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "lightweight animation state machine for three js",
   "scripts": {
     "build": "rollup -c"
@@ -25,7 +25,7 @@
   },
   "type": "module",
   "peerDependencies": {
-    "eventail": "^0.0.3",
+    "eventail": "^0.0.4",
     "three": "^0.176.0"
   },
   "devDependencies": {
