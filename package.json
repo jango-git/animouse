@@ -1,9 +1,10 @@
 {
   "name": "animouse",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "lightweight animation state machine for three js",
   "scripts": {
-    "build": "rollup -c"
+    "clean": "rm -rf dist",
+    "build": "npm run clean && rollup -c"
   },
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -25,7 +26,7 @@
   },
   "type": "module",
   "peerDependencies": {
-    "eventail": "^0.0.4",
+    "eventail": "^0.0.5",
     "three": "^0.176.0"
   },
   "devDependencies": {

@@ -13,8 +13,10 @@
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "skipLibCheck": false,
-    "outDir": "./dist",
     "declaration": true,
+    "declarationDir": "./dist",
+    "emitDeclarationOnly": false,
+    "outDir": "./dist",
     "sourceMap": true
   },
   "include": ["src/**/*"]
