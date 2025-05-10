@@ -12,6 +12,10 @@ interface ITransition {
   duration: number;
 }
 
+/**
+ * A finite state machine for managing animation state transitions with blending
+ * @class
+ */
 export class Machine {
   private currentState: AnyState;
   private readonly fadingStates: AnyState[] = [];
@@ -20,6 +24,11 @@ export class Machine {
   private readonly transitions: Map<string, ITransition[]> = new Map();
   private elapsedTime: number;
 
+  /**
+   * Creates a new animation state machine
+   * @param {AnyState} initialState - The starting state for the machine
+   * @param {AnimationMixer} mixer - Three.js animation mixer to drive updates
+   */
   public constructor(initialState: AnyState, mixer: AnimationMixer) {
     this.currentState = initialState;
     this.currentState.power = 1;
@@ -29,6 +38,14 @@ export class Machine {
     this.elapsedTime = 0;
   }
 
+  /**
+   * Adds a new transition between states
+   * @param {AnyState | null} from - Source state (null for any state)
+   * @param {AnyState} to - Target state
+   * @param {number} duration - Transition duration in seconds
+   * @param {string} [eventName="*"] - Event name that triggers this transition
+   * @param {Function} [condition=()=>true] - Condition callback that must return true
+   */
   public addTransition(
     from: AnyState | null,
     to: AnyState,
@@ -41,6 +58,12 @@ export class Machine {
     transitions.push({ from, to, condition, duration });
   }
 
+  /**
+   * Processes an event and checks for valid transitions
+   * @param {string} eventName - Name of the event to process
+   * @param {unknown} data - Additional data to pass to condition callbacks
+   * @returns {boolean} True if a transition occurred, false otherwise
+   */
   public handleEvent(eventName: string, data: unknown): boolean {
     const transitions = [
       ...(this.transitions.get(eventName) || []),
@@ -58,6 +81,14 @@ export class Machine {
     return false;
   }
 
+  /**
+   * Updates the state machine and all animations
+   * @param {number} deltaTime - Time elapsed since last update in seconds
+   * @description Handles:
+   * - Transition progress between states
+   * - Power level interpolation
+   * - Animation mixer updates
+   */
   public update(deltaTime: number): void {
     if (this.elapsedTime > 0) {
       const t = Math.min(1, deltaTime / this.elapsedTime);
@@ -79,8 +110,15 @@ export class Machine {
     this.mixer.update(deltaTime);
   }
 
+  /**
+   * Initiates a transition to a new state
+   * @private
+   * @param {AnyState} state - Target state to transition to
+   * @param {number} duration - Transition duration in seconds
+   */
   private transitionTo(state: AnyState, duration: number): void {
     if (this.currentState === state) return;
+
     this.fadingStates.splice(
       0,
       this.fadingStates.length,

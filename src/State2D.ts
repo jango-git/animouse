@@ -5,6 +5,11 @@ import { EEvent } from "./EEvent";
 const MIN_WEIGHT = 0;
 const MAX_WEIGHT = 1;
 
+/**
+ * A 2D animation state machine that blends between directional animations
+ * based on a 2D blend vector and power level. Emits events when entering/exiting active state.
+ * @extends Emitter
+ */
 export class State2D extends Emitter {
   private readonly xPositive: AnimationAction;
   private readonly xNegative: AnimationAction;
@@ -14,6 +19,14 @@ export class State2D extends Emitter {
   private rawPower: number;
   private blend: Vector2;
 
+  /**
+   * Creates a new State2D instance for controlling directional animations
+   * @param {AnimationAction} xPositive - Action for positive X direction (right)
+   * @param {AnimationAction} xNegative - Action for negative X direction (left)
+   * @param {AnimationAction} yPositive - Action for positive Y direction (up/forward)
+   * @param {AnimationAction} yNegative - Action for negative Y direction (down/backward)
+   * @param {AnimationAction} center - Action for neutral/center position
+   */
   public constructor(
     xPositive: AnimationAction,
     xNegative: AnimationAction,
@@ -42,10 +55,20 @@ export class State2D extends Emitter {
     this.blend = new Vector2(0, 0);
   }
 
+  /**
+   * Gets the current power level affecting all animations
+   * @returns {number} Current power level between 0 and 1
+   */
   public get power(): number {
     return this.rawPower;
   }
 
+  /**
+   * Sets the power level affecting all animations
+   * @param {number} newValue - New power level (will be clamped to 0-1)
+   * @emits {EEvent.enter} When transitioning from 0 to a positive power level
+   * @emits {EEvent.exit} When transitioning from positive power level to 0
+   */
   public set power(newValue: number) {
     const clampedValue = MathUtils.clamp(newValue, MIN_WEIGHT, MAX_WEIGHT);
     if (this.rawPower === clampedValue) return;
@@ -60,18 +83,38 @@ export class State2D extends Emitter {
     this.update();
   }
 
+  /**
+   * Sets the 2D blend vector determining directional blending
+   * @param {number} x - X component of blend vector (-1 to 1)
+   * @param {number} y - Y component of blend vector (-1 to 1)
+   * @description The vector will be normalized and clamped to unit length
+   */
   public setBlend(x: number, y: number): void {
     this.blend.set(x, y);
     this.blend.clampLength(0, 1);
     this.update();
   }
 
+  /**
+   * Updates an individual action's state based on new weight
+   * @private
+   * @param {AnimationAction} action - The animation action to update
+   * @param {number} weight - New weight value (0-1)
+   */
   private updateAction(action: AnimationAction, weight: number): void {
     if (weight === MIN_WEIGHT && action.weight > MIN_WEIGHT) action.stop();
     else if (weight > MIN_WEIGHT && action.weight === MIN_WEIGHT) action.play();
     action.weight = weight;
   }
 
+  /**
+   * Updates all animation weights based on current power and blend values
+   * @private
+   * @description Implements directional blending logic:
+   * - When blend vector length ≈ 0: uses center animation
+   * - Otherwise: blends between directional animations based on vector direction
+   * - Maintains smooth transitions between all states
+   */
   private update(): void {
     const epsilon = Number.EPSILON;
     const squaredLength = this.blend.lengthSq();

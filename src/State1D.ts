@@ -5,16 +5,31 @@ import { EEvent } from "./EEvent";
 const MIN_WEIGHT = 0;
 const MAX_WEIGHT = 1;
 
+/**
+ * Interface describing an animation action with its associated value
+ * @interface
+ */
 interface IAction {
   action: AnimationAction;
   value: number;
 }
 
+/**
+ * A 1-dimensional state machine that blends between multiple Three.js animation actions
+ * based on a blend value and power level. Emits events when entering/exiting active state.
+ * @extends Emitter
+ */
 export class State1D extends Emitter {
   private readonly actions: readonly IAction[] = [];
   private rawPower = 0;
   private blend = 0;
 
+  /**
+   * Creates a new State1D instance for controlling multiple animation actions
+   * @param {IAction[]} actions - Array of action/value pairs to control
+   * @throws {Error} If fewer than 2 actions are provided
+   * @throws {Error} If any action value is outside 0-1 range
+   */
   public constructor(actions: IAction[]) {
     super();
 
@@ -35,10 +50,20 @@ export class State1D extends Emitter {
     (this.actions[this.actions.length - 1] as IAction).value = MAX_WEIGHT;
   }
 
+  /**
+   * Gets the current power level affecting all actions
+   * @returns {number} Current power level between 0 and 1
+   */
   public get power(): number {
     return this.rawPower;
   }
 
+  /**
+   * Sets the power level affecting all actions
+   * @param {number} newValue - New power level (will be clamped to 0-1)
+   * @emits {EEvent.enter} When transitioning from 0 to a positive power level
+   * @emits {EEvent.exit} When transitioning from positive power level to 0
+   */
   public set power(newValue: number) {
     const clampedValue = MathUtils.clamp(newValue, MIN_WEIGHT, MAX_WEIGHT);
     if (this.rawPower === clampedValue) return;
@@ -53,17 +78,31 @@ export class State1D extends Emitter {
     this.update();
   }
 
+  /**
+   * Sets the blend value determining which actions are active
+   * @param {number} value - New blend value (will be clamped to 0-1)
+   */
   public setBlend(value: number): void {
     this.blend = MathUtils.clamp(value, MIN_WEIGHT, MAX_WEIGHT);
     this.update();
   }
 
+  /**
+   * Updates an individual action's state based on new weight
+   * @private
+   * @param {AnimationAction} action - The action to update
+   * @param {number} weight - New weight value for the action
+   */
   private updateAction(action: AnimationAction, weight: number): void {
     if (weight === MIN_WEIGHT && action.weight > MIN_WEIGHT) action.stop();
     else if (weight > MIN_WEIGHT && action.weight === MIN_WEIGHT) action.play();
     action.weight = weight;
   }
 
+  /**
+   * Updates all actions' weights based on current power and blend values
+   * @private
+   */
   private update(): void {
     for (let i = 0; i < this.actions.length - 1; i++) {
       const current = this.actions[i] as IAction;

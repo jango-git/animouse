@@ -1,6 +1,6 @@
 {
   "name": "animouse",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "lightweight animation state machine for three js",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -22,7 +22,7 @@
   },
   "type": "module",
   "peerDependencies": {
-    "eventail": "^0.0.1",
+    "eventail": "^0.0.3",
     "three": "^0.176.0"
   },
   "devDependencies": {
