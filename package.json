@@ -21,13 +21,15 @@
     "url": "https://github.com/jango-git/animouse.git"
   },
   "type": "module",
-  "dependencies": {},
   "peerDependencies": {
-    "three": "^0.176.0",
-    "eventail": "^0.0.1"
+    "eventail": "^0.0.1",
+    "three": "^0.176.0"
   },
   "devDependencies": {
     "@types/three": "^0.176.0",
+    "@typescript-eslint/eslint-plugin": "^8.32.0",
+    "@typescript-eslint/parser": "^8.32.0",
+    "eslint": "^9.26.0",
     "typescript": "^5.8.3"
   }
 }

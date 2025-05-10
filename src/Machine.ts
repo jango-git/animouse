@@ -34,14 +34,14 @@ export class Machine {
     to: AnyState,
     duration: number,
     eventName = "*",
-    condition = () => true,
-  ) {
+    condition = (): boolean => true,
+  ): void {
     const transitions = this.transitions.get(eventName) || [];
     this.transitions.set(eventName, transitions);
     transitions.push({ from, to, condition, duration });
   }
 
-  public handleEvent(eventName: string, data: any) {
+  public handleEvent(eventName: string, data: unknown): boolean {
     const transitions = [
       ...(this.transitions.get(eventName) || []),
       ...(this.transitions.get("*") || []),
@@ -58,22 +58,7 @@ export class Machine {
     return false;
   }
 
-  private transitionTo(state: AnyState, duration: number) {
-    if (this.currentState === state) return;
-    this.fadingStates.splice(
-      0,
-      this.fadingStates.length,
-      ...this.fadingStates.filter((s) => s !== state),
-    );
-
-    const lastState = this.currentState;
-    this.currentState = state;
-
-    this.fadingStates.push(lastState);
-    this.elapsedTime = duration;
-  }
-
-  public update(deltaTime: number) {
+  public update(deltaTime: number): void {
     if (this.elapsedTime > 0) {
       const t = Math.min(1, deltaTime / this.elapsedTime);
 
@@ -92,5 +77,20 @@ export class Machine {
     }
 
     this.mixer.update(deltaTime);
+  }
+
+  private transitionTo(state: AnyState, duration: number): void {
+    if (this.currentState === state) return;
+    this.fadingStates.splice(
+      0,
+      this.fadingStates.length,
+      ...this.fadingStates.filter((s) => s !== state),
+    );
+
+    const lastState = this.currentState;
+    this.currentState = state;
+
+    this.fadingStates.push(lastState);
+    this.elapsedTime = duration;
   }
 }

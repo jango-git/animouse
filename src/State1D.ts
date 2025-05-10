@@ -12,8 +12,8 @@ interface IAction {
 
 export class State1D extends Emitter {
   private readonly actions: readonly IAction[] = [];
-  private _power: number = 0;
-  private blend: number = 0;
+  private rawPower = 0;
+  private blend = 0;
 
   public constructor(actions: IAction[]) {
     super();
@@ -35,18 +35,36 @@ export class State1D extends Emitter {
     (this.actions[this.actions.length - 1] as IAction).value = MAX_WEIGHT;
   }
 
-  public setBlend(value: number) {
+  public get power(): number {
+    return this.rawPower;
+  }
+
+  public set power(newValue: number) {
+    const clampedValue = MathUtils.clamp(newValue, MIN_WEIGHT, MAX_WEIGHT);
+    if (this.rawPower === clampedValue) return;
+
+    if (this.rawPower === MIN_WEIGHT && clampedValue > MIN_WEIGHT) {
+      this.emit(EEvent.enter, this);
+    } else if (this.rawPower > MIN_WEIGHT && clampedValue === MIN_WEIGHT) {
+      this.emit(EEvent.exit, this);
+    }
+
+    this.rawPower = clampedValue;
+    this.update();
+  }
+
+  public setBlend(value: number): void {
     this.blend = MathUtils.clamp(value, MIN_WEIGHT, MAX_WEIGHT);
     this.update();
   }
 
-  private updateAction(action: AnimationAction, weight: number) {
+  private updateAction(action: AnimationAction, weight: number): void {
     if (weight === MIN_WEIGHT && action.weight > MIN_WEIGHT) action.stop();
     else if (weight > MIN_WEIGHT && action.weight === MIN_WEIGHT) action.play();
     action.weight = weight;
   }
 
-  private update() {
+  private update(): void {
     for (let i = 0; i < this.actions.length - 1; i++) {
       const current = this.actions[i] as IAction;
       const next = this.actions[i + 1] as IAction;
@@ -59,27 +77,9 @@ export class State1D extends Emitter {
         const difference =
           (this.blend - current.value) / (next.value - current.value);
 
-        this.updateAction(current.action, (1 - difference) * this._power);
-        this.updateAction(next.action, difference * this._power);
+        this.updateAction(current.action, (1 - difference) * this.rawPower);
+        this.updateAction(next.action, difference * this.rawPower);
       }
     }
-  }
-
-  public get power() {
-    return this._power;
-  }
-
-  public set power(newValue: number) {
-    const clampedValue = MathUtils.clamp(newValue, MIN_WEIGHT, MAX_WEIGHT);
-    if (this._power === clampedValue) return;
-
-    if (this._power === MIN_WEIGHT && clampedValue > MIN_WEIGHT) {
-      this.emit(EEvent.ENTER, this);
-    } else if (this._power > MIN_WEIGHT && clampedValue === MIN_WEIGHT) {
-      this.emit(EEvent.EXIT, this);
-    }
-
-    this._power = clampedValue;
-    this.update();
   }
 }

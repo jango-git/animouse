@@ -1,4 +1,4 @@
 export enum EEvent {
-  ENTER = "AnimouseEvent:ENTER",
-  EXIT = "AnimouseEvent:EXIT",
+  enter = "AnimouseEvent:enter",
+  exit = "AnimouseEvent:exit",
 }

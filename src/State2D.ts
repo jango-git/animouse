@@ -11,7 +11,7 @@ export class State2D extends Emitter {
   private readonly yPositive: AnimationAction;
   private readonly yNegative: AnimationAction;
   private readonly center: AnimationAction;
-  private _power: number;
+  private rawPower: number;
   private blend: Vector2;
 
   public constructor(
@@ -38,8 +38,26 @@ export class State2D extends Emitter {
     this.center = center;
     this.center.weight = MIN_WEIGHT;
 
-    this._power = MIN_WEIGHT;
+    this.rawPower = MIN_WEIGHT;
     this.blend = new Vector2(0, 0);
+  }
+
+  public get power(): number {
+    return this.rawPower;
+  }
+
+  public set power(newValue: number) {
+    const clampedValue = MathUtils.clamp(newValue, MIN_WEIGHT, MAX_WEIGHT);
+    if (this.rawPower === clampedValue) return;
+
+    if (this.rawPower === MIN_WEIGHT && clampedValue > MIN_WEIGHT) {
+      this.emit(EEvent.enter, this);
+    } else if (this.rawPower > MIN_WEIGHT && clampedValue === MIN_WEIGHT) {
+      this.emit(EEvent.exit, this);
+    }
+
+    this.rawPower = clampedValue;
+    this.update();
   }
 
   public setBlend(x: number, y: number): void {
@@ -54,7 +72,7 @@ export class State2D extends Emitter {
     action.weight = weight;
   }
 
-  private update() {
+  private update(): void {
     const epsilon = Number.EPSILON;
     const squaredLength = this.blend.lengthSq();
 
@@ -77,9 +95,9 @@ export class State2D extends Emitter {
       const weightY = sumXY > 0 ? absY / (sumXY + centerWeight) : 0;
       const weightC = 1 - (weightX + weightY);
 
-      const powerX = weightX * this._power;
-      const powerY = weightY * this._power;
-      const powerC = weightC * this._power;
+      const powerX = weightX * this.rawPower;
+      const powerY = weightY * this.rawPower;
+      const powerC = weightC * this.rawPower;
 
       this.updateAction(
         this.xPositive,
@@ -99,23 +117,5 @@ export class State2D extends Emitter {
       );
       this.updateAction(this.center, powerC);
     }
-  }
-
-  public get power() {
-    return this._power;
-  }
-
-  public set power(newValue: number) {
-    const clampedValue = MathUtils.clamp(newValue, MIN_WEIGHT, MAX_WEIGHT);
-    if (this._power === clampedValue) return;
-
-    if (this._power === MIN_WEIGHT && clampedValue > MIN_WEIGHT) {
-      this.emit(EEvent.ENTER, this);
-    } else if (this._power > MIN_WEIGHT && clampedValue === MIN_WEIGHT) {
-      this.emit(EEvent.EXIT, this);
-    }
-
-    this._power = clampedValue;
-    this.update();
   }
 }
