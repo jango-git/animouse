@@ -177,6 +177,14 @@ export class AnimationStateMachine {
    * @param {number} deltaTime - Time in seconds since the last update
    */
   public update(deltaTime: number): void {
+    // Update current state
+    this.currentState.update(deltaTime);
+    
+    // Update all fading states
+    for (const state of this.fadingStates) {
+      state.update(deltaTime);
+    }
+
     const transition = this.dataTransitions
       .get(this.currentState)
       ?.find((transition) => transition.condition(...transition.data));
