@@ -1,5 +1,6 @@
-import { AnimationMixer, MathUtils } from "three";
-import { AnimationState } from "./AnimationState";
+import type { AnimationMixer} from "three";
+import { MathUtils } from "three";
+import type { AnimationState } from "./AnimationState";
 
 type Condition = (...args: unknown[]) => boolean;
 
@@ -13,11 +14,11 @@ interface ITransition {
 export class AnimationStateMachine {
   private currentState: AnimationState;
   private fadingStates: AnimationState[] = [];
-  private mixer: AnimationMixer;
-  private transitions: Map<string, ITransition[]> = new Map();
+  private readonly mixer: AnimationMixer;
+  private readonly transitions: Map<string, ITransition[]> = new Map();
   private elapsedTime: number;
 
-  public constructor(initialState: AnimationState, mixer: AnimationMixer) {
+  constructor(initialState: AnimationState, mixer: AnimationMixer) {
     this.currentState = initialState;
     this.currentState.power = 1;
 
@@ -62,7 +63,7 @@ export class AnimationStateMachine {
       this.elapsedTime = Math.max(0, this.elapsedTime - deltaTime);
 
       if (this.elapsedTime === 0) {
-        for (const state of this.fadingStates) state.power = 0;
+        for (const state of this.fadingStates) {state.power = 0;}
         this.fadingStates = [];
         this.currentState.power = 1;
       }
@@ -72,7 +73,7 @@ export class AnimationStateMachine {
   }
 
   private transitionTo(state: AnimationState, duration: number): void {
-    if (this.currentState === state) return;
+    if (this.currentState === state) {return;}
     this.fadingStates = this.fadingStates.filter((s) => s !== state);
 
     this.fadingStates.push(this.currentState);

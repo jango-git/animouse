@@ -1,17 +1,18 @@
-import { Emitter } from "eventail";
-import { AnimationAction, MathUtils, Vector2 } from "three";
+import type { AnimationAction } from "three";
+import { MathUtils, Vector2 } from "three";
+import { AnimationState } from "./AnimationState";
 import { AnimationStateEvent } from "./AnimationStateEvent";
 
-export class AnimationState2D extends Emitter {
-  private xPositive: AnimationAction;
-  private xNegative: AnimationAction;
-  private yPositive: AnimationAction;
-  private yNegative: AnimationAction;
-  private center: AnimationAction;
+export class AnimationState2D extends AnimationState {
+  private readonly xPositive: AnimationAction;
+  private readonly xNegative: AnimationAction;
+  private readonly yPositive: AnimationAction;
+  private readonly yNegative: AnimationAction;
+  private readonly center: AnimationAction;
   private powerPrivate: number;
-  private blend: Vector2;
+  private readonly blend: Vector2;
 
-  public constructor(
+  constructor(
     xPositive: AnimationAction,
     xNegative: AnimationAction,
     yPositive: AnimationAction,
@@ -47,9 +48,9 @@ export class AnimationState2D extends Emitter {
     const clampedValue = MathUtils.clamp(value, 0, 1);
     if (this.powerPrivate !== clampedValue) {
       if (this.powerPrivate === 0 && clampedValue > 0) {
-        this.emit(AnimationStateEvent.enter, this);
+        this.emit(AnimationStateEvent.ENTER, this);
       } else if (this.powerPrivate > 0 && clampedValue === 0) {
-        this.emit(AnimationStateEvent.exit, this);
+        this.emit(AnimationStateEvent.EXIT, this);
       }
 
       this.powerPrivate = clampedValue;
@@ -64,8 +65,11 @@ export class AnimationState2D extends Emitter {
   }
 
   private updateAction(action: AnimationAction, weight: number): void {
-    if (weight === 0 && action.weight > 0) action.stop();
-    else if (weight > 0 && action.weight === 0) action.play();
+    if (weight === 0 && action.weight > 0) {
+      action.stop();
+    } else if (weight > 0 && action.weight === 0) {
+      action.play();
+    }
     action.weight = weight;
   }
 

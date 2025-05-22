@@ -1,20 +1,25 @@
-import { Emitter } from "eventail";
-import { AnimationAction, MathUtils } from "three";
+import type { AnimationAction } from "three";
+import { MathUtils } from "three";
+import { AnimationState } from "./AnimationState";
 import { AnimationStateEvent } from "./AnimationStateEvent";
 
-export type Action = {
+const MIN_ACTION_COUNT = 2;
+
+export interface Action {
   action: AnimationAction;
   value: number;
-};
+}
 
-export class AnimationState1D extends Emitter {
-  private actions: Action[] = [];
+export class AnimationState1D extends AnimationState {
+  private readonly actions: Action[] = [];
   private powerPrivate = 0;
   private blend = 0;
 
-  public constructor(actions: Action[]) {
+  constructor(actions: Action[]) {
     super();
-    if (actions.length < 2) throw new Error("Need at least 2 actions");
+    if (actions.length < MIN_ACTION_COUNT) {
+      throw new Error("Need at least 2 actions");
+    }
 
     for (const action of actions) {
       this.actions.push(action);
@@ -25,10 +30,6 @@ export class AnimationState1D extends Emitter {
 
     const first = this.actions[0];
     const last = this.actions[this.actions.length - 1];
-
-    if (!first || !last) {
-      throw new Error("Invalid animation action");
-    }
 
     first.value = 0;
     last.value = 1;
@@ -43,9 +44,9 @@ export class AnimationState1D extends Emitter {
 
     if (this.powerPrivate !== clampedValue) {
       if (this.powerPrivate === 0 && clampedValue > 0) {
-        this.emit(AnimationStateEvent.enter, this);
+        this.emit(AnimationStateEvent.ENTER, this);
       } else if (this.powerPrivate > 0 && clampedValue === 0) {
-        this.emit(AnimationStateEvent.exit, this);
+        this.emit(AnimationStateEvent.EXIT, this);
       }
 
       this.powerPrivate = clampedValue;
@@ -59,8 +60,11 @@ export class AnimationState1D extends Emitter {
   }
 
   private updateAction(action: AnimationAction, weight: number): void {
-    if (weight === 0 && action.weight > 0) action.stop();
-    else if (weight > 0 && action.weight === 0) action.play();
+    if (weight === 0 && action.weight > 0) {
+      action.stop();
+    } else if (weight > 0 && action.weight === 0) {
+      action.play();
+    }
     action.weight = weight;
   }
 
@@ -68,10 +72,6 @@ export class AnimationState1D extends Emitter {
     for (let i = 0; i < this.actions.length - 1; i++) {
       const left = this.actions[i];
       const right = this.actions[i + 1];
-
-      if (!left || !right) {
-        throw new Error("Invalid animation action");
-      }
 
       if (this.blend < left.value) {
         this.updateAction(right.action, 0);

@@ -1,4 +1,4 @@
 export enum AnimationStateEvent {
-  enter = "enter",
-  exit = "exit",
+  ENTER = "ENTER",
+  EXIT = "EXIT",
 }
