@@ -3,33 +3,35 @@ import { MathUtils, Vector2 } from "three";
 import { AnimationState } from "./AnimationState";
 import { AnimationStateEvent } from "./AnimationStateEvent";
 
+interface Anchor {
+  action: AnimationAction;
+  duration: number;
+  previousTime: number;
+}
+
 /**
  * Manages a two-dimensional blend space between multiple animations.
  * This class controls animations arranged in a 2D space with a center state and four directional states (positive/negative X/Y).
- * 
+ *
  * @class AnimationState2D
  * @extends {AnimationState}
  */
 export class AnimationState2D extends AnimationState {
-  /** Animation action for positive X direction (right) */
-  private readonly xPositive: AnimationAction;
-  /** Animation action for negative X direction (left) */
-  private readonly xNegative: AnimationAction;
-  /** Animation action for positive Y direction (up) */
-  private readonly yPositive: AnimationAction;
-  /** Animation action for negative Y direction (down) */
-  private readonly yNegative: AnimationAction;
-  /** Animation action for the center/neutral state */
-  private readonly center: AnimationAction;
-  /** Internal storage for the current power value */
-  private powerInternal: number;
-  /** Current blend position in 2D space */
-  private readonly blend: Vector2;
+  private readonly xPositive: Anchor;
+  private readonly xNegative: Anchor;
+  private readonly yPositive: Anchor;
+  private readonly yNegative: Anchor;
+  private readonly center: Anchor;
+
+  private mostActiveAction: Anchor;
+  private hasEmittedIterationEvent = false;
+  private powerInternal = 0;
+  private readonly blend: Vector2 = new Vector2(0, 0);
 
   /**
    * Creates an instance of AnimationState2D.
    * Initializes a 2D blend space with five animations: one for each cardinal direction and one for center.
-   * 
+   *
    * @param {AnimationAction} xPositive - Animation for positive X direction (right)
    * @param {AnimationAction} xNegative - Animation for negative X direction (left)
    * @param {AnimationAction} yPositive - Animation for positive Y direction (up)
@@ -45,29 +47,66 @@ export class AnimationState2D extends AnimationState {
   ) {
     super();
 
-    this.xPositive = xPositive;
-    this.xPositive.weight = 0;
+    this.xPositive = {
+      action: xPositive,
+      duration: xPositive.getClip().duration,
+      previousTime: 0,
+    };
+    this.xPositive.action.time = 0;
+    this.xPositive.action.weight = 0;
 
-    this.xNegative = xNegative;
-    this.xNegative.weight = 0;
+    this.xNegative = {
+      action: xNegative,
+      duration: xNegative.getClip().duration,
+      previousTime: 0,
+    };
+    this.xNegative.action.time = 0;
+    this.xNegative.action.weight = 0;
 
-    this.yPositive = yPositive;
-    this.yPositive.weight = 0;
+    this.yPositive = {
+      action: yPositive,
+      duration: yPositive.getClip().duration,
+      previousTime: 0,
+    };
+    this.yPositive.action.time = 0;
+    this.yPositive.action.weight = 0;
 
-    this.yNegative = yNegative;
-    this.yNegative.weight = 0;
+    this.yNegative = {
+      action: yNegative,
+      duration: yNegative.getClip().duration,
+      previousTime: 0,
+    };
+    this.yNegative.action.time = 0;
+    this.yNegative.action.weight = 0;
 
-    this.center = center;
-    this.center.weight = 0;
+    this.center = {
+      action: center,
+      duration: center.getClip().duration,
+      previousTime: 0,
+    };
+    this.center.action.time = 0;
+    this.center.action.weight = 0;
 
-    this.powerInternal = 0;
-    this.blend = new Vector2(0, 0);
+    this.mostActiveAction = this.center;
+  }
+
+  /**
+   * Gets the current progress of the most active animation from start to end.
+   *
+   * @returns {number} A value between 0 and 1 representing the progress through the animation
+   */
+  public get progress(): number {
+    return MathUtils.clamp(
+      this.mostActiveAction.action.time / this.mostActiveAction.duration,
+      0,
+      1,
+    );
   }
 
   /**
    * Gets the current power level of all animations in the blend space.
    * A power of 0 means all animations are stopped, while 1 means full strength.
-   * 
+   *
    * @returns {number} The current power value between 0 and 1
    */
   public get power(): number {
@@ -78,7 +117,7 @@ export class AnimationState2D extends AnimationState {
    * Sets the power level of all animations in the blend space.
    * When power changes from 0 to positive, relevant animations start playing.
    * When power changes from positive to 0, all animations stop.
-   * 
+   *
    * @param {number} value - The desired power value (will be clamped between 0 and 1)
    * @emits {AnimationStateEvent.ENTER} When power changes from 0 to positive
    * @emits {AnimationStateEvent.EXIT} When power changes from positive to 0
@@ -93,7 +132,7 @@ export class AnimationState2D extends AnimationState {
       }
 
       this.powerInternal = clampedValue;
-      this.update();
+      this.updateAnimationActions();
     }
   }
 
@@ -101,31 +140,33 @@ export class AnimationState2D extends AnimationState {
    * Sets the current position in the 2D blend space.
    * This determines which animations are active and how they are blended.
    * The position is automatically clamped to a unit circle.
-   * 
+   *
    * @param {number} x - The X coordinate in the blend space
    * @param {number} y - The Y coordinate in the blend space
    */
   public setBlend(x: number, y: number): void {
     this.blend.set(x, y);
     this.blend.clampLength(0, 1);
-    this.update();
+    this.updateAnimationActions();
   }
 
-  /**
-   * Updates the weight of a single animation action based on the current state.
-   * Handles starting and stopping the animation as needed.
-   * 
-   * @private
-   * @param {AnimationAction} action - The animation action to update
-   * @param {number} weight - The new weight to set
-   */
-  private updateAction(action: AnimationAction, weight: number): void {
-    if (weight === 0 && action.weight > 0) {
-      action.stop();
-    } else if (weight > 0 && action.weight === 0) {
-      action.play();
+  public update(): void {
+    const action = this.mostActiveAction.action;
+    const currentTime = action.time;
+    const previousTime = this.mostActiveAction.previousTime;
+    const duration = this.mostActiveAction.duration;
+
+    if (
+      currentTime < previousTime ||
+      (currentTime >= duration && !this.hasEmittedIterationEvent)
+    ) {
+      this.emit(AnimationStateEvent.ITERATION, this);
+      this.hasEmittedIterationEvent = true;
+    } else if (currentTime < duration) {
+      this.hasEmittedIterationEvent = false;
     }
-    action.weight = weight;
+
+    this.mostActiveAction.previousTime = currentTime;
   }
 
   /**
@@ -133,19 +174,21 @@ export class AnimationState2D extends AnimationState {
    * This method handles the actual blending between animations in 2D space.
    * When blend vector is near zero, only the center animation plays.
    * Otherwise, animations are blended based on the direction and magnitude of the blend vector.
-   * 
-   * @private
+   * Also tracks the most active animation for iteration events.
+   *
+   * @public
    */
-  private update(): void {
+  private updateAnimationActions(): void {
     const epsilon = 1e-5;
     const squaredLength = this.blend.lengthSq();
 
     if (squaredLength < epsilon) {
-      this.updateAction(this.center, this.power);
-      this.updateAction(this.xPositive, 0);
-      this.updateAction(this.xNegative, 0);
-      this.updateAction(this.yPositive, 0);
-      this.updateAction(this.yNegative, 0);
+      this.updateAnimationAction(this.center.action, this.power);
+      this.updateAnimationAction(this.xPositive.action, 0);
+      this.updateAnimationAction(this.xNegative.action, 0);
+      this.updateAnimationAction(this.yPositive.action, 0);
+      this.updateAnimationAction(this.yNegative.action, 0);
+      this.mostActiveAction = this.center;
     } else {
       const length = Math.sqrt(this.blend.length());
       const normalized = this.blend.clone().divideScalar(length);
@@ -163,11 +206,48 @@ export class AnimationState2D extends AnimationState {
       const powerY = weightY * this.powerInternal;
       const powerC = weightC * this.powerInternal;
 
-      this.updateAction(this.xPositive, normalized.x > 0 ? powerX : 0);
-      this.updateAction(this.xNegative, normalized.x < 0 ? powerX : 0);
-      this.updateAction(this.yPositive, normalized.y > 0 ? powerY : 0);
-      this.updateAction(this.yNegative, normalized.y < 0 ? powerY : 0);
-      this.updateAction(this.center, powerC);
+      this.updateAnimationAction(
+        this.xPositive.action,
+        normalized.x > 0 ? powerX : 0,
+      );
+      this.updateAnimationAction(
+        this.xNegative.action,
+        normalized.x < 0 ? powerX : 0,
+      );
+      this.updateAnimationAction(
+        this.yPositive.action,
+        normalized.y > 0 ? powerY : 0,
+      );
+      this.updateAnimationAction(
+        this.yNegative.action,
+        normalized.y < 0 ? powerY : 0,
+      );
+      this.updateAnimationAction(this.center.action, powerC);
+
+      this.mostActiveAction = [
+        this.xPositive,
+        this.xNegative,
+        this.yPositive,
+        this.yNegative,
+        this.center,
+      ].reduce((p, c) => (c.action.weight > p.action.weight ? c : p));
     }
+  }
+
+  /**
+   * Updates the weight of a single animation action based on the current state.
+   * Handles starting and stopping the animation as needed.
+   *
+   * @private
+   * @param {AnimationAction} action - The animation action to update
+   * @param {number} weight - The new weight to set
+   */
+  private updateAnimationAction(action: AnimationAction, weight: number): void {
+    if (weight === 0 && action.weight > 0) {
+      action.stop();
+    } else if (weight > 0 && action.weight === 0) {
+      action.play();
+    }
+    action.weight = weight;
   }
 }

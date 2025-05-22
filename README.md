@@ -13,6 +13,9 @@ A lightweight animation state machine for Three.js that makes complex animation 
 - 🎯 Directional (2D) animation blending
 - 🔄 Smooth state transitions
 - 🚦 Event-driven state changes
+- 🎬 Automatic transitions on animation completion
+- 📈 Data-driven transitions
+- 🔄 Animation iteration events
 - ⚡ Lightweight and efficient
 - 📦 Full TypeScript support
 
@@ -43,6 +46,14 @@ const state = new AnimationState0D(action);
 state.power = 0.5;  // Set animation to half strength
 state.power = 1;    // Full strength
 state.power = 0;    // Stop animation
+
+// Track animation progress
+console.log(state.progress); // Value between 0 and 1
+
+// Update in animation loop
+function animate(deltaTime) {
+  state.update(deltaTime);
+}
 ```
 
 ### Linear Blend Space (1D)
@@ -66,6 +77,14 @@ blendSpace.power = 1;
 blendSpace.setBlend(0);    // Pure walk
 blendSpace.setBlend(0.5);  // Perfect blend between walk and run
 blendSpace.setBlend(1);    // Pure run
+
+// Track progress of most active animation
+console.log(blendSpace.progress);
+
+// Update in animation loop
+function animate(deltaTime) {
+  blendSpace.update(deltaTime);
+}
 ```
 
 ### Directional Blend Space (2D)
@@ -88,36 +107,52 @@ const directionalState = new AnimationState2D(
 directionalState.power = 1;
 
 // Blend based on 2D direction (-1 to 1 for each axis)
-directionalState.setBlend(1, 0);     // Pure right movement
+directionalState.setBlend(1, 0);      // Pure right movement
 directionalState.setBlend(-0.7, 0.7); // Diagonal left-forward
-directionalState.setBlend(0, 0);     // Center/idle
+directionalState.setBlend(0, 0);      // Center/idle
+
+// Track progress of most active animation
+console.log(directionalState.progress);
+
+// Update in animation loop
+function animate(deltaTime) {
+  directionalState.update(deltaTime);
+}
 ```
 
 ### Animation State Machine
 
-Create complex animation systems with smooth transitions:
+Create complex animation systems with different types of transitions:
 
 ```typescript
-import { AnimationStateMachine, AnimationStateEvent } from 'animouse';
+import { AnimationStateMachine } from 'animouse';
 
 // Create state machine
 const stateMachine = new AnimationStateMachine(idleState, mixer);
 
-// Add transitions
-stateMachine.addTransition('JUMP', {
-  from: idleState,
-  to: jumpState,
-  duration: 0.2
+// Event-driven transitions
+stateMachine.addEventTransition('JUMP', {
+  from: idleState,       // Optional: specify source state
+  to: jumpState,         // Target state
+  duration: 0.2,         // Transition duration
+  condition: () => true  // Optional condition
 });
 
-stateMachine.addTransition('LAND', {
-  from: jumpState,
-  to: idleState,
-  duration: 0.3,
-  condition: (height) => height < 0.1  // Optional condition
+// Automatic transitions (on animation completion)
+stateMachine.addAutomaticTransition(jumpState, {
+  to: fallState,
+  duration: 0.3
 });
 
-// Handle transitions
+// Data-driven transitions (checked every frame)
+stateMachine.addDataTransition(fallState, {
+  to: landState,
+  duration: 0.2,
+  data: [player],
+  condition: (player) => player.isGrounded
+});
+
+// Handle event transitions
 stateMachine.handleEvent('JUMP');
 
 // Update every frame
@@ -128,7 +163,7 @@ function animate(deltaTime) {
 
 ### Events
 
-All animation states emit events when their power changes:
+Animation states emit events for important state changes:
 
 ```typescript
 import { AnimationStateEvent } from 'animouse';
@@ -139,6 +174,10 @@ state.on(AnimationStateEvent.ENTER, (state) => {
 
 state.on(AnimationStateEvent.EXIT, (state) => {
   console.log('Animation stopped');
+});
+
+state.on(AnimationStateEvent.ITERATION, (state) => {
+  console.log('Animation completed one cycle');
 });
 ```
 

@@ -10,12 +10,21 @@ import { Emitter } from "eventail";
  */
 export abstract class AnimationState extends Emitter {
   /**
+   * Gets the current progress of the animation from start to end.
+   * 
+   * @abstract
+   * @type {number}
+   * @returns {number} A value between 0 and 1 representing the progress through the animation
+   */
+  public abstract get progress(): number;
+
+  /**
    * Gets the current power level of the animation state.
    * Power determines the strength or influence of the animation, typically ranging from 0 to 1.
    * 
    * @abstract
    * @type {number}
-   * @memberof AnimationState
+   * @returns {number} The current power value between 0 and 1
    */
   public abstract get power(): number;
 
@@ -24,8 +33,19 @@ export abstract class AnimationState extends Emitter {
    * Power determines the strength or influence of the animation, typically ranging from 0 to 1.
    * 
    * @abstract
-   * @memberof AnimationState
    * @param {number} value - The power level to set (typically between 0 and 1)
+   * @emits {AnimationStateEvent.ENTER} When power changes from 0 to positive
+   * @emits {AnimationStateEvent.EXIT} When power changes from positive to 0
    */
   public abstract set power(value: number);
+
+  /**
+   * Updates the animation state.
+   * This method should be called every frame to handle animation events and state changes.
+   * 
+   * @abstract
+   * @param {number} deltaTime - Time in seconds since the last update
+   * @emits {AnimationStateEvent.ITERATION} When an animation completes a full iteration
+   */
+  public abstract update(deltaTime: number): void;
 }
