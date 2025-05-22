@@ -1,6 +1,6 @@
 {
   "name": "animouse",
-  "version": "0.2.3",
+  "version": "0.3.3",
   "description": "lightweight animation state machine for three js",
   "scripts": {
     "clean": "rm -rf dist",
