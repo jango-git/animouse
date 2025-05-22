@@ -2,6 +2,7 @@ import type { AnimationAction } from "three";
 import { MathUtils } from "three";
 import { AnimationState } from "./AnimationState";
 import { AnimationStateEvent } from "./AnimationStateEvent";
+import { powerSymbol, updateSymbol } from "./symbols";
 
 /**
  * Represents a simple animation state that controls a single animation with a power value.
@@ -33,7 +34,7 @@ export class AnimationState0D extends AnimationState {
     return this.powerInternal;
   }
 
-  public set power(value: number) {
+  public set [powerSymbol](value: number) {
     if (this.powerInternal !== value) {
       if (this.powerInternal === 0 && value > 0) {
         this.action.play();
@@ -48,7 +49,7 @@ export class AnimationState0D extends AnimationState {
     }
   }
 
-  public update(): void {
+  public [updateSymbol](): void {
     const currentTime = this.action.time;
 
     if (

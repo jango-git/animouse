@@ -2,11 +2,12 @@ import type { AnimationMixer } from "three";
 import { MathUtils } from "three";
 import type { AnimationState } from "./AnimationState";
 import { AnimationStateEvent } from "./AnimationStateEvent";
+import { powerSymbol, updateSymbol } from "./symbols";
 
 /**
  * Function type for evaluating transition conditions.
  * Returns true if the transition should be allowed to occur.
- * 
+ *
  * @callback Condition
  * @param {...unknown[]} args - Arguments passed to evaluate the condition
  * @returns {boolean} True if the transition should occur, false otherwise
@@ -15,7 +16,7 @@ type Condition = (...args: unknown[]) => boolean;
 
 /**
  * Configuration for event-triggered transitions between animation states.
- * 
+ *
  * @interface AnimationEventTransition
  */
 export interface AnimationEventTransition {
@@ -31,7 +32,7 @@ export interface AnimationEventTransition {
 
 /**
  * Configuration for automatic transitions that occur at the end of animations.
- * 
+ *
  * @interface AnimationAutomaticTransition
  */
 export interface AnimationAutomaticTransition {
@@ -43,7 +44,7 @@ export interface AnimationAutomaticTransition {
 
 /**
  * Configuration for data-driven transitions that occur based on condition evaluation.
- * 
+ *
  * @interface AnimationDataTransition
  */
 export interface AnimationDataTransition {
@@ -61,7 +62,7 @@ export interface AnimationDataTransition {
  * Manages complex animation state transitions with support for event-based,
  * automatic, and data-driven transitions. Handles smooth blending between
  * states and maintains proper animation weights throughout transitions.
- * 
+ *
  * @class AnimationStateMachine
  */
 export class AnimationStateMachine {
@@ -75,26 +76,33 @@ export class AnimationStateMachine {
   private readonly mixer: AnimationMixer;
 
   /** Map of event names to their possible transitions */
-  private readonly eventTransitions: Map<string, AnimationEventTransition[]> = new Map();
+  private readonly eventTransitions: Map<string, AnimationEventTransition[]> =
+    new Map();
 
   /** Map of states to their automatic transitions that occur at animation end */
-  private readonly automaticTransitions: Map<AnimationState, AnimationAutomaticTransition> = new Map();
+  private readonly automaticTransitions: Map<
+    AnimationState,
+    AnimationAutomaticTransition
+  > = new Map();
 
   /** Map of states to their data-driven transitions */
-  private readonly dataTransitions: Map<AnimationState, AnimationDataTransition[]> = new Map();
+  private readonly dataTransitions: Map<
+    AnimationState,
+    AnimationDataTransition[]
+  > = new Map();
 
   /** Time remaining in the current transition */
   private elapsedTime: number;
 
   /**
    * Creates an instance of AnimationStateMachine.
-   * 
+   *
    * @param {AnimationState} initialState - The starting animation state
    * @param {AnimationMixer} mixer - The THREE.js animation mixer to use
    */
   constructor(initialState: AnimationState, mixer: AnimationMixer) {
     this.currentState = initialState;
-    this.currentState.power = 1;
+    this.currentState[powerSymbol] = 1;
 
     this.mixer = mixer;
     this.eventTransitions = new Map();
@@ -104,11 +112,14 @@ export class AnimationStateMachine {
   /**
    * Adds a new event-triggered transition.
    * These transitions occur when specific events are handled by the state machine.
-   * 
+   *
    * @param {string} event - The event name that triggers this transition
    * @param {AnimationEventTransition} transition - The transition configuration
    */
-  public addEventTransition(event: string, transition: AnimationEventTransition): void {
+  public addEventTransition(
+    event: string,
+    transition: AnimationEventTransition,
+  ): void {
     const transitions = this.eventTransitions.get(event) ?? [];
     this.eventTransitions.set(event, transitions);
     transitions.push(transition);
@@ -117,12 +128,15 @@ export class AnimationStateMachine {
   /**
    * Adds an automatic transition that occurs when an animation completes.
    * Only one automatic transition can be set per state.
-   * 
+   *
    * @param {AnimationState} from - The source state for the automatic transition
    * @param {AnimationAutomaticTransition} transition - The transition configuration
    * @throws {Error} If an automatic transition already exists for the source state
    */
-  public addAutomaticTransition(from: AnimationState, transition: AnimationAutomaticTransition): void {
+  public addAutomaticTransition(
+    from: AnimationState,
+    transition: AnimationAutomaticTransition,
+  ): void {
     if (this.automaticTransitions.has(from)) {
       throw new Error("Automatic transition already exists");
     }
@@ -134,11 +148,14 @@ export class AnimationStateMachine {
   /**
    * Adds a data-driven transition that is evaluated each update.
    * These transitions occur when their condition functions return true.
-   * 
+   *
    * @param {AnimationState} from - The source state for the data transition
    * @param {AnimationDataTransition} transition - The transition configuration
    */
-  public addDataTransition(from: AnimationState, transition: AnimationDataTransition): void {
+  public addDataTransition(
+    from: AnimationState,
+    transition: AnimationDataTransition,
+  ): void {
     const transitions = this.dataTransitions.get(from) ?? [];
     this.dataTransitions.set(from, transitions);
     transitions.push(transition);
@@ -146,7 +163,7 @@ export class AnimationStateMachine {
 
   /**
    * Handles an event by checking and executing any valid transitions.
-   * 
+   *
    * @param {string} eventName - The name of the event to handle
    * @param {...unknown[]} args - Additional arguments passed to transition conditions
    * @returns {boolean} True if a transition was executed, false otherwise
@@ -173,16 +190,16 @@ export class AnimationStateMachine {
    * Updates the animation state machine and all animations.
    * Evaluates data-driven transitions, updates transition progress,
    * and updates the animation mixer.
-   * 
+   *
    * @param {number} deltaTime - Time in seconds since the last update
    */
   public update(deltaTime: number): void {
     // Update current state
-    this.currentState.update(deltaTime);
-    
+    this.currentState[updateSymbol](deltaTime);
+
     // Update all fading states
     for (const state of this.fadingStates) {
-      state.update(deltaTime);
+      state[updateSymbol](deltaTime);
     }
 
     const transition = this.dataTransitions
@@ -197,18 +214,22 @@ export class AnimationStateMachine {
       const t = Math.min(1, deltaTime / this.elapsedTime);
 
       for (const state of this.fadingStates) {
-        state.power = MathUtils.lerp(state.power, 0, t);
+        state[powerSymbol] = MathUtils.lerp(state.power, 0, t);
       }
 
-      this.currentState.power = MathUtils.lerp(this.currentState.power, 1, t);
+      this.currentState[powerSymbol] = MathUtils.lerp(
+        this.currentState.power,
+        1,
+        t,
+      );
       this.elapsedTime = Math.max(0, this.elapsedTime - deltaTime);
 
       if (this.elapsedTime === 0) {
         for (const state of this.fadingStates) {
-          state.power = 0;
+          state[powerSymbol] = 0;
         }
         this.fadingStates = [];
-        this.currentState.power = 1;
+        this.currentState[powerSymbol] = 1;
       }
     }
 
@@ -217,7 +238,7 @@ export class AnimationStateMachine {
 
   /**
    * Transitions to a new animation state over the specified duration.
-   * 
+   *
    * @private
    * @param {AnimationState} state - The state to transition to
    * @param {number} duration - The duration of the transition in seconds
@@ -236,7 +257,7 @@ export class AnimationStateMachine {
 
   /**
    * Handles animation iteration events for automatic transitions.
-   * 
+   *
    * @private
    * @param {AnimationState} state - The state that completed an iteration
    */

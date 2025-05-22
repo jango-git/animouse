@@ -2,6 +2,7 @@ import type { AnimationAction } from "three";
 import { MathUtils } from "three";
 import { AnimationState } from "./AnimationState";
 import { AnimationStateEvent } from "./AnimationStateEvent";
+import { powerSymbol, updateSymbol } from "./symbols";
 
 const MIN_ACTION_COUNT = 2;
 
@@ -100,7 +101,7 @@ export class AnimationState1D extends AnimationState {
    * @emits {AnimationStateEvent.ENTER} When power changes from 0 to positive
    * @emits {AnimationStateEvent.EXIT} When power changes from positive to 0
    */
-  public set power(value: number) {
+  public set [powerSymbol](value: number) {
     const clampedValue = MathUtils.clamp(value, 0, 1);
 
     if (this.powerInternal !== clampedValue) {
@@ -126,7 +127,7 @@ export class AnimationState1D extends AnimationState {
     this.updateAnimationActions();
   }
 
-  public update(): void {
+  public [updateSymbol](): void {
     const action = this.mostActiveAction.action;
     const currentTime = action.time;
     const previousTime = this.mostActiveAction.previousTime;

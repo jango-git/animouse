@@ -16,6 +16,7 @@ A lightweight animation state machine for Three.js that makes complex animation 
 - 🎬 Automatic transitions on animation completion
 - 📈 Data-driven transitions
 - 🔄 Animation iteration events
+- 🔒 Strict state encapsulation
 - ⚡ Lightweight and efficient
 - 📦 Full TypeScript support
 
@@ -31,29 +32,37 @@ npm install animouse
 
 ## Usage
 
+### Animation State Machine
+
+The AnimationStateMachine is the core controller for all animation states. It manages state transitions, updates, and power levels:
+
+```typescript
+import { AnimationStateMachine } from 'animouse';
+
+// Create state machine with initial state
+const stateMachine = new AnimationStateMachine(idleState, mixer);
+
+// Update in animation loop (required)
+function animate(deltaTime) {
+  stateMachine.update(deltaTime);
+}
+```
+
 ### Basic Animation State (0D)
 
-Control a single animation with simple power control:
+Control a single animation:
 
 ```typescript
 import { AnimationState0D } from 'animouse';
-import { AnimationMixer, AnimationAction } from 'three';
 
 // Create animation state
 const state = new AnimationState0D(action);
 
-// Control animation power (0 to 1)
-state.power = 0.5;  // Set animation to half strength
-state.power = 1;    // Full strength
-state.power = 0;    // Stop animation
-
-// Track animation progress
+// Get current animation progress
 console.log(state.progress); // Value between 0 and 1
 
-// Update in animation loop
-function animate(deltaTime) {
-  state.update(deltaTime);
-}
+// Get current power level
+console.log(state.power); // Value between 0 and 1
 ```
 
 ### Linear Blend Space (1D)
@@ -70,21 +79,13 @@ const blendSpace = new AnimationState1D([
   { action: runAction, value: 1 }      // End of blend space
 ]);
 
-// Control overall power
-blendSpace.power = 1;
+// Track progress of most active animation
+console.log(blendSpace.progress);
 
 // Blend between animations (0 to 1)
 blendSpace.setBlend(0);    // Pure walk
 blendSpace.setBlend(0.5);  // Perfect blend between walk and run
 blendSpace.setBlend(1);    // Pure run
-
-// Track progress of most active animation
-console.log(blendSpace.progress);
-
-// Update in animation loop
-function animate(deltaTime) {
-  blendSpace.update(deltaTime);
-}
 ```
 
 ### Directional Blend Space (2D)
@@ -103,34 +104,22 @@ const directionalState = new AnimationState2D(
   idleAction      // Center
 );
 
-// Control overall power
-directionalState.power = 1;
+// Track progress of most active animation
+console.log(directionalState.progress);
 
 // Blend based on 2D direction (-1 to 1 for each axis)
 directionalState.setBlend(1, 0);      // Pure right movement
 directionalState.setBlend(-0.7, 0.7); // Diagonal left-forward
 directionalState.setBlend(0, 0);      // Center/idle
-
-// Track progress of most active animation
-console.log(directionalState.progress);
-
-// Update in animation loop
-function animate(deltaTime) {
-  directionalState.update(deltaTime);
-}
 ```
 
-### Animation State Machine
+### State Transitions
 
-Create complex animation systems with different types of transitions:
+AnimationStateMachine supports three types of transitions:
 
+1. Event-driven transitions:
 ```typescript
-import { AnimationStateMachine } from 'animouse';
-
-// Create state machine
-const stateMachine = new AnimationStateMachine(idleState, mixer);
-
-// Event-driven transitions
+// Transition when event occurs
 stateMachine.addEventTransition('JUMP', {
   from: idleState,       // Optional: specify source state
   to: jumpState,         // Target state
@@ -138,27 +127,28 @@ stateMachine.addEventTransition('JUMP', {
   condition: () => true  // Optional condition
 });
 
-// Automatic transitions (on animation completion)
+// Trigger the transition
+stateMachine.handleEvent('JUMP');
+```
+
+2. Automatic transitions (on animation completion):
+```typescript
+// Transition automatically when jump animation completes
 stateMachine.addAutomaticTransition(jumpState, {
   to: fallState,
   duration: 0.3
 });
+```
 
-// Data-driven transitions (checked every frame)
+3. Data-driven transitions:
+```typescript
+// Transition based on game state
 stateMachine.addDataTransition(fallState, {
   to: landState,
   duration: 0.2,
   data: [player],
   condition: (player) => player.isGrounded
 });
-
-// Handle event transitions
-stateMachine.handleEvent('JUMP');
-
-// Update every frame
-function animate(deltaTime) {
-  stateMachine.update(deltaTime);
-}
 ```
 
 ### Events
@@ -180,6 +170,17 @@ state.on(AnimationStateEvent.ITERATION, (state) => {
   console.log('Animation completed one cycle');
 });
 ```
+
+## Important Notes
+
+1. Animation states are managed exclusively by the AnimationStateMachine:
+   - Power levels are controlled internally
+   - State updates are handled automatically
+   - Never modify state power or call update directly
+
+2. All animation states must be updated through the AnimationStateMachine:
+   - Call `stateMachine.update(deltaTime)` every frame
+   - This updates both active and transitioning states
 
 ## API Documentation
 
