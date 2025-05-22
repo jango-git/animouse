@@ -1,6 +1,6 @@
 {
   "name": "animouse",
-  "version": "0.1.0",
+  "version": "0.1.2",
   "description": "lightweight animation state machine for three js",
   "scripts": {
     "clean": "rm -rf dist",
@@ -26,17 +26,19 @@
   },
   "type": "module",
   "peerDependencies": {
-    "eventail": "^0.0.6",
     "three": "^0.176.0"
   },
   "devDependencies": {
-    "@types/three": "^0.176.0",
     "@rollup/plugin-node-resolve": "^16.0.1",
+    "@types/three": "^0.176.0",
     "@typescript-eslint/eslint-plugin": "^8.32.0",
     "@typescript-eslint/parser": "^8.32.0",
     "eslint": "^9.26.0",
     "rollup": "^4.40.2",
     "rollup-plugin-typescript2": "^0.36.0",
     "typescript": "^5.8.3"
+  },
+  "dependencies": {
+    "eventail": "^0.0.6"
   }
 }
