@@ -8,8 +8,17 @@ const MIN_ACTION_COUNT = 2;
 
 /**
  * Represents an animation action and its corresponding value in the 1D animation space.
+ * Used to define animation keyframes along a continuous parameter range.
  *
- * @interface Action
+ * @interface State1Action
+ * @example
+ * ```typescript
+ * const actions: State1Action[] = [
+ *   { action: mixer.clipAction(walkClip), value: 0 },   // Slow walk
+ *   { action: mixer.clipAction(jogClip), value: 0.5 },  // Medium jog
+ *   { action: mixer.clipAction(runClip), value: 1 }     // Fast run
+ * ];
+ * ```
  */
 export interface State1Action {
   action: AnimationAction;
@@ -26,10 +35,32 @@ interface Anchor {
 
 /**
  * Manages a one-dimensional blend space between multiple animations.
- * This class can control and blend between multiple animations arranged along a 1D axis.
+ * This class controls animations arranged along a single axis, automatically blending
+ * between adjacent animations based on a parameter value.
+ * Useful for animations that vary based on a single parameter like speed, power, or health.
+ *
+ * Key features:
+ * - Manages multiple animations along a continuous parameter range
+ * - Automatically blends between adjacent animations
+ * - Maintains consistent total animation weight
+ * - Normalizes input range to 0-1 for consistent control
  *
  * @class AnimationState1D
  * @extends {AnimationState}
+ * @see {@link AnimationState} For base class documentation
+ * @see {@link AnimationStateEvent} For emitted events
+ * @example
+ * ```typescript
+ * // Create a speed-based locomotion system
+ * const state1D = new AnimationState1D([
+ *   { action: mixer.clipAction(idleClip), value: 0 },
+ *   { action: mixer.clipAction(walkClip), value: 0.5 },
+ *   { action: mixer.clipAction(runClip), value: 1 }
+ * ]);
+ *
+ * // Update based on character speed
+ * state1D.setBlend(characterSpeed / maxSpeed);
+ * ```
  */
 export class AnimationState1D extends AnimationState {
   private readonly anchors: Anchor[] = [];
@@ -41,10 +72,26 @@ export class AnimationState1D extends AnimationState {
   /**
    * Creates an instance of AnimationState1D.
    * The actions will be sorted by their value to create a continuous 1D blend space.
+   * Values will be normalized so the first action is at 0 and the last at 1.
+   * Intermediate values will maintain their relative spacing.
    *
    * @param {State1Action[]} actions - Array of animation actions and their positions in the 1D space.
-   * Must contain at least 2 actions.
+   * Must contain at least 2 actions to enable blending.
+   * All actions should be from the same {@link AnimationMixer}.
    * @throws {Error} If less than 2 actions are provided
+   * @example
+   * ```typescript
+   * // Create a 3-point blend space
+   * const walk = mixer.clipAction(walkClip);
+   * const jog = mixer.clipAction(jogClip);
+   * const run = mixer.clipAction(runClip);
+   *
+   * const locomotion = new AnimationState1D([
+   *   { action: walk, value: 0 },   // Maps to normalized 0
+   *   { action: jog, value: 5 },    // Maps to normalized ~0.5
+   *   { action: run, value: 10 }    // Maps to normalized 1
+   * ]);
+   * ```
    */
   constructor(actions: State1Action[]) {
     super();
@@ -119,8 +166,23 @@ export class AnimationState1D extends AnimationState {
   /**
    * Sets the current position in the 1D blend space.
    * This determines which animations are active and how they are blended.
+   * The value is automatically clamped between 0 and 1.
    *
-   * @param {number} value - The position in the blend space (will be clamped between 0 and 1)
+   * When the value is exactly at an action's position, only that action plays.
+   * When between two actions, they are smoothly blended based on the relative distance.
+   *
+   * @param {number} value - The position in the blend space (0 to 1)
+   * @example
+   * ```typescript
+   * // Play first animation only
+   * state1D.setBlend(0);
+   *
+   * // Blend evenly between first two animations
+   * state1D.setBlend(0.25);
+   *
+   * // Play last animation only
+   * state1D.setBlend(1);
+   * ```
    */
   public setBlend(value: number): void {
     this.blend = MathUtils.clamp(value, 0, 1);
@@ -152,20 +214,14 @@ export class AnimationState1D extends AnimationState {
       const right = this.anchors[i + 1];
 
       if (this.blend < left.value) {
-        this.updateAnimationAction(right.action, 0);
+        this.updateAnimationAction(right, 0);
       } else if (this.blend > right.value) {
-        this.updateAnimationAction(left.action, 0);
+        this.updateAnimationAction(left, 0);
       } else {
         const difference =
           (this.blend - left.value) / (right.value - left.value);
-        this.updateAnimationAction(
-          left.action,
-          (1 - difference) * this.powerInternal,
-        );
-        this.updateAnimationAction(
-          right.action,
-          difference * this.powerInternal,
-        );
+        this.updateAnimationAction(left, (1 - difference) * this.powerInternal);
+        this.updateAnimationAction(right, difference * this.powerInternal);
       }
     }
 
@@ -175,19 +231,34 @@ export class AnimationState1D extends AnimationState {
   }
 
   /**
-   * Updates the weight of a single animation action based on the current state.
-   * Handles starting and stopping the animation as needed.
+   * Updates the weight of a single animation anchor's action based on the specified weight.
+   * Starts the animation if the weight transitions from zero to positive.
+   * Stops and resets the animation if the weight transitions from positive to zero.
    *
+   * @param {Anchor} anchor - The animation anchor containing the action to update
+   * @param {number} weight - The new weight to assign to the animation action
    * @private
-   * @param {AnimationAction} action - The animation action to update
-   * @param {number} weight - The new weight to set
    */
-  private updateAnimationAction(action: AnimationAction, weight: number): void {
-    if (weight === 0 && action.weight > 0) {
-      action.stop();
-    } else if (weight > 0 && action.weight === 0) {
-      action.play();
+  /**
+   * Updates the weight of a single animation anchor's action based on the specified weight.
+   * Handles the mechanics of starting/stopping animations and setting weights.
+   *
+   * - When weight becomes 0: Stops and resets the animation
+   * - When weight becomes positive: Starts the animation playing
+   * - Always: Updates the animation's influence weight
+   *
+   * @param {Anchor} anchor - The animation anchor containing the action to update
+   * @param {number} weight - The new weight to assign to the animation action
+   * @private
+   */
+  private updateAnimationAction(anchor: Anchor, weight: number): void {
+    if (weight === 0 && anchor.action.weight > 0) {
+      anchor.action.stop();
+      anchor.action.time = 0;
+      anchor.previousTime = 0;
+    } else if (weight > 0 && anchor.action.weight === 0) {
+      anchor.action.play();
     }
-    action.weight = weight;
+    anchor.action.weight = weight;
   }
 }

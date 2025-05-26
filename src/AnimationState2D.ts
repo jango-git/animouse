@@ -13,9 +13,22 @@ interface Anchor {
 /**
  * Manages a two-dimensional blend space between multiple animations.
  * This class controls animations arranged in a 2D space with a center state and four directional states (positive/negative X/Y).
+ * Useful for blending directional animations like walking, running, or aiming.
+ *
+ * The blend space is structured as:
+ * ```
+ *          yPositive
+ *             ↑
+ *    xNegative←+→xPositive
+ *             ↓
+ *          yNegative
+ * ```
+ * With a center state that plays when blend coordinates are near (0,0).
  *
  * @class AnimationState2D
  * @extends {AnimationState}
+ * @see {@link AnimationState} For base class documentation
+ * @see {@link AnimationStateEvent} For emitted events
  */
 export class AnimationState2D extends AnimationState {
   private readonly xPositive: Anchor;
@@ -32,12 +45,24 @@ export class AnimationState2D extends AnimationState {
   /**
    * Creates an instance of AnimationState2D.
    * Initializes a 2D blend space with five animations: one for each cardinal direction and one for center.
+   * All animations must be from the same {@link AnimationMixer} to ensure proper blending.
    *
-   * @param {AnimationAction} xPositive - Animation for positive X direction (right)
-   * @param {AnimationAction} xNegative - Animation for negative X direction (left)
-   * @param {AnimationAction} yPositive - Animation for positive Y direction (up)
-   * @param {AnimationAction} yNegative - Animation for negative Y direction (down)
-   * @param {AnimationAction} center - Animation for the center/neutral state
+   * @param {AnimationAction} xPositive - Animation for positive X direction (right, +X)
+   * @param {AnimationAction} xNegative - Animation for negative X direction (left, -X)
+   * @param {AnimationAction} yPositive - Animation for positive Y direction (up, +Y)
+   * @param {AnimationAction} yNegative - Animation for negative Y direction (down, -Y)
+   * @param {AnimationAction} center - Animation for the center/neutral state (0,0)
+   * @throws {Error} If animations are from different mixers
+   * @example
+   * ```typescript
+   * const state2D = new AnimationState2D(
+   *   mixer.clipAction(walkRight),
+   *   mixer.clipAction(walkLeft),
+   *   mixer.clipAction(walkForward),
+   *   mixer.clipAction(walkBack),
+   *   mixer.clipAction(idle)
+   * );
+   * ```
    */
   constructor(
     xPositive: AnimationAction,
@@ -140,10 +165,23 @@ export class AnimationState2D extends AnimationState {
   /**
    * Sets the current position in the 2D blend space.
    * This determines which animations are active and how they are blended.
-   * The position is automatically clamped to a unit circle.
+   * The position is automatically clamped to a unit circle to ensure valid blending weights.
+   * At (0,0), only the center animation plays. As coordinates move away from center,
+   * the directional animations are blended based on the angle and magnitude.
    *
-   * @param {number} x - The X coordinate in the blend space
-   * @param {number} y - The Y coordinate in the blend space
+   * @param {number} x - The X coordinate in the blend space (-1 to 1)
+   * @param {number} y - The Y coordinate in the blend space (-1 to 1)
+   * @example
+   * ```typescript
+   * // Play center animation only
+   * state2D.setBlend(0, 0);
+   *
+   * // Blend between right and forward animations
+   * state2D.setBlend(0.7, 0.7);
+   *
+   * // Play left animation at full strength
+   * state2D.setBlend(-1, 0);
+   * ```
    */
   public setBlend(x: number, y: number): void {
     this.blend.set(x, y);
@@ -184,11 +222,11 @@ export class AnimationState2D extends AnimationState {
     const squaredLength = this.blend.lengthSq();
 
     if (squaredLength < epsilon) {
-      this.updateAnimationAction(this.center.action, this.power);
-      this.updateAnimationAction(this.xPositive.action, 0);
-      this.updateAnimationAction(this.xNegative.action, 0);
-      this.updateAnimationAction(this.yPositive.action, 0);
-      this.updateAnimationAction(this.yNegative.action, 0);
+      this.updateAnimationAction(this.center, this.power);
+      this.updateAnimationAction(this.xPositive, 0);
+      this.updateAnimationAction(this.xNegative, 0);
+      this.updateAnimationAction(this.yPositive, 0);
+      this.updateAnimationAction(this.yNegative, 0);
       this.mostActiveAction = this.center;
     } else {
       const length = Math.sqrt(this.blend.length());
@@ -207,23 +245,11 @@ export class AnimationState2D extends AnimationState {
       const powerY = weightY * this.powerInternal;
       const powerC = weightC * this.powerInternal;
 
-      this.updateAnimationAction(
-        this.xPositive.action,
-        normalized.x > 0 ? powerX : 0,
-      );
-      this.updateAnimationAction(
-        this.xNegative.action,
-        normalized.x < 0 ? powerX : 0,
-      );
-      this.updateAnimationAction(
-        this.yPositive.action,
-        normalized.y > 0 ? powerY : 0,
-      );
-      this.updateAnimationAction(
-        this.yNegative.action,
-        normalized.y < 0 ? powerY : 0,
-      );
-      this.updateAnimationAction(this.center.action, powerC);
+      this.updateAnimationAction(this.xPositive, normalized.x > 0 ? powerX : 0);
+      this.updateAnimationAction(this.xNegative, normalized.x < 0 ? powerX : 0);
+      this.updateAnimationAction(this.yPositive, normalized.y > 0 ? powerY : 0);
+      this.updateAnimationAction(this.yNegative, normalized.y < 0 ? powerY : 0);
+      this.updateAnimationAction(this.center, powerC);
 
       this.mostActiveAction = [
         this.xPositive,
@@ -236,19 +262,22 @@ export class AnimationState2D extends AnimationState {
   }
 
   /**
-   * Updates the weight of a single animation action based on the current state.
-   * Handles starting and stopping the animation as needed.
+   * Updates the weight of a single animation anchor's action based on the specified weight.
+   * Starts the animation if the weight transitions from zero to positive.
+   * Stops and resets the animation if the weight transitions from positive to zero.
    *
+   * @param {Anchor} anchor - The animation anchor containing the action to update
+   * @param {number} weight - The new weight to assign to the animation action
    * @private
-   * @param {AnimationAction} action - The animation action to update
-   * @param {number} weight - The new weight to set
    */
-  private updateAnimationAction(action: AnimationAction, weight: number): void {
-    if (weight === 0 && action.weight > 0) {
-      action.stop();
-    } else if (weight > 0 && action.weight === 0) {
-      action.play();
+  private updateAnimationAction(anchor: Anchor, weight: number): void {
+    if (weight === 0 && anchor.action.weight > 0) {
+      anchor.action.stop();
+      anchor.action.time = 0;
+      anchor.previousTime = 0;
+    } else if (weight > 0 && anchor.action.weight === 0) {
+      anchor.action.play();
     }
-    action.weight = weight;
+    anchor.action.weight = weight;
   }
 }
