@@ -71,8 +71,8 @@ export interface AnimationDataTransition {
  * @class AnimationStateMachine
  */
 export class AnimationStateMachine {
-  /** The currently active animation state */
-  private currentState: AnimationState;
+  /** Internal storage for the currently active animation state */
+  private currentStateInternal: AnimationState;
 
   /** States that are currently fading out during transitions */
   private fadingStates: AnimationState[] = [];
@@ -106,14 +106,22 @@ export class AnimationStateMachine {
    * @param {AnimationMixer} mixer - The THREE.js animation mixer to use
    */
   constructor(initialState: AnimationState, mixer: AnimationMixer) {
-    this.currentState = initialState;
+    this.currentStateInternal = initialState;
 
-    this.currentState[onEnterSymbol]();
-    this.currentState[powerSymbol] = 1;
+    this.currentStateInternal[onEnterSymbol]();
+    this.currentStateInternal[powerSymbol] = 1;
 
     this.mixer = mixer;
     this.eventTransitions = new Map();
     this.elapsedTime = 0;
+  }
+
+  /**
+   * Gets the currently active animation state.
+   * @returns {AnimationState} The current animation state
+   */
+  public get currentState(): AnimationState {
+    return this.currentStateInternal;
   }
 
   /**
@@ -182,7 +190,7 @@ export class AnimationStateMachine {
     ];
 
     for (const { from, to, duration, condition } of transitions) {
-      const validFromState = !from || from === this.currentState;
+      const validFromState = !from || from === this.currentStateInternal;
       const validCondition = !condition || condition(...args);
       if (validFromState && validCondition) {
         this.transitionTo(to, duration);
@@ -202,7 +210,7 @@ export class AnimationStateMachine {
    */
   public update(deltaTime: number): void {
     // Update current state
-    this.currentState[updateSymbol](deltaTime);
+    this.currentStateInternal[updateSymbol](deltaTime);
 
     // Update all fading states
     for (const state of this.fadingStates) {
@@ -210,7 +218,7 @@ export class AnimationStateMachine {
     }
 
     const transition = this.dataTransitions
-      .get(this.currentState)
+      .get(this.currentStateInternal)
       ?.find((transition) => transition.condition(...transition.data));
 
     if (transition) {
@@ -224,8 +232,8 @@ export class AnimationStateMachine {
         state[powerSymbol] = MathUtils.lerp(state.power, 0, t);
       }
 
-      this.currentState[powerSymbol] = MathUtils.lerp(
-        this.currentState.power,
+      this.currentStateInternal[powerSymbol] = MathUtils.lerp(
+        this.currentStateInternal.power,
         1,
         t,
       );
@@ -236,7 +244,7 @@ export class AnimationStateMachine {
           state[powerSymbol] = 0;
         }
         this.fadingStates = [];
-        this.currentState[powerSymbol] = 1;
+        this.currentStateInternal[powerSymbol] = 1;
       }
     }
 
@@ -251,16 +259,16 @@ export class AnimationStateMachine {
    * @param {number} duration - The duration of the transition in seconds
    */
   private transitionTo(state: AnimationState, duration: number): void {
-    if (this.currentState === state) {
+    if (this.currentStateInternal === state) {
       return;
     }
     this.fadingStates = this.fadingStates.filter((s) => s !== state);
 
-    this.fadingStates.push(this.currentState);
-    this.currentState[onExitSymbol]();
+    this.fadingStates.push(this.currentStateInternal);
+    this.currentStateInternal[onExitSymbol]();
 
-    this.currentState = state;
-    this.currentState[onEnterSymbol]();
+    this.currentStateInternal = state;
+    this.currentStateInternal[onEnterSymbol]();
 
     this.elapsedTime = duration;
   }
@@ -272,8 +280,10 @@ export class AnimationStateMachine {
    * @param {AnimationState} state - The state that completed an iteration
    */
   private onStateIteration(state: AnimationState): void {
-    if (state === this.currentState) {
-      const transition = this.automaticTransitions.get(this.currentState);
+    if (state === this.currentStateInternal) {
+      const transition = this.automaticTransitions.get(
+        this.currentStateInternal,
+      );
       if (transition) {
         this.transitionTo(transition.to, transition.duration);
       }

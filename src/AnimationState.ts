@@ -35,14 +35,6 @@ export abstract class AnimationState extends Emitter {
    */
   public abstract get power(): number;
 
-  public [onEnterSymbol](): void {
-    this.emit(AnimationStateEvent.ENTER, this);
-  }
-
-  public [onExitSymbol](): void {
-    this.emit(AnimationStateEvent.EXIT, this);
-  }
-
   /**
    * Sets the power level of the animation state.
    * Power determines the strength or influence of the animation, typically ranging from 0 to 1.
@@ -54,6 +46,14 @@ export abstract class AnimationState extends Emitter {
    * @emits {AnimationStateEvent.EXIT} When power changes from positive to 0
    */
   public abstract set [powerSymbol](value: number);
+
+  public [onEnterSymbol](): void {
+    this.emit(AnimationStateEvent.ENTER, this);
+  }
+
+  public [onExitSymbol](): void {
+    this.emit(AnimationStateEvent.EXIT, this);
+  }
 
   /**
    * Updates the animation state.
