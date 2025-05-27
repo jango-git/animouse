@@ -152,9 +152,9 @@ export class AnimationState2D extends AnimationState {
     const clampedValue = MathUtils.clamp(value, 0, 1);
     if (this.powerInternal !== clampedValue) {
       if (this.powerInternal === 0 && clampedValue > 0) {
-        this.emit(AnimationStateEvent.ENTER, this);
+        this.emit(AnimationStateEvent.ACTIVATED, this);
       } else if (this.powerInternal > 0 && clampedValue === 0) {
-        this.emit(AnimationStateEvent.EXIT, this);
+        this.emit(AnimationStateEvent.DEACTIVATED, this);
       }
 
       this.powerInternal = clampedValue;

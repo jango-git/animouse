@@ -1,5 +1,11 @@
 import { Emitter } from "eventail";
-import { powerSymbol, updateSymbol } from "./symbols";
+import { AnimationStateEvent } from "./AnimationStateEvent";
+import {
+  onEnterSymbol,
+  onExitSymbol,
+  powerSymbol,
+  updateSymbol,
+} from "./symbols";
 
 /**
  * Abstract base class for animation states that can be controlled via power level.
@@ -28,6 +34,14 @@ export abstract class AnimationState extends Emitter {
    * @returns {number} The current power value between 0 and 1
    */
   public abstract get power(): number;
+
+  public [onEnterSymbol](): void {
+    this.emit(AnimationStateEvent.ENTER, this);
+  }
+
+  public [onExitSymbol](): void {
+    this.emit(AnimationStateEvent.EXIT, this);
+  }
 
   /**
    * Sets the power level of the animation state.

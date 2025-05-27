@@ -2,7 +2,12 @@ import type { AnimationMixer } from "three";
 import { MathUtils } from "three";
 import type { AnimationState } from "./AnimationState";
 import { AnimationStateEvent } from "./AnimationStateEvent";
-import { powerSymbol, updateSymbol } from "./symbols";
+import {
+  onEnterSymbol,
+  onExitSymbol,
+  powerSymbol,
+  updateSymbol,
+} from "./symbols";
 
 /**
  * Function type for evaluating transition conditions.
@@ -102,6 +107,8 @@ export class AnimationStateMachine {
    */
   constructor(initialState: AnimationState, mixer: AnimationMixer) {
     this.currentState = initialState;
+
+    this.currentState[onEnterSymbol]();
     this.currentState[powerSymbol] = 1;
 
     this.mixer = mixer;
@@ -250,7 +257,10 @@ export class AnimationStateMachine {
     this.fadingStates = this.fadingStates.filter((s) => s !== state);
 
     this.fadingStates.push(this.currentState);
+    this.currentState[onExitSymbol]();
+
     this.currentState = state;
+    this.currentState[onEnterSymbol]();
 
     this.elapsedTime = duration;
   }

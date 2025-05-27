@@ -153,9 +153,9 @@ export class AnimationState1D extends AnimationState {
 
     if (this.powerInternal !== clampedValue) {
       if (this.powerInternal === 0 && clampedValue > 0) {
-        this.emit(AnimationStateEvent.ENTER, this);
+        this.emit(AnimationStateEvent.ACTIVATED, this);
       } else if (this.powerInternal > 0 && clampedValue === 0) {
-        this.emit(AnimationStateEvent.EXIT, this);
+        this.emit(AnimationStateEvent.DEACTIVATED, this);
       }
 
       this.powerInternal = clampedValue;
