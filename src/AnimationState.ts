@@ -1,4 +1,4 @@
-import { Emitter } from "eventail";
+import { Eventail } from "eventail";
 import { AnimationStateEvent } from "./AnimationStateEvent";
 import {
   onEnterSymbol,
@@ -9,13 +9,13 @@ import {
 
 /**
  * Abstract base class for animation states that can be controlled via power level.
- * Extends the Emitter class to provide event handling capabilities for animation state changes.
+ * Extends the Eventail class to provide event handling capabilities for animation state changes.
  *
  * @abstract
  * @class AnimationState
- * @extends {Emitter}
+ * @extends {Eventail}
  */
-export abstract class AnimationState extends Emitter {
+export abstract class AnimationState extends Eventail {
   /**
    * Gets the current progress of the animation from start to end.
    *

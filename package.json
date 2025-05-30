@@ -1,23 +1,38 @@
 {
   "name": "animouse",
-  "version": "0.6.2",
+  "version": "0.6.3",
   "description": "lightweight animation state machine for three js",
   "scripts": {
     "clean": "rm -rf dist",
-    "build": "npm run clean && rollup -c"
+    "build": "npm run clean && rollup -c",
+    "build:prod": "npm run clean && NODE_ENV=production rollup -c",
+    "prepublishOnly": "npm run build:prod"
   },
   "main": "dist/index.js",
+  "module": "dist/index.js",
   "types": "dist/index.d.ts",
   "exports": {
     ".": {
-      "import": "./dist/index.js",
-      "types": "./dist/index.d.ts"
+      "types": "./dist/index.d.ts",
+      "import": {
+        "development": "./dist/index.js",
+        "production": "./dist/index.min.js",
+        "default": "./dist/index.min.js"
+      }
     }
   },
   "files": [
     "dist"
   ],
-  "keywords": [],
+  "sideEffects": false,
+  "keywords": [
+    "animation",
+    "three.js",
+    "state-machine",
+    "typescript",
+    "3d",
+    "webgl"
+  ],
   "author": "jango",
   "license": "MIT",
   "repository": {
@@ -30,6 +45,7 @@
   },
   "devDependencies": {
     "@rollup/plugin-node-resolve": "^16.0.1",
+    "@rollup/plugin-terser": "^0.4.4",
     "@types/three": "^0.176.0",
     "@typescript-eslint/eslint-plugin": "^8.32.0",
     "@typescript-eslint/parser": "^8.32.0",
@@ -39,6 +55,6 @@
     "typescript": "^5.8.3"
   },
   "dependencies": {
-    "eventail": "^0.0.6"
+    "eventail": "^0.1.9"
   }
 }
