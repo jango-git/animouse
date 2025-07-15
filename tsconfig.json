@@ -1,5 +1,6 @@
 {
   "compilerOptions": {
+    "lib": ["ES2023", "DOM"],
     "target": "ES6",
     "module": "ESNext",
     "moduleResolution": "Bundler",
@@ -9,6 +10,7 @@
     "strictFunctionTypes": true,
     "strictBindCallApply": true,
     "noImplicitThis": true,
+    "noImplicitOverride": true,
     "alwaysStrict": true,
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
@@ -17,7 +19,8 @@
     "declarationDir": "./dist",
     "emitDeclarationOnly": false,
     "outDir": "./dist",
-    "sourceMap": true
+    "sourceMap": true,
+    "stripInternal": true
   },
   "include": ["src/**/*"]
 }

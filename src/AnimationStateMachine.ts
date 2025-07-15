@@ -1,22 +1,8 @@
 import type { AnimationMixer } from "three";
 import { MathUtils } from "three";
-import type { AnimationState } from "./AnimationState";
-import { AnimationStateEvent } from "./AnimationStateEvent";
-import {
-  onEnterSymbol,
-  onExitSymbol,
-  powerSymbol,
-  updateSymbol,
-} from "./symbols";
+import { StateEvent } from "./mescellaneous/AnimationStateEvent";
+import type { AnimationState } from "./states/AnimationState";
 
-/**
- * Function type for evaluating transition conditions.
- * Returns true if the transition should be allowed to occur.
- *
- * @callback Condition
- * @param {...unknown[]} args - Arguments passed to evaluate the condition
- * @returns {boolean} True if the transition should occur, false otherwise
- */
 type Condition = (...args: unknown[]) => boolean;
 
 /**
@@ -108,8 +94,8 @@ export class AnimationStateMachine {
   constructor(initialState: AnimationState, mixer: AnimationMixer) {
     this.currentStateInternal = initialState;
 
-    this.currentStateInternal[onEnterSymbol]();
-    this.currentStateInternal[powerSymbol] = 1;
+    this.currentStateInternal["onEnterInternal"]();
+    this.currentStateInternal["setInfluenceInternal"](1);
 
     this.mixer = mixer;
     this.eventTransitions = new Map();
@@ -157,7 +143,8 @@ export class AnimationStateMachine {
     }
 
     this.automaticTransitions.set(from, transition);
-    from.on(AnimationStateEvent.ITERATION, this.onStateIteration, this);
+    from.on(StateEvent.ITERATE, this.onStateIteration, this);
+    from.on(StateEvent.FINISH, this.onStateIteration, this);
   }
 
   /**
@@ -210,11 +197,11 @@ export class AnimationStateMachine {
    */
   public update(deltaTime: number): void {
     // Update current state
-    this.currentStateInternal[updateSymbol](deltaTime);
+    this.currentStateInternal["onTickInternal"](deltaTime);
 
     // Update all fading states
     for (const state of this.fadingStates) {
-      state[updateSymbol](deltaTime);
+      state["onTickInternal"](deltaTime);
     }
 
     const transition = this.dataTransitions
@@ -229,22 +216,20 @@ export class AnimationStateMachine {
       const t = Math.min(1, deltaTime / this.elapsedTime);
 
       for (const state of this.fadingStates) {
-        state[powerSymbol] = MathUtils.lerp(state.power, 0, t);
+        state["setInfluenceInternal"](MathUtils.lerp(state.influence, 0, t));
       }
 
-      this.currentStateInternal[powerSymbol] = MathUtils.lerp(
-        this.currentStateInternal.power,
-        1,
-        t,
+      this.currentStateInternal["setInfluenceInternal"](
+        MathUtils.lerp(this.currentStateInternal.influence, 1, t),
       );
       this.elapsedTime = Math.max(0, this.elapsedTime - deltaTime);
 
       if (this.elapsedTime === 0) {
         for (const state of this.fadingStates) {
-          state[powerSymbol] = 0;
+          state["setInfluenceInternal"](0);
         }
         this.fadingStates = [];
-        this.currentStateInternal[powerSymbol] = 1;
+        this.currentStateInternal["setInfluenceInternal"](1);
       }
     }
 
@@ -265,10 +250,10 @@ export class AnimationStateMachine {
     this.fadingStates = this.fadingStates.filter((s) => s !== state);
 
     this.fadingStates.push(this.currentStateInternal);
-    this.currentStateInternal[onExitSymbol]();
+    this.currentStateInternal["onExitInternal"]();
 
     this.currentStateInternal = state;
-    this.currentStateInternal[onEnterSymbol]();
+    this.currentStateInternal["onEnterInternal"]();
 
     this.elapsedTime = duration;
   }

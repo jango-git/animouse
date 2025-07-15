@@ -1,0 +1,231 @@
+import type { AnimationAction } from "three";
+import { LoopOnce } from "three";
+import { StateEvent } from "../mescellaneous/AnimationStateEvent";
+import {
+  DelaunayTriangulation,
+  type Triangle,
+} from "../mescellaneous/DelaunayTriangulation";
+import {
+  getDistanceSquared,
+  getDistanceToEdge,
+  type Anchor,
+} from "../mescellaneous/miscellaneous";
+import { AnimationTree } from "./AnimationTree";
+
+const MIN_ACTIONS = 3;
+
+export interface FreeformActionInput {
+  action: AnimationAction;
+  x: number;
+  y: number;
+}
+
+interface FreeformAnchor extends Anchor {
+  x: number;
+  y: number;
+  action: AnimationAction;
+}
+
+type FreeformTriangle = Triangle<FreeformAnchor>;
+
+export class FreeformBlendTree extends AnimationTree {
+  private readonly activeAnchors = new Set<FreeformAnchor>();
+  private readonly triangles: FreeformTriangle[] = [];
+  private readonly outerEdges: [FreeformAnchor, FreeformAnchor][] = [];
+
+  private isTrianglesSorted = false;
+  private isOuterEdgesSorted = false;
+
+  private currentX = 0;
+  private currentY = 0;
+
+  constructor(actions: FreeformActionInput[]) {
+    super();
+
+    if (actions.length < MIN_ACTIONS) {
+      throw new Error(
+        "FreeformBlendTree requires at least 3 actions for triangulation",
+      );
+    }
+
+    const anchors: FreeformAnchor[] = [];
+
+    for (const action of actions) {
+      action.action.weight = 0;
+      action.action.time = 0;
+
+      anchors.push({
+        action: action.action,
+        x: action.x,
+        y: action.y,
+        duration: action.action.getClip().duration,
+        previousTime: 0,
+        hasFiredIterationEvent: false,
+        iterationEventType:
+          action.action.loop === LoopOnce
+            ? StateEvent.FINISH
+            : StateEvent.ITERATE,
+      });
+    }
+
+    const result = DelaunayTriangulation.triangulate(anchors);
+    this.triangles = result.triangles;
+    this.outerEdges = result.outerEdges;
+
+    this.sortTriangles();
+    this.sortOuterEdges();
+  }
+
+  public setBlend(x: number, y: number): void {
+    if (this.currentX !== x || this.currentY !== y) {
+      this.currentX = x;
+      this.currentY = y;
+
+      this.isTrianglesSorted = false;
+      this.isOuterEdgesSorted = false;
+      this.updateAnchors();
+    }
+  }
+
+  protected ["onTickInternal"](): void {
+    for (const anchor of this.activeAnchors) {
+      const action = anchor.action;
+      const time = action.time;
+      const duration = anchor.duration;
+
+      if (
+        time < anchor.previousTime ||
+        (!anchor.hasFiredIterationEvent && time >= duration)
+      ) {
+        this.emit(anchor.iterationEventType, action, this);
+        anchor.hasFiredIterationEvent = true;
+      } else if (time < duration) {
+        anchor.hasFiredIterationEvent = false;
+      }
+
+      anchor.previousTime = time;
+    }
+  }
+
+  protected updateAnchors(): void {
+    const weights = new Map<FreeformAnchor, number>();
+
+    for (const anchor of this.activeAnchors) {
+      weights.set(anchor, 0);
+    }
+
+    this.sortTriangles();
+    const containingTriangle = this.findContainingTriangle();
+
+    containingTriangle
+      ? this.applyBarycentricWeights(weights, containingTriangle)
+      : this.applyNearestNeighborWeight(weights);
+
+    this.activeAnchors.clear();
+
+    for (const [anchor, weight] of weights) {
+      this.activeAnchors.add(anchor);
+      this.updateAnchorWeight(anchor, weight);
+    }
+  }
+
+  private findContainingTriangle(): FreeformTriangle | undefined {
+    this.sortTriangles();
+
+    for (const blendTriangle of this.triangles) {
+      if (this.isPointInTriangle(blendTriangle)) {
+        return blendTriangle;
+      }
+    }
+
+    return undefined;
+  }
+
+  private isPointInTriangle(triangle: FreeformTriangle): boolean {
+    const x = this.currentX;
+    const y = this.currentY;
+    const { a, b, c } = triangle;
+
+    const denom = (b.y - c.y) * (a.x - c.x) + (c.x - b.x) * (a.y - c.y);
+    const EPSILON_TRIANGLE = 1e-10;
+
+    if (Math.abs(denom) < EPSILON_TRIANGLE) {
+      return false;
+    }
+
+    const alpha = ((b.y - c.y) * (x - c.x) + (c.x - b.x) * (y - c.y)) / denom;
+    const beta = ((c.y - a.y) * (x - c.x) + (a.x - c.x) * (y - c.y)) / denom;
+    const gamma = 1 - alpha - beta;
+
+    return alpha >= 0 && beta >= 0 && gamma >= 0;
+  }
+
+  private applyBarycentricWeights(
+    result: Map<FreeformAnchor, number>,
+    anchor: FreeformTriangle,
+  ): void {
+    const { a, b, c } = anchor;
+    const x = this.currentX;
+    const y = this.currentY;
+
+    const denom = (b.y - c.y) * (a.x - c.x) + (c.x - b.x) * (a.y - c.y);
+    const alpha = ((b.y - c.y) * (x - c.x) + (c.x - b.x) * (y - c.y)) / denom;
+    const beta = ((c.y - a.y) * (x - c.x) + (a.x - c.x) * (y - c.y)) / denom;
+    const gamma = 1 - alpha - beta;
+
+    result.set(a, alpha);
+    result.set(b, beta);
+    result.set(c, gamma);
+  }
+
+  private applyNearestNeighborWeight(
+    result: Map<FreeformAnchor, number>,
+  ): void {
+    this.sortOuterEdges();
+
+    const [a, b] = this.outerEdges[0];
+
+    const dx = b.x - a.x;
+    const dy = b.y - a.y;
+    const lengthSquared = dx * dx + dy * dy;
+
+    const value =
+      ((this.currentX - a.x) * dx + (this.currentY - a.y) * dy) / lengthSquared;
+    const t = Math.max(0, Math.min(1, value));
+
+    result.set(a, 1 - t);
+    result.set(b, t);
+  }
+
+  private sortTriangles(): void {
+    if (!this.isTrianglesSorted) {
+      this.triangles.sort(
+        (a, b) =>
+          getDistanceSquared(
+            a.center.x,
+            a.center.y,
+            this.currentX,
+            this.currentY,
+          ) -
+          getDistanceSquared(
+            b.center.x,
+            b.center.y,
+            this.currentX,
+            this.currentY,
+          ),
+      );
+      this.isTrianglesSorted = true;
+    }
+  }
+
+  private sortOuterEdges(): void {
+    if (!this.isOuterEdgesSorted) {
+      this.outerEdges.sort(
+        (a, b) =>
+          getDistanceToEdge(a, this.currentX, this.currentY) -
+          getDistanceToEdge(b, this.currentX, this.currentY),
+      );
+      this.isOuterEdgesSorted = true;
+    }
+  }
+}

@@ -29,12 +29,13 @@ export default [
       "no-magic-numbers": [
         "warn",
         {
-          ignore: [0, 1, -1],
+          ignore: [
+            0, 1, -1, 2, 0xff, 0xffff, 0xffffff, 360, 180, 90, 100, 1000,
+          ],
           ignoreArrayIndexes: true,
           enforceConst: true,
-          detectObjects: true,
-          ignoreDefaultValues: false,
-          ignoreClassFieldInitialValues: false,
+          ignoreDefaultValues: true,
+          ignoreClassFieldInitialValues: true,
         },
       ],
       eqeqeq: ["error", "always"],
