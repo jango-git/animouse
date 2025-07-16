@@ -17,8 +17,10 @@ export interface LinearAction {
 /**
  * Internal anchor structure for linear blend tree.
  * Extends the base Anchor with position value for linear interpolation.
+ *
+ * @internal
  */
-interface LinearAnchor extends Anchor {
+export interface LinearAnchor extends Anchor {
   /** Position value on the linear blend axis for this anchor */
   value: number;
 }

@@ -35,6 +35,10 @@ export abstract class AnimationTree extends AnimationState {
    * @param weight - The raw weight value before applying tree influence. If not provided, uses the anchor's current weight
    */
   protected updateAnchor(anchor: Anchor, weight: number = anchor.weight): void {
+    if (weight < 0 || weight > 1 || !Number.isFinite(weight)) {
+      throw new Error("Invalid weight value");
+    }
+
     const combinedWeight = weight * this.influenceInternal;
     const animationAction = anchor.action;
 

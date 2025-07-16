@@ -1,10 +1,10 @@
 import { test } from "uvu";
 import * as assert from "uvu/assert";
 import { StateEvent } from "../src/mescellaneous/AnimationStateEvent";
-import { MockAnimationState } from "./mocks/MockAnimationState";
+import { AnimationStateProxy } from "./proxies/AnimationStateProxy";
 
 test("should emit ENTER event when onEnterInternal is called", () => {
-  const state = new MockAnimationState();
+  const state = new AnimationStateProxy();
   let eventFired = false;
   let eventData: any = null;
 
@@ -13,14 +13,14 @@ test("should emit ENTER event when onEnterInternal is called", () => {
     eventData = data;
   });
 
-  state.triggerOnEnter();
+  state.invokeOnEnter();
 
   assert.ok(eventFired, "ENTER event should be fired");
   assert.equal(eventData, state, "Event data should be the state instance");
 });
 
 test("should emit EXIT event when onExitInternal is called", () => {
-  const state = new MockAnimationState();
+  const state = new AnimationStateProxy();
   let eventFired = false;
   let eventData: any = null;
 
@@ -29,14 +29,14 @@ test("should emit EXIT event when onExitInternal is called", () => {
     eventData = data;
   });
 
-  state.triggerOnExit();
+  state.invokeOnExit();
 
   assert.ok(eventFired, "EXIT event should be fired");
   assert.equal(eventData, state, "Event data should be the state instance");
 });
 
 test("should emit multiple events correctly", () => {
-  const state = new MockAnimationState();
+  const state = new AnimationStateProxy();
   const events: string[] = [];
 
   state.on(StateEvent.ENTER, () => {
@@ -47,10 +47,10 @@ test("should emit multiple events correctly", () => {
     events.push("exit");
   });
 
-  state.triggerOnEnter();
-  state.triggerOnExit();
-  state.triggerOnEnter();
-  state.triggerOnExit();
+  state.invokeOnEnter();
+  state.invokeOnExit();
+  state.invokeOnEnter();
+  state.invokeOnExit();
 
   assert.equal(events.length, 4);
   assert.equal(events[0], "enter");

@@ -1,11 +1,11 @@
 import { AnimationState } from "../../src/states/AnimationState";
 
-export class MockAnimationState extends AnimationState {
-  public triggerOnEnter(): void {
+export class AnimationStateProxy extends AnimationState {
+  public invokeOnEnter(): void {
     this.onEnterInternal();
   }
 
-  public triggerOnExit(): void {
+  public invokeOnExit(): void {
     this.onExitInternal();
   }
 

@@ -20,7 +20,7 @@ export interface FreeformActionInput {
   y: number;
 }
 
-interface FreeformAnchor extends Anchor {
+export interface FreeformAnchor extends Anchor {
   x: number;
   y: number;
   action: AnimationAction;

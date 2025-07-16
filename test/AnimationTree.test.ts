@@ -1,54 +1,53 @@
 import { test } from "uvu";
 import * as assert from "uvu/assert";
 import { StateEvent } from "../src/mescellaneous/AnimationStateEvent";
-import { MockAnchor } from "./mocks/MockAnchor";
-import { MockAnimationAction } from "./mocks/MockAnimationAction";
-import { MockAnimationTree } from "./mocks/MockAnimationTree";
+import { buildMockAnchor } from "./mocks/buildMockAnchor";
+import { AnimationTreeProxy } from "./proxies/AnimationTreeProxy";
 
 test("should update influence when new value is different", () => {
-  const tree = new MockAnimationTree();
+  const tree = new AnimationTreeProxy();
   const value = 0.5;
-  tree.setInfluence(value);
+  tree.invokeSetInfluence(value);
 
   assert.equal(tree.influence, value);
   assert.ok(
-    tree.updateAnchorsInfluenceCount > 0,
+    tree.updateAnchorsInfluenceCallCount > 0,
     "updateAnchorsInfluence should be called",
   );
 });
 
 test("should not update influence when influence value is unchanged", () => {
-  const tree = new MockAnimationTree();
+  const tree = new AnimationTreeProxy();
   const value = 0.5;
-  tree.setInfluence(value);
-  const initialCount = tree.updateAnchorsInfluenceCount;
-  tree.setInfluence(value);
+  tree.invokeSetInfluence(value);
+  const initialCount = tree.updateAnchorsInfluenceCallCount;
+  tree.invokeSetInfluence(value);
 
   assert.equal(
-    tree.updateAnchorsInfluenceCount,
+    tree.updateAnchorsInfluenceCallCount,
     initialCount,
     "updateAnchorsInfluence should not be called for unchanged influence",
   );
 });
 
 test("should update influence from zero to positive value", () => {
-  const tree = new MockAnimationTree();
+  const tree = new AnimationTreeProxy();
   assert.equal(tree.influence, 0);
 
   const value = 1;
-  tree.setInfluence(value);
+  tree.invokeSetInfluence(value);
 
   assert.equal(tree.influence, value);
   assert.ok(
-    tree.updateAnchorsInfluenceCount > 0,
+    tree.updateAnchorsInfluenceCallCount > 0,
     "updateAnchorsInfluence should be called",
   );
 });
 
 test("should start animation when combined weight becomes positive", () => {
-  const anchor = new MockAnchor(0.5);
-  const tree = new MockAnimationTree();
-  tree.setInfluence(0.8);
+  const anchor = buildMockAnchor(0.5);
+  const tree = new AnimationTreeProxy();
+  tree.invokeSetInfluence(0.8);
 
   let playEventFired = false;
   let eventAction: any = null;
@@ -60,7 +59,7 @@ test("should start animation when combined weight becomes positive", () => {
     eventState = state;
   });
 
-  tree.updateAnchorPublic(anchor, 0.5);
+  tree.invokeUpdateAnchor(anchor, 0.5);
 
   const expectedWeight = 0.5 * 0.8; // weight * influence
 
@@ -76,18 +75,15 @@ test("should start animation when combined weight becomes positive", () => {
   assert.equal(anchor.action.time, 0);
   assert.equal(anchor.previousTime, 0);
   assert.equal(anchor.hasFiredIterationEvent, false);
-  assert.ok(
-    (anchor.action as unknown as MockAnimationAction).playing,
-    "Animation should be playing",
-  );
+  assert.ok(anchor.action.isRunning(), "Animation should be playing");
 });
 
 test("should stop animation when combined weight becomes zero", () => {
-  const anchor = new MockAnchor(0.5);
-  const tree = new MockAnimationTree();
-  tree.setInfluence(0.8);
+  const anchor = buildMockAnchor(0.5);
+  const tree = new AnimationTreeProxy();
+  tree.invokeSetInfluence(0.8);
 
-  tree.updateAnchorPublic(anchor, 0.5);
+  tree.invokeUpdateAnchor(anchor, 0.5);
   anchor.action.time = 0.3; // Simulate some progress
 
   let stopEventFired = false;
@@ -100,7 +96,7 @@ test("should stop animation when combined weight becomes zero", () => {
     eventState = state;
   });
 
-  tree.updateAnchorPublic(anchor, 0); // Stop animation
+  tree.invokeUpdateAnchor(anchor, 0); // Stop animation
 
   assert.ok(stopEventFired, "STOP event should be emitted");
   assert.equal(
@@ -114,21 +110,17 @@ test("should stop animation when combined weight becomes zero", () => {
   assert.equal(anchor.action.time, 0);
   assert.equal(anchor.previousTime, 0);
   assert.equal(anchor.hasFiredIterationEvent, false);
-  assert.not.ok(
-    (anchor.action as unknown as MockAnimationAction).playing,
-    "Animation should be stopped",
-  );
+  assert.not.ok(anchor.action.isRunning(), "Animation should be stopped");
 });
 
 test("should update weight without play/stop when animation is already running", () => {
-  const anchor = new MockAnchor(0.5);
-  const tree = new MockAnimationTree();
-  tree.setInfluence(0.8);
+  const anchor = buildMockAnchor(0.5);
+  const tree = new AnimationTreeProxy();
+  tree.invokeSetInfluence(0.8);
 
   // Start animation
-  tree.updateAnchorPublic(anchor, 0.5);
-  const initialPlayingState = (anchor.action as unknown as MockAnimationAction)
-    .playing;
+  tree.invokeUpdateAnchor(anchor, 0.5);
+  const initialPlayingState = anchor.action.isRunning();
 
   let eventFired = false;
   tree.on(StateEvent.PLAY, () => {
@@ -139,14 +131,14 @@ test("should update weight without play/stop when animation is already running",
   });
 
   // Update weight while running
-  tree.updateAnchorPublic(anchor, 0.7);
+  tree.invokeUpdateAnchor(anchor, 0.7);
 
   const expectedWeight = 0.7 * 0.8; // new weight * influence
 
   assert.equal(anchor.action.weight, expectedWeight);
   assert.equal(anchor.weight, 0.7);
   assert.equal(
-    (anchor.action as unknown as MockAnimationAction).playing,
+    anchor.action.isRunning(),
     initialPlayingState,
     "Playing state should remain unchanged",
   );
@@ -157,9 +149,9 @@ test("should update weight without play/stop when animation is already running",
 });
 
 test("should skip update when combined weight equals current action weight", () => {
-  const anchor = new MockAnchor(0.5);
-  const tree = new MockAnimationTree();
-  tree.setInfluence(0.8);
+  const anchor = buildMockAnchor(0.5);
+  const tree = new AnimationTreeProxy();
+  tree.invokeSetInfluence(0.8);
 
   // Set initial state
   const combinedWeight = 0.5 * 0.8;
@@ -174,7 +166,7 @@ test("should skip update when combined weight equals current action weight", () 
     eventFired = true;
   });
 
-  tree.updateAnchorPublic(anchor, 0.5); // Same combined weight
+  tree.invokeUpdateAnchor(anchor, 0.5); // Same combined weight
 
   assert.equal(
     anchor.action.weight,
@@ -193,11 +185,11 @@ test("should skip update when combined weight equals current action weight", () 
 });
 
 test("should use anchor's current weight when weight parameter is not provided", () => {
-  const anchor = new MockAnchor(0.6);
-  const tree = new MockAnimationTree();
-  tree.setInfluence(0.5);
+  const anchor = buildMockAnchor(0.6);
+  const tree = new AnimationTreeProxy();
+  tree.invokeSetInfluence(0.5);
 
-  tree.updateAnchorPublic(anchor); // No weight parameter
+  tree.invokeUpdateAnchor(anchor); // No weight parameter
 
   const expectedWeight = 0.6 * 0.5; // anchor.weight * influence
 
@@ -206,11 +198,11 @@ test("should use anchor's current weight when weight parameter is not provided",
 });
 
 test("should handle zero influence correctly", () => {
-  const anchor = new MockAnchor(0.8);
-  const tree = new MockAnimationTree();
-  tree.setInfluence(0); // Zero influence
+  const anchor = buildMockAnchor(0.8);
+  const tree = new AnimationTreeProxy();
+  tree.invokeSetInfluence(0);
 
-  tree.updateAnchorPublic(anchor, 0.8);
+  tree.invokeUpdateAnchor(anchor, 0.8);
 
   assert.equal(
     anchor.action.weight,
@@ -225,11 +217,11 @@ test("should handle zero influence correctly", () => {
 });
 
 test("should handle maximum values correctly", () => {
-  const anchor = new MockAnchor(1.0);
-  const tree = new MockAnimationTree();
-  tree.setInfluence(1.0);
+  const anchor = buildMockAnchor(1);
+  const tree = new AnimationTreeProxy();
+  tree.invokeSetInfluence(1.0);
 
-  tree.updateAnchorPublic(anchor, 1.0);
+  tree.invokeUpdateAnchor(anchor, 1.0);
 
   assert.equal(
     anchor.action.weight,
@@ -241,11 +233,11 @@ test("should handle maximum values correctly", () => {
 
 // Integration tests
 test("should properly combine influence and weight calculations", () => {
-  const anchor1 = new MockAnchor(0.3);
-  const anchor2 = new MockAnchor(0.7);
-  const tree = new MockAnimationTree([anchor1, anchor2]);
+  const anchor1 = buildMockAnchor(0.3);
+  const anchor2 = buildMockAnchor(0.7);
+  const tree = new AnimationTreeProxy();
 
-  tree.setInfluence(0.6);
+  tree.invokeSetInfluence(0.6);
 
   assert.equal(
     anchor1.action.weight,
@@ -260,18 +252,18 @@ test("should properly combine influence and weight calculations", () => {
 });
 
 test("should handle multiple anchor updates with different weights", () => {
-  const anchor1 = new MockAnchor();
-  const anchor2 = new MockAnchor();
-  const tree = new MockAnimationTree();
-  tree.setInfluence(0.8);
+  const anchor1 = buildMockAnchor();
+  const anchor2 = buildMockAnchor();
+  const tree = new AnimationTreeProxy();
+  tree.invokeSetInfluence(0.8);
 
   let playEventCount = 0;
   tree.on(StateEvent.PLAY, () => {
     playEventCount++;
   });
 
-  tree.updateAnchorPublic(anchor1, 0.4);
-  tree.updateAnchorPublic(anchor2, 0.6);
+  tree.invokeUpdateAnchor(anchor1, 0.4);
+  tree.invokeUpdateAnchor(anchor2, 0.6);
 
   assert.equal(playEventCount, 2, "PLAY event should fire for each anchor");
   assert.equal(anchor1.action.weight, 0.4 * 0.8);
@@ -279,9 +271,9 @@ test("should handle multiple anchor updates with different weights", () => {
 });
 
 test("should emit events with correct parameters", () => {
-  const anchor = new MockAnchor();
-  const tree = new MockAnimationTree();
-  tree.setInfluence(0.7);
+  const anchor = buildMockAnchor();
+  const tree = new AnimationTreeProxy();
+  tree.invokeSetInfluence(0.7);
 
   let playAction: any = null;
   let playState: any = null;
@@ -299,7 +291,7 @@ test("should emit events with correct parameters", () => {
   });
 
   // Start animation
-  tree.updateAnchorPublic(anchor, 0.5);
+  tree.invokeUpdateAnchor(anchor, 0.5);
 
   assert.equal(
     playAction,
@@ -309,7 +301,7 @@ test("should emit events with correct parameters", () => {
   assert.equal(playState, tree, "PLAY event should pass correct state");
 
   // Stop animation
-  tree.updateAnchorPublic(anchor, 0);
+  tree.invokeUpdateAnchor(anchor, 0);
 
   assert.equal(
     stopAction,
