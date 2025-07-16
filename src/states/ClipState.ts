@@ -13,6 +13,7 @@ export class ClipState extends AnimationState {
 
     this.anchor = {
       action,
+      weight: 1,
       previousTime: 0,
       duration: action.getClip().duration,
       hasFiredIterationEvent: false,

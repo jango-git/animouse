@@ -59,20 +59,22 @@ export class PolarBlendTree extends AnimationTree {
         );
       }
 
+      const animationAction = action.action;
       action.action.time = 0;
       action.action.weight = 0;
 
       const anchor: PolarAnchor = {
-        action: action.action,
-        radius: action.radius,
-        azimuth: calculateNormalizedAzimuth(action.azimuth),
-        duration: action.action.getClip().duration,
+        action: animationAction,
+        weight: 0,
+        duration: animationAction.getClip().duration,
         previousTime: 0,
         hasFiredIterationEvent: false,
         iterationEventType:
-          action.action.loop === LoopOnce
+          animationAction.loop === LoopOnce
             ? StateEvent.FINISH
             : StateEvent.ITERATE,
+        radius: action.radius,
+        azimuth: calculateNormalizedAzimuth(action.azimuth),
       };
 
       const ray = this.rays.find(
@@ -110,8 +112,7 @@ export class PolarBlendTree extends AnimationTree {
 
       this.centerAnchor = {
         action: centerAction,
-        radius: 0,
-        azimuth: 0,
+        weight: 1,
         duration: centerAction.getClip().duration,
         previousTime: 0,
         hasFiredIterationEvent: false,
@@ -119,7 +120,11 @@ export class PolarBlendTree extends AnimationTree {
           centerAction.loop === LoopOnce
             ? StateEvent.FINISH
             : StateEvent.ITERATE,
+        radius: 0,
+        azimuth: 0,
       };
+    } else {
+      this.updateAnchors();
     }
   }
 
@@ -134,7 +139,7 @@ export class PolarBlendTree extends AnimationTree {
     ) {
       this.currentRadius = clampedRadius;
       this.currentAzimuth = normalizedAzimuth;
-      this.updateAnchorsInfluence();
+      this.updateAnchors();
     }
   }
 
@@ -159,6 +164,12 @@ export class PolarBlendTree extends AnimationTree {
   }
 
   protected updateAnchorsInfluence(): void {
+    for (const anchor of this.activeAnchors) {
+      this.updateAnchor(anchor);
+    }
+  }
+
+  private updateAnchors(): void {
     const weights = new Map<PolarAnchor, number>();
 
     for (const anchor of this.activeAnchors) {
@@ -215,7 +226,7 @@ export class PolarBlendTree extends AnimationTree {
 
     for (const [anchor, weight] of weights) {
       this.activeAnchors.add(anchor);
-      this.updateAnchorWeight(anchor, weight);
+      this.updateAnchor(anchor, weight);
     }
   }
 

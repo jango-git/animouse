@@ -16,29 +16,33 @@ export class LinearBlendTree extends AnimationTree {
   private readonly anchors: LinearAnchor[] = [];
   private blend = 0;
 
-  constructor(actions: LinearAction[]) {
+  constructor(linearActions: LinearAction[]) {
     super();
-    if (actions.length < 2) {
+    if (linearActions.length < 2) {
       throw new Error("Need at least 2 actions");
     }
 
-    for (const action of actions) {
+    for (const linearAction of linearActions) {
+      const animationAction = linearAction.action;
+      animationAction.time = 0;
+      animationAction.weight = 0;
+
       this.anchors.push({
-        action: action.action,
-        value: action.value,
-        duration: action.action.getClip().duration,
+        action: animationAction,
+        weight: 0,
+        duration: animationAction.getClip().duration,
         previousTime: 0,
         hasFiredIterationEvent: false,
         iterationEventType:
-          action.action.loop === LoopOnce
+          animationAction.loop === LoopOnce
             ? StateEvent.FINISH
             : StateEvent.ITERATE,
+        value: linearAction.value,
       });
-      action.action.time = 0;
-      action.action.weight = 0;
     }
 
     this.anchors.sort((a, b) => a.value - b.value);
+    this.updateAnchors();
   }
 
   public setBlend(value: number): void {
@@ -75,17 +79,23 @@ export class LinearBlendTree extends AnimationTree {
 
   protected updateAnchorsInfluence(): void {
     for (let i = 0; i < this.anchors.length - 1; i++) {
+      this.updateAnchor(this.anchors[i]);
+    }
+  }
+
+  private updateAnchors(): void {
+    for (let i = 0; i < this.anchors.length - 1; i++) {
       const l = this.anchors[i];
       const r = this.anchors[i + 1];
 
       if (this.blend < l.value) {
-        this.updateAnchorWeight(r, 0);
+        this.updateAnchor(r, 0);
       } else if (this.blend > r.value) {
-        this.updateAnchorWeight(l, 0);
+        this.updateAnchor(l, 0);
       } else {
         const difference = (this.blend - l.value) / (r.value - l.value);
-        this.updateAnchorWeight(l, (1 - difference) * this.influenceInternal);
-        this.updateAnchorWeight(r, difference * this.influenceInternal);
+        this.updateAnchor(l, 1 - difference);
+        this.updateAnchor(r, difference);
       }
     }
   }

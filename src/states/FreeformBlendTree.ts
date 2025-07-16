@@ -56,8 +56,7 @@ export class FreeformBlendTree extends AnimationTree {
 
       anchors.push({
         action: action.action,
-        x: action.x,
-        y: action.y,
+        weight: 0,
         duration: action.action.getClip().duration,
         previousTime: 0,
         hasFiredIterationEvent: false,
@@ -65,6 +64,8 @@ export class FreeformBlendTree extends AnimationTree {
           action.action.loop === LoopOnce
             ? StateEvent.FINISH
             : StateEvent.ITERATE,
+        x: action.x,
+        y: action.y,
       });
     }
 
@@ -80,7 +81,7 @@ export class FreeformBlendTree extends AnimationTree {
       this.currentY = y;
 
       this.sortTriangles();
-      this.updateAnchorsInfluence();
+      this.updateAnchors();
     }
   }
 
@@ -105,6 +106,12 @@ export class FreeformBlendTree extends AnimationTree {
   }
 
   protected updateAnchorsInfluence(): void {
+    for (const anchor of this.activeAnchors) {
+      this.updateAnchor(anchor);
+    }
+  }
+
+  private updateAnchors(): void {
     const weights = new Map<FreeformAnchor, number>();
 
     for (const anchor of this.activeAnchors) {
@@ -121,7 +128,7 @@ export class FreeformBlendTree extends AnimationTree {
 
     for (const [anchor, weight] of weights) {
       this.activeAnchors.add(anchor);
-      this.updateAnchorWeight(anchor, weight);
+      this.updateAnchor(anchor, weight);
     }
   }
 
