@@ -1,13 +1,14 @@
-import { AnimationActionLoopStyles, LoopOnce, LoopRepeat } from "three";
+import type { AnimationActionLoopStyles } from "three";
+import { LoopOnce, LoopRepeat } from "three";
 import { StateEvent } from "../../src/mescellaneous/AnimationStateEvent";
-import { Anchor } from "../../src/mescellaneous/miscellaneous";
-import { FreeformAnchor } from "../../src/states/FreeformBlendTree";
-import { LinearAnchor } from "../../src/states/LinearBlendTree";
-import { PolarAnchor } from "../../src/states/PolarBlendTree";
+import type { Anchor } from "../../src/mescellaneous/miscellaneous";
+import type { FreeformAnchor } from "../../src/states/FreeformBlendTree";
+import type { LinearAnchor } from "../../src/states/LinearBlendTree";
+import type { PolarAnchor } from "../../src/states/PolarBlendTree";
 import { buildMockAnimationAction } from "./buildMockAnimationAction";
 
 export function buildMockAnchor(
-  weight: number = 0,
+  weight = 0,
   loop: AnimationActionLoopStyles = LoopRepeat,
   duration = 1.0,
 ): Anchor {
@@ -24,7 +25,7 @@ export function buildMockAnchor(
 }
 
 export function buildMockLinearAnchor(
-  weight: number = 0,
+  weight = 0,
   loop: AnimationActionLoopStyles = LoopRepeat,
   duration = 1.0,
 ): LinearAnchor {
@@ -42,7 +43,7 @@ export function buildMockLinearAnchor(
 }
 
 export function buildMockRadialAnchor(
-  weight: number = 0,
+  weight = 0,
   loop: AnimationActionLoopStyles = LoopRepeat,
   duration = 1.0,
 ): PolarAnchor {
@@ -61,7 +62,7 @@ export function buildMockRadialAnchor(
 }
 
 export function buildMockFreeformAnchor(
-  weight: number = 0,
+  weight = 0,
   loop: AnimationActionLoopStyles = LoopRepeat,
   duration = 1.0,
 ): FreeformAnchor {

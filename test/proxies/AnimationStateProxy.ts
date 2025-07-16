@@ -9,7 +9,11 @@ export class AnimationStateProxy extends AnimationState {
     this.onExitInternal();
   }
 
-  protected onTickInternal(deltaTime: number): void {}
+  protected onTickInternal(deltaTime: number): void {
+    void deltaTime;
+  }
 
-  protected setInfluenceInternal(influence: number): void {}
+  protected setInfluenceInternal(influence: number): void {
+    void influence;
+  }
 }

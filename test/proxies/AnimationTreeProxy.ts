@@ -20,5 +20,7 @@ export class AnimationTreeProxy extends AnimationTree {
     this.updateAnchorsInfluenceCallCountInternal += 1;
   }
 
-  protected onTickInternal(deltaTime: number): void {}
+  protected onTickInternal(deltaTime: number): void {
+    void deltaTime;
+  }
 }

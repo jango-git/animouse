@@ -1,6 +1,5 @@
+import type { AnimationAction, AnimationActionLoopStyles } from "three";
 import {
-  AnimationAction,
-  AnimationActionLoopStyles,
   AnimationClip,
   AnimationMixer,
   LoopRepeat,
