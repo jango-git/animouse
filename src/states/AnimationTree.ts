@@ -32,21 +32,22 @@ export abstract class AnimationTree extends AnimationState {
    * Combines the raw weight with the tree's influence to get the final action weight.
    *
    * @param anchor - The animation anchor containing the action and parameters to update
-   * @param weight - The raw weight value before applying tree influence
+   * @param weight - The raw weight value before applying tree influence. If not provided, uses the anchor's current weight
    */
   protected updateAnchor(anchor: Anchor, weight: number = anchor.weight): void {
     const combinedWeight = weight * this.influenceInternal;
     const animationAction = anchor.action;
+
+    anchor.weight = weight;
 
     if (combinedWeight === animationAction.weight) {
       return;
     }
 
     if (combinedWeight > 0 && animationAction.weight === 0) {
-      animationAction.play();
       animationAction.time = 0;
       animationAction.weight = combinedWeight;
-      anchor.weight = weight;
+      animationAction.play();
       anchor.previousTime = 0;
       anchor.hasFiredIterationEvent = false;
       this.emit(StateEvent.PLAY, animationAction, this);
@@ -57,7 +58,6 @@ export abstract class AnimationTree extends AnimationState {
       animationAction.stop();
       animationAction.time = 0;
       animationAction.weight = 0;
-      anchor.weight = weight;
       anchor.previousTime = 0;
       anchor.hasFiredIterationEvent = false;
       this.emit(StateEvent.STOP, animationAction, this);
@@ -65,7 +65,6 @@ export abstract class AnimationTree extends AnimationState {
     }
 
     animationAction.weight = combinedWeight;
-    anchor.weight = weight;
   }
 
   /**

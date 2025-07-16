@@ -3,62 +3,106 @@ import { StateEvent } from "../mescellaneous/AnimationStateEvent";
 import type { Anchor } from "../mescellaneous/miscellaneous";
 import { AnimationState } from "./AnimationState";
 
+/**
+ * Animation state that wraps a single Three.js AnimationAction.
+ * Manages the lifecycle of a single animation clip, handling playback,
+ * weight control, and iteration events.
+ *
+ * This state automatically detects animation completion and restart events,
+ * emitting appropriate state events based on the animation's loop type.
+ */
 export class ClipState extends AnimationState {
+  /**
+   * Internal anchor that wraps the AnimationAction with additional tracking data.
+   */
   private readonly anchor: Anchor;
 
-  constructor(action: AnimationAction) {
+  /**
+   * Creates a new ClipState from a Three.js AnimationAction.
+   * Initializes the animation to a stopped state and configures iteration events
+   * based on the animation's loop type.
+   *
+   * @param animationAction - The Three.js AnimationAction to wrap
+   */
+  constructor(animationAction: AnimationAction) {
     super();
-    action.time = 0;
-    action.weight = 0;
+    const duration = animationAction.getClip().duration;
+    if (duration <= 0) {
+      throw new Error("Clip duration must be greater than zero");
+    }
+
+    animationAction.time = 0;
+    animationAction.weight = 0;
 
     this.anchor = {
-      action,
+      action: animationAction,
       weight: 1,
       previousTime: 0,
-      duration: action.getClip().duration,
+      duration,
       hasFiredIterationEvent: false,
       iterationEventType:
-        action.loop === LoopOnce ? StateEvent.FINISH : StateEvent.ITERATE,
+        animationAction.loop === LoopOnce
+          ? StateEvent.FINISH
+          : StateEvent.ITERATE,
     };
   }
 
+  /**
+   * Internal method to set the influence of this animation state.
+   * Controls animation playback: starts animation when influence becomes positive,
+   * stops when influence becomes zero, and adjusts weight for intermediate values.
+   *
+   * @param influence - The new influence value in range [0, 1]
+   * @internal This method is intended to be called only by the animation state machine
+   */
   protected ["setInfluenceInternal"](influence: number): void {
     if (influence === this.influenceInternal) {
       return;
     }
 
     this.influenceInternal = influence;
-    const action = this.anchor.action;
+    const anchor = this.anchor;
+    const animationAction = anchor.action;
 
-    if (influence === 0 && action.weight > 0) {
-      action.stop();
-      action.time = 0;
-      action.weight = 0;
-      this.emit(StateEvent.STOP, action, this);
+    if (influence === 0 && animationAction.weight > 0) {
+      animationAction.stop();
+      animationAction.time = 0;
+      animationAction.weight = 0;
+      anchor.hasFiredIterationEvent = false;
+      this.emit(StateEvent.STOP, animationAction, this);
       return;
     }
 
-    if (influence > 0 && action.weight === 0) {
-      action.play();
-      action.weight = influence;
-      this.emit(StateEvent.PLAY, action, this);
+    if (influence > 0 && animationAction.weight === 0) {
+      animationAction.play();
+      animationAction.time = 0;
+      animationAction.weight = influence;
+      anchor.hasFiredIterationEvent = false;
+      this.emit(StateEvent.PLAY, animationAction, this);
       return;
     }
 
-    action.weight = influence;
+    animationAction.weight = influence;
   }
 
+  /**
+   * Internal method called on each frame to track animation progress.
+   * Detects animation completion, restart events, and emits appropriate
+   * iteration events (FINISH for LoopOnce, ITERATE for looped animations).
+   *
+   * @internal This method is intended to be called only by the animation state machine
+   */
   protected ["onTickInternal"](): void {
     const anchor = this.anchor;
-    const action = anchor.action;
-    const time = action.time;
+    const animationAction = anchor.action;
+    const time = animationAction.time;
     const duration = anchor.duration;
 
     if (
-      time < anchor.previousTime ||
-      (!anchor.hasFiredIterationEvent && time >= duration)
+      !anchor.hasFiredIterationEvent &&
+      (time >= duration || time < anchor.previousTime)
     ) {
-      this.emit(anchor.iterationEventType, action, this);
+      this.emit(anchor.iterationEventType, animationAction, this);
       anchor.hasFiredIterationEvent = true;
     } else if (time < duration) {
       anchor.hasFiredIterationEvent = false;

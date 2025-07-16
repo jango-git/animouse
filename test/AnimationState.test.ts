@@ -1,81 +1,62 @@
-// import { test } from "uvu";
-// import * as assert from "uvu/assert";
-// import { StateEvent } from "../src/mescellaneous/AnimationStateEvent";
-// import { AnimationState } from "../src/states/AnimationState";
+import { test } from "uvu";
+import * as assert from "uvu/assert";
+import { StateEvent } from "../src/mescellaneous/AnimationStateEvent";
+import { MockAnimationState } from "./mocks/MockAnimationState";
 
-// // Test implementation of abstract AnimationState
-// class TestAnimationState extends AnimationState {
-//   public triggerOnEnter(): void {
-//     this.onEnterInternal();
-//   }
+test("should emit ENTER event when onEnterInternal is called", () => {
+  const state = new MockAnimationState();
+  let eventFired = false;
+  let eventData: any = null;
 
-//   public triggerOnExit(): void {
-//     this.onExitInternal();
-//   }
+  state.on(StateEvent.ENTER, (data) => {
+    eventFired = true;
+    eventData = data;
+  });
 
-//   protected onTickInternal(deltaTime: number): void {
-//     // Stub implementation
-//   }
+  state.triggerOnEnter();
 
-//   protected setInfluenceInternal(influence: number): void {
-//     // Stub implementation
-//   }
-// }
+  assert.ok(eventFired, "ENTER event should be fired");
+  assert.equal(eventData, state, "Event data should be the state instance");
+});
 
-// test("should emit ENTER event when onEnterInternal is called", () => {
-//   const state = new TestAnimationState();
-//   let eventFired = false;
-//   let eventData: any = null;
+test("should emit EXIT event when onExitInternal is called", () => {
+  const state = new MockAnimationState();
+  let eventFired = false;
+  let eventData: any = null;
 
-//   state.on(StateEvent.ENTER, (data) => {
-//     eventFired = true;
-//     eventData = data;
-//   });
+  state.on(StateEvent.EXIT, (data) => {
+    eventFired = true;
+    eventData = data;
+  });
 
-//   state.triggerOnEnter();
+  state.triggerOnExit();
 
-//   assert.ok(eventFired, "ENTER event should be fired");
-//   assert.equal(eventData, state, "Event data should be the state instance");
-// });
+  assert.ok(eventFired, "EXIT event should be fired");
+  assert.equal(eventData, state, "Event data should be the state instance");
+});
 
-// test("should emit EXIT event when onExitInternal is called", () => {
-//   const state = new TestAnimationState();
-//   let eventFired = false;
-//   let eventData: any = null;
+test("should emit multiple events correctly", () => {
+  const state = new MockAnimationState();
+  const events: string[] = [];
 
-//   state.on(StateEvent.EXIT, (data) => {
-//     eventFired = true;
-//     eventData = data;
-//   });
+  state.on(StateEvent.ENTER, () => {
+    events.push("enter");
+  });
 
-//   state.triggerOnExit();
+  state.on(StateEvent.EXIT, () => {
+    events.push("exit");
+  });
 
-//   assert.ok(eventFired, "EXIT event should be fired");
-//   assert.equal(eventData, state, "Event data should be the state instance");
-// });
+  state.triggerOnEnter();
+  state.triggerOnExit();
+  state.triggerOnEnter();
+  state.triggerOnExit();
 
-// test("should emit multiple events correctly", () => {
-//   const state = new TestAnimationState();
-//   const events: string[] = [];
+  assert.equal(events.length, 4);
+  assert.equal(events[0], "enter");
+  assert.equal(events[1], "exit");
+  assert.equal(events[2], "enter");
+  assert.equal(events[3], "exit");
+});
 
-//   state.on(StateEvent.ENTER, () => {
-//     events.push("enter");
-//   });
-
-//   state.on(StateEvent.EXIT, () => {
-//     events.push("exit");
-//   });
-
-//   state.triggerOnEnter();
-//   state.triggerOnExit();
-//   state.triggerOnEnter();
-//   state.triggerOnExit();
-
-//   assert.equal(events.length, 4);
-//   assert.equal(events[0], "enter");
-//   assert.equal(events[1], "exit");
-//   assert.equal(events[2], "enter");
-//   assert.equal(events[3], "exit");
-// });
-
-// test.run();
+test.run();

@@ -10,55 +10,249 @@ import {
 } from "../mescellaneous/miscellaneous";
 import { AnimationTree } from "./AnimationTree";
 
+/** Minimum number of actions required for polar blend tree triangulation */
+const MIN_POLAR_ACTIONS = 2;
+
+/**
+ * Configuration for a polar animation action in the blend tree.
+ * Associates an animation action with polar coordinates (radius, azimuth).
+ *
+ * @public
+ */
 export interface PolarAction {
+  /** The Three.js animation action to be played */
   action: AnimationAction;
+  /** Radial distance from the origin. Must be finite and non-negative. */
   radius: number;
+  /** Angular position in radians. Must be finite. Will be normalized to [0, 2π) range. */
   azimuth: number;
 }
 
+/**
+ * Configuration options for polar blend tree behavior.
+ *
+ * @public
+ */
 export interface PolarBlendTreeOptions {
+  /** Animation action to play at the center (origin) of the polar space */
   centerAction: AnimationAction;
+  /** Whether the blend tree should loop azimuthal blending at 2π */
   isLooped: boolean;
 }
 
+/**
+ * Internal anchor structure for polar blend tree.
+ * Extends the base Anchor with polar coordinates for interpolation.
+ *
+ * @internal
+ */
 interface PolarAnchor extends Anchor {
+  /** Radial distance from the origin */
   radius: number;
+  /** Angular position in normalized [0, 2π) range */
   azimuth: number;
 }
 
+/**
+ * Represents a ray (constant azimuth line) in polar space containing anchors at different radii.
+ * Used for organizing anchors by angular direction for efficient interpolation.
+ *
+ * @internal
+ */
 interface Ray {
+  /** Angular direction of this ray in normalized [0, 2π) range */
   azimuth: number;
+  /** Anchors positioned along this ray, sorted by increasing radius */
   anchors: PolarAnchor[];
 }
 
+/**
+ * Represents a ring (constant radius circle) in polar space containing anchors at different azimuths.
+ * Used for organizing anchors by radial distance for efficient interpolation.
+ *
+ * @internal
+ */
 interface Ring {
+  /** Radial distance of this ring from the origin */
   radius: number;
+  /** Anchors positioned on this ring, sorted by increasing azimuth */
   anchors: PolarAnchor[];
 }
 
+/**
+ * Polar blend tree implementation for 2D animation blending in polar coordinates.
+ *
+ * This class manages a collection of animation actions positioned in polar space (radius, azimuth),
+ * automatically blending between adjacent animations based on polar coordinates. The blend tree
+ * organizes actions into rays (constant azimuth) and rings (constant radius) to enable efficient
+ * bilinear interpolation between the four closest animations, creating smooth transitions across
+ * the polar space.
+ *
+ * ## Architecture
+ * - **Rays**: Groups of anchors with the same azimuth but different radii
+ * - **Rings**: Groups of anchors with the same radius but different azimuths
+ * - **Bilinear Interpolation**: Weight calculation between 4 corner anchors in polar grid
+ * - **Center Action**: Optional action at origin (0,0) for special handling
+ *
+ * ## Coordinate System
+ * - **Radius**: Distance from origin, must be non-negative
+ * - **Azimuth**: Angle in radians, automatically normalized to [0, 2π) range
+ * - **Origin**: Special point (0,0) handled separately if center action provided
+ *
+ * ## Input Validation
+ * - Minimum 2 actions required for basic interpolation
+ * - All radius values must be finite, non-negative, within JavaScript safe range
+ * - All azimuth values must be finite, within JavaScript safe range
+ * - No duplicate polar coordinates allowed
+ * - If exactly 2 actions, they cannot be collinear (same azimuth)
+ * - All rays must have the same number of anchors for grid consistency
+ *
+ * ## Blending Algorithm
+ * 1. Find the two adjacent rays that contain the target azimuth
+ * 2. Calculate angular interpolation weights between these rays
+ * 3. For each ray, find the two adjacent rings containing the target radius
+ * 4. Calculate radial interpolation weights between these rings
+ * 5. Apply bilinear interpolation to determine final animation weights
+ * 6. Handle special cases for center action and edge boundaries
+ *
+ * @example Walk/Run Directional Movement
+ * ```typescript
+ * // Create actions for 4-directional movement at two speeds
+ * const idle = mixer.clipAction(idleAnimationClip);
+ *
+ * // Walk actions (radius = 1)
+ * const walkForward = mixer.clipAction(walkForwardAnimationClip);
+ * const walkRight = mixer.clipAction(walkRightAnimationClip);
+ * const walkBackward = mixer.clipAction(walkBackwardAnimationClip);
+ * const walkLeft = mixer.clipAction(walkLeftAnimationClip);
+ *
+ * // Run actions (radius = 2)
+ * const runForward = mixer.clipAction(runForwardAnimationClip);
+ * const runRight = mixer.clipAction(runRightAnimationClip);
+ * const runBackward = mixer.clipAction(runBackwardAnimationClip);
+ * const runLeft = mixer.clipAction(runLeftAnimationClip);
+ *
+ * // Set up polar blend tree with 4-directional movement
+ * const blendTree = new PolarBlendTree([
+ *   // Walk speed (radius = 1)
+ *   { action: walkForward, radius: 1, azimuth: MathUtils.degToRad(0) },    // Forward
+ *   { action: walkLeft, radius: 1, azimuth: MathUtils.degToRad(90) },     // Left
+ *   { action: walkBackward, radius: 1, azimuth: MathUtils.degToRad(180) }, // Backward
+ *   { action: walkRight, radius: 1, azimuth: MathUtils.degToRad(270) },     // Right
+ *
+ *   // Run speed (radius = 2)
+ *   { action: runForward, radius: 2, azimuth: MathUtils.degToRad(0) },     // Fast Forward
+ *   { action: runLeft, radius: 2, azimuth: MathUtils.degToRad(90) },      // Fast Left
+ *   { action: runBackward, radius: 2, azimuth: MathUtils.degToRad(180) },  // Fast Backward
+ *   { action: runRight, radius: 2, azimuth: MathUtils.degToRad(270) },      // Fast Right
+ * ], idle); // Center action for stationary state
+ *
+ * // Blend to medium speed northeast (45° at 1.5x speed)
+ * blendTree.setBlend(1.5, MathUtils.degToRad(45));
+ *
+ * // Blend to slow walk forward
+ * blendTree.setBlend(0.5, MathUtils.degToRad(0));
+ * ```
+ *
+ * @public
+ */
 export class PolarBlendTree extends AnimationTree {
+  /** Set of currently active anchors that have non-zero weights */
   private readonly activeAnchors = new Set<PolarAnchor>();
 
+  /** Optional center anchor at origin (0,0) for special blending behavior */
   private readonly centerAnchor?: PolarAnchor;
+
+  /** Array of rays (constant azimuth lines) containing anchors, sorted by azimuth */
   private readonly rays: Ray[] = [];
+
+  /** Array of rings (constant radius circles) containing anchors, sorted by radius */
   private readonly rings: Ring[] = [];
 
+  /** Current radial position for blending calculations */
   private currentRadius = 0;
+
+  /** Current angular position for blending calculations, normalized to [0, 2π) */
   private currentAzimuth = 0;
 
-  constructor(
-    actions: PolarAction[],
-    options: Partial<PolarBlendTreeOptions> = {},
-  ) {
+  /**
+   * Creates a new polar blend tree with the specified animation actions.
+   * Actions are organized into rays (by azimuth) and rings (by radius) for
+   * efficient bilinear interpolation.
+   *
+   * @param polarActions - Array of polar actions defining the blend space.
+   *                      Must contain at least 3 actions with unique coordinates.
+   * @param centerAction - Optional center action at origin (0,0)
+   * @throws {Error} When fewer than 3 actions are provided
+   * @throws {Error} When any action has non-finite radius or azimuth values
+   * @throws {Error} When any action has negative radius
+   * @throws {Error} When any action has values outside JavaScript's safe range
+   * @throws {Error} When multiple actions have the same polar coordinates
+   * @throws {Error} When exactly 3 actions are collinear (same azimuth)
+   * @throws {Error} When rays don't have consistent anchor counts
+   */
+  constructor(polarActions: PolarAction[], centerAction?: AnimationAction) {
     super();
 
-    for (const action of actions) {
-      if (action.radius < EPSILON) {
+    if (polarActions.length < MIN_POLAR_ACTIONS) {
+      throw new Error(
+        `At least ${MIN_POLAR_ACTIONS} actions are required for polar blend tree`,
+      );
+    }
+
+    const coordinates = new Set<string>();
+    const azimuths = new Set<number>();
+
+    for (let i = 0; i < polarActions.length; i++) {
+      const action = polarActions[i];
+      const { radius, azimuth } = action;
+
+      if (!Number.isFinite(radius)) {
         throw new Error(
-          `Radius must be greater than ${EPSILON}, got ${action.radius}`,
+          `Action at index ${i} has non-finite radius: ${radius}`,
+        );
+      }
+      if (!Number.isFinite(azimuth)) {
+        throw new Error(
+          `Action at index ${i} has non-finite azimuth: ${azimuth}`,
         );
       }
 
+      if (radius < EPSILON) {
+        throw new Error(`Action at index ${i} has negative radius: ${radius}`);
+      }
+
+      if (Math.abs(radius) > Number.MAX_SAFE_INTEGER) {
+        throw new Error(
+          `Action at index ${i} has radius outside safe range: ${radius}`,
+        );
+      }
+      if (Math.abs(azimuth) > Number.MAX_SAFE_INTEGER) {
+        throw new Error(
+          `Action at index ${i} has azimuth outside safe range: ${azimuth}`,
+        );
+      }
+
+      const normalizedAzimuth = calculateNormalizedAzimuth(azimuth);
+      const coordKey = `${radius},${normalizedAzimuth}`;
+      if (coordinates.has(coordKey)) {
+        throw new Error(
+          `Duplicate coordinates found at radius=${radius}, azimuth=${azimuth}. All action coordinates must be unique.`,
+        );
+      }
+      coordinates.add(coordKey);
+      azimuths.add(normalizedAzimuth);
+    }
+
+    // Check for collinearity when exactly 3 actions
+    if (polarActions.length === MIN_POLAR_ACTIONS && azimuths.size === 1) {
+      throw new Error(
+        `When using exactly ${MIN_POLAR_ACTIONS} actions, they cannot all have the same azimuth (collinear). ` +
+          "Actions must form a proper triangulation.",
+      );
+    }
+
+    for (const action of polarActions) {
       const animationAction = action.action;
       action.action.time = 0;
       action.action.weight = 0;
@@ -105,7 +299,6 @@ export class PolarBlendTree extends AnimationTree {
       this.rings.push({ radius: anchors[0].radius, anchors });
     }
 
-    const centerAction = options.centerAction;
     if (centerAction) {
       centerAction.time = 0;
       centerAction.weight = 0;
@@ -128,6 +321,30 @@ export class PolarBlendTree extends AnimationTree {
     }
   }
 
+  /**
+   * Sets the blend position in polar coordinates to determine animation weights.
+   *
+   * The method clamps the radius to the valid range [0, maxRadius] and normalizes
+   * the azimuth to [0, 2π). When the position changes, animation weights are
+   * recalculated using bilinear interpolation between the closest anchors.
+   *
+   * @param radius - Target radial distance from origin. Will be clamped to [0, maxRadius].
+   * @param azimuth - Target angular position in radians. Will be normalized to [0, 2π).
+   *
+   * @example
+   * ```typescript
+   * // Blend to half speed, 45 degrees
+   * blendTree.setBlend(0.5, MathUtils.degToRad(45));
+   *
+   * // Blend to full speed, straight back
+   * blendTree.setBlend(1.0, MathUtils.degToRad(180));
+   *
+   * // Values outside range are automatically clamped
+   * blendTree.setBlend(-1, MathUtils.degToRad(600)); // Becomes (0, ~4.19)
+   * ```
+   *
+   * @public
+   */
   public setBlend(radius: number, azimuth: number): void {
     const maxRadius = this.rings[this.rings.length - 1].radius;
     const clampedRadius = MathUtils.clamp(radius, 0, maxRadius);
@@ -143,6 +360,16 @@ export class PolarBlendTree extends AnimationTree {
     }
   }
 
+  /**
+   * Internal frame update method called by the animation state machine.
+   *
+   * Monitors animation progress for all active anchors and emits iteration events
+   * when animations complete, restart, or loop. Tracks timing changes to detect
+   * animation state transitions and prevent duplicate event emissions.
+   *
+   * @internal This method is called exclusively by the animation state machine
+   * @override
+   */
   protected ["onTickInternal"](): void {
     for (const anchor of this.activeAnchors) {
       const action = anchor.action;
@@ -163,12 +390,40 @@ export class PolarBlendTree extends AnimationTree {
     }
   }
 
+  /**
+   * Updates the global influence for all active anchors in the polar blend tree.
+   *
+   * Called when the tree's overall influence changes but relative weights between
+   * anchors should remain the same. Applies the current tree influence to all
+   * active anchors while maintaining their existing weight distribution from
+   * the polar blending calculations.
+   *
+   * @override
+   * @protected
+   */
   protected updateAnchorsInfluence(): void {
     for (const anchor of this.activeAnchors) {
       this.updateAnchor(anchor);
     }
   }
 
+  /**
+   * Recalculates and updates animation weights based on current blend position.
+   *
+   * This is the core blending algorithm that:
+   * 1. Finds the two adjacent rays containing the current azimuth
+   * 2. Calculates angular interpolation weights between these rays
+   * 3. Determines if blending occurs in the center region or outer grid
+   * 4. Applies appropriate interpolation (linear for center, bilinear for grid)
+   * 5. Updates active anchors set and applies calculated weights
+   *
+   * The method handles three distinct cases:
+   * - **Center Region**: When radius < first ring radius, blends with center action
+   * - **Grid Region**: When radius >= first ring radius, uses bilinear interpolation
+   * - **Edge Cases**: Boundary conditions and wraparound azimuth handling
+   *
+   * @private
+   */
   private updateAnchors(): void {
     const weights = new Map<PolarAnchor, number>();
 
@@ -230,6 +485,28 @@ export class PolarBlendTree extends AnimationTree {
     }
   }
 
+  /**
+   * Calculates bilinear interpolation weights for the four corner anchors in the polar grid.
+   *
+   * This method performs standard bilinear interpolation between four points arranged
+   * in a rectangular grid pattern in polar space. The four corners are defined by:
+   * - Inner ring vs outer ring (radial dimension)
+   * - Left ray vs right ray (angular dimension)
+   *
+   * The bilinear interpolation formula combines the radial and angular interpolation
+   * weights to determine how much each of the four corner anchors contributes to
+   * the final blend result.
+   *
+   * @param weights - Map to store calculated weights for each anchor
+   * @param lRayT - Weight for the left ray (0 = all left, 1 = all right)
+   * @param rRayT - Weight for the right ray (0 = all left, 1 = all right)
+   * @param lRayIndex - Index of the left ray in the rays array
+   * @param rRayIndex - Index of the right ray in the rays array
+   *
+   * @throws {Error} When no ring pair contains the current radius (should never happen)
+   *
+   * @private
+   */
   private calculateBilinearWeights(
     weights: Map<PolarAnchor, number>,
     lRayT: number,
