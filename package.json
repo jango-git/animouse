@@ -6,7 +6,8 @@
     "clean": "rm -rf dist",
     "build": "npm run clean && rollup -c",
     "build:prod": "npm run clean && NODE_ENV=production rollup -c",
-    "prepublishOnly": "npm run build:prod"
+    "test": "uvu -r tsx test",
+    "prepublishOnly": "npm run build:prod && npm test"
   },
   "main": "dist/index.js",
   "module": "dist/index.js",
@@ -51,7 +52,10 @@
     "eslint": "^9.26.0",
     "rollup": "^4.40.2",
     "rollup-plugin-typescript2": "^0.36.0",
-    "typescript": "^5.8.3"
+    "ts-transformer-minify-privates": "^1.0.0",
+    "tsx": "^4.20.3",
+    "typescript": "^5.8.3",
+    "uvu": "^0.5.6"
   },
   "dependencies": {
     "eventail": "^0.2.6"

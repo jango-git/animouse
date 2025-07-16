@@ -1,8 +1,8 @@
 import type { Vector2Like } from "three";
+import { EPSILON } from "./miscellaneous";
 
 const MINIMUM_POINTS = 3;
 const LARGE_VALUE = 1024;
-const EPSILON = 1e-10;
 const TRIANGLE_VERTEX_COUNT = 3;
 
 export interface Triangle<T extends Vector2Like> {
@@ -14,7 +14,7 @@ export interface Triangle<T extends Vector2Like> {
 
 export interface TriangulationResult<T extends Vector2Like> {
   triangles: Triangle<T>[];
-  outerEdges: [T, T][];
+  outerEdges: Map<T, [T, T]>;
 }
 
 export class DelaunayTriangulation {
@@ -210,7 +210,7 @@ export class DelaunayTriangulation {
 
   private static calculateOuterEdges<T extends Vector2Like>(
     triangles: Triangle<T>[],
-  ): [T, T][] {
+  ): Map<T, [T, T]> {
     const edgeCount = new Map<string, number>();
     const edgeToTriangles = new Map<string, Triangle<T>[]>();
 
@@ -242,7 +242,7 @@ export class DelaunayTriangulation {
       }
     }
 
-    const outerEdges: [T, T][] = [];
+    const outerEdgesList: [T, T][] = [];
     const outerEdgeKeys = Array.from(edgeCount.entries())
       .filter(([key, count]) => {
         void key;
@@ -263,8 +263,31 @@ export class DelaunayTriangulation {
       for (const edge of edges) {
         const key = getEdgeKey(edge[0], edge[1]);
         if (key && outerEdgeKeys.includes(key)) {
-          outerEdges.push(edge);
+          outerEdgesList.push(edge);
         }
+      }
+    }
+
+    // Build adjacency map for outer edges
+    const adjacencyMap = new Map<T, T[]>();
+
+    for (const [p1, p2] of outerEdgesList) {
+      if (!adjacencyMap.has(p1)) {
+        adjacencyMap.set(p1, []);
+      }
+      if (!adjacencyMap.has(p2)) {
+        adjacencyMap.set(p2, []);
+      }
+      adjacencyMap.get(p1)?.push(p2);
+      adjacencyMap.get(p2)?.push(p1);
+    }
+
+    // Create result map with each point mapped to its two neighbors
+    const outerEdges = new Map<T, [T, T]>();
+
+    for (const [point, neighbors] of adjacencyMap) {
+      if (neighbors.length === 2) {
+        outerEdges.set(point, [neighbors[0], neighbors[1]]);
       }
     }
 

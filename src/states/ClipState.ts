@@ -5,7 +5,6 @@ import { AnimationState } from "./AnimationState";
 
 export class ClipState extends AnimationState {
   private readonly anchor: Anchor;
-  private influenceInternal = 0;
 
   constructor(action: AnimationAction) {
     super();
@@ -22,10 +21,6 @@ export class ClipState extends AnimationState {
     };
   }
 
-  public get influence(): number {
-    return this.influenceInternal;
-  }
-
   protected ["setInfluenceInternal"](influence: number): void {
     if (influence === this.influenceInternal) {
       return;
@@ -39,7 +34,6 @@ export class ClipState extends AnimationState {
       action.time = 0;
       action.weight = 0;
       this.emit(StateEvent.STOP, action, this);
-      this.emit(StateEvent.EXIT, action, this);
       return;
     }
 
@@ -47,7 +41,6 @@ export class ClipState extends AnimationState {
       action.play();
       action.weight = influence;
       this.emit(StateEvent.PLAY, action, this);
-      this.emit(StateEvent.ENTER, action, this);
       return;
     }
 

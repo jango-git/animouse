@@ -1,18 +1,66 @@
 import { Eventail } from "eventail";
 import { StateEvent } from "../mescellaneous/AnimationStateEvent";
 
+/**
+ * Abstract base class for animation states in the animation state machine.
+ * Manages state influence (weight) and provides lifecycle event handling.
+ *
+ * This class is designed to be extended by concrete animation states and
+ * controlled by the animation state machine.
+ */
 export abstract class AnimationState extends Eventail {
-  public abstract get influence(): number;
+  /**
+   * Internal storage for the state's influence value.
+   * Represents the weight/contribution of this state in the animation state machine.
+   */
+  protected influenceInternal = 0;
 
+  /**
+   * Gets the current influence (weight) of this animation state.
+   * The influence determines how much this state contributes to the overall animation.
+   *
+   * @returns The current influence value, always in range [0, 1]
+   */
+  public get influence(): number {
+    return this.influenceInternal;
+  }
+
+  /**
+   * Internal method called by the animation state machine when entering this state.
+   * Emits the ENTER event with this state instance as data.
+   *
+   * @internal This method is intended to be called only by the animation state machine
+   */
   protected ["onEnterInternal"](): void {
     this.emit(StateEvent.ENTER, this);
   }
 
+  /**
+   * Internal method called by the animation state machine when exiting this state.
+   * Emits the EXIT event with this state instance as data.
+   *
+   * @internal This method is intended to be called only by the animation state machine
+   */
   protected ["onExitInternal"](): void {
     this.emit(StateEvent.EXIT, this);
   }
 
+  /**
+   * Internal method called by the animation state machine on each frame update.
+   * Concrete implementations should handle per-frame state updates here.
+   *
+   * @param deltaTime - Time elapsed since the last frame, in milliseconds
+   * @internal This method is intended to be called only by the animation state machine
+   */
   protected abstract ["onTickInternal"](deltaTime: number): void;
 
+  /**
+   * Internal method called by the animation state machine to set the state's influence.
+   * Concrete implementations should update the influenceInternal property and handle
+   * any influence-related logic here.
+   *
+   * @param influence - The new influence value to set
+   * @internal This method is intended to be called only by the animation state machine
+   */
   protected abstract ["setInfluenceInternal"](influence: number): void;
 }

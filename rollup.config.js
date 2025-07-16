@@ -1,6 +1,7 @@
 import { nodeResolve } from "@rollup/plugin-node-resolve";
 import terser from "@rollup/plugin-terser";
 import typescript from "rollup-plugin-typescript2";
+import minifyPrivatesTransformer from "ts-transformer-minify-privates";
 
 export default {
   input: "src/index.ts",
@@ -64,6 +65,12 @@ export default {
     typescript({
       tsconfig: "tsconfig.json",
       useTsconfigDeclarationDir: true,
+      transformers: [
+        (service) => ({
+          before: [minifyPrivatesTransformer.default(service.getProgram())],
+          after: [],
+        }),
+      ],
     }),
   ],
   external: ["three"],

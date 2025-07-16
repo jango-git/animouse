@@ -49,7 +49,7 @@ export class LinearBlendTree extends AnimationTree {
     );
     if (clampedValue !== this.blend) {
       this.blend = clampedValue;
-      this.updateAnchors();
+      this.updateAnchorsInfluence();
     }
   }
 
@@ -73,7 +73,7 @@ export class LinearBlendTree extends AnimationTree {
     }
   }
 
-  protected updateAnchors(): void {
+  protected updateAnchorsInfluence(): void {
     for (let i = 0; i < this.anchors.length - 1; i++) {
       const l = this.anchors[i];
       const r = this.anchors[i + 1];

@@ -6,8 +6,8 @@ import {
   type Triangle,
 } from "../mescellaneous/DelaunayTriangulation";
 import {
-  getDistanceSquared,
-  getDistanceToEdge,
+  calculateDistanceSquared,
+  calculateDistanceToEdgeSquared,
   type Anchor,
 } from "../mescellaneous/miscellaneous";
 import { AnimationTree } from "./AnimationTree";
@@ -31,10 +31,10 @@ type FreeformTriangle = Triangle<FreeformAnchor>;
 export class FreeformBlendTree extends AnimationTree {
   private readonly activeAnchors = new Set<FreeformAnchor>();
   private readonly triangles: FreeformTriangle[] = [];
-  private readonly outerEdges: [FreeformAnchor, FreeformAnchor][] = [];
-
-  private isTrianglesSorted = false;
-  private isOuterEdgesSorted = false;
+  private readonly outerEdges = new Map<
+    FreeformAnchor,
+    [FreeformAnchor, FreeformAnchor]
+  >();
 
   private currentX = 0;
   private currentY = 0;
@@ -71,9 +71,7 @@ export class FreeformBlendTree extends AnimationTree {
     const result = DelaunayTriangulation.triangulate(anchors);
     this.triangles = result.triangles;
     this.outerEdges = result.outerEdges;
-
     this.sortTriangles();
-    this.sortOuterEdges();
   }
 
   public setBlend(x: number, y: number): void {
@@ -81,9 +79,8 @@ export class FreeformBlendTree extends AnimationTree {
       this.currentX = x;
       this.currentY = y;
 
-      this.isTrianglesSorted = false;
-      this.isOuterEdgesSorted = false;
-      this.updateAnchors();
+      this.sortTriangles();
+      this.updateAnchorsInfluence();
     }
   }
 
@@ -107,14 +104,13 @@ export class FreeformBlendTree extends AnimationTree {
     }
   }
 
-  protected updateAnchors(): void {
+  protected updateAnchorsInfluence(): void {
     const weights = new Map<FreeformAnchor, number>();
 
     for (const anchor of this.activeAnchors) {
       weights.set(anchor, 0);
     }
 
-    this.sortTriangles();
     const containingTriangle = this.findContainingTriangle();
 
     containingTriangle
@@ -130,8 +126,6 @@ export class FreeformBlendTree extends AnimationTree {
   }
 
   private findContainingTriangle(): FreeformTriangle | undefined {
-    this.sortTriangles();
-
     for (const blendTriangle of this.triangles) {
       if (this.isPointInTriangle(blendTriangle)) {
         return blendTriangle;
@@ -181,9 +175,35 @@ export class FreeformBlendTree extends AnimationTree {
   private applyNearestNeighborWeight(
     result: Map<FreeformAnchor, number>,
   ): void {
-    this.sortOuterEdges();
+    const nearestTriangle = this.triangles[0];
+    const closestAnchor = [
+      nearestTriangle.a,
+      nearestTriangle.b,
+      nearestTriangle.c,
+    ].reduce((a, b) =>
+      calculateDistanceSquared(a.x, a.y, this.currentX, this.currentY) <
+      calculateDistanceSquared(b.x, b.y, this.currentX, this.currentY)
+        ? a
+        : b,
+    );
 
-    const [a, b] = this.outerEdges[0];
+    const edgeData = this.outerEdges.get(closestAnchor);
+    if (edgeData === undefined) {
+      throw new Error("Edge data not found");
+    }
+
+    const edge0: [FreeformAnchor, FreeformAnchor] = [
+      closestAnchor,
+      edgeData[0],
+    ];
+    const edge1: [FreeformAnchor, FreeformAnchor] = [edgeData[0], edgeData[1]];
+    const closestEdge =
+      calculateDistanceToEdgeSquared(edge0, this.currentX, this.currentY) <
+      calculateDistanceToEdgeSquared(edge1, this.currentX, this.currentY)
+        ? edge0
+        : edge1;
+
+    const [a, b] = closestEdge;
 
     const dx = b.x - a.x;
     const dy = b.y - a.y;
@@ -198,34 +218,20 @@ export class FreeformBlendTree extends AnimationTree {
   }
 
   private sortTriangles(): void {
-    if (!this.isTrianglesSorted) {
-      this.triangles.sort(
-        (a, b) =>
-          getDistanceSquared(
-            a.center.x,
-            a.center.y,
-            this.currentX,
-            this.currentY,
-          ) -
-          getDistanceSquared(
-            b.center.x,
-            b.center.y,
-            this.currentX,
-            this.currentY,
-          ),
-      );
-      this.isTrianglesSorted = true;
-    }
-  }
-
-  private sortOuterEdges(): void {
-    if (!this.isOuterEdgesSorted) {
-      this.outerEdges.sort(
-        (a, b) =>
-          getDistanceToEdge(a, this.currentX, this.currentY) -
-          getDistanceToEdge(b, this.currentX, this.currentY),
-      );
-      this.isOuterEdgesSorted = true;
-    }
+    this.triangles.sort(
+      (a, b) =>
+        calculateDistanceSquared(
+          a.center.x,
+          a.center.y,
+          this.currentX,
+          this.currentY,
+        ) -
+        calculateDistanceSquared(
+          b.center.x,
+          b.center.y,
+          this.currentX,
+          this.currentY,
+        ),
+    );
   }
 }

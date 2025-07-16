@@ -3,10 +3,10 @@ import { LoopOnce, MathUtils } from "three";
 import { StateEvent } from "../mescellaneous/AnimationStateEvent";
 import type { Anchor } from "../mescellaneous/miscellaneous";
 import {
+  calculateAngularDistance,
+  calculateNormalizedAzimuth,
   EPSILON,
-  getAngularDistance,
-  isAngleBetween,
-  normalizeAngle,
+  isAzimuthBetween,
 } from "../mescellaneous/miscellaneous";
 import { AnimationTree } from "./AnimationTree";
 
@@ -65,7 +65,7 @@ export class PolarBlendTree extends AnimationTree {
       const anchor: PolarAnchor = {
         action: action.action,
         radius: action.radius,
-        azimuth: normalizeAngle(action.azimuth),
+        azimuth: calculateNormalizedAzimuth(action.azimuth),
         duration: action.action.getClip().duration,
         previousTime: 0,
         hasFiredIterationEvent: false,
@@ -126,7 +126,7 @@ export class PolarBlendTree extends AnimationTree {
   public setBlend(radius: number, azimuth: number): void {
     const maxRadius = this.rings[this.rings.length - 1].radius;
     const clampedRadius = MathUtils.clamp(radius, 0, maxRadius);
-    const normalizedAzimuth = normalizeAngle(azimuth);
+    const normalizedAzimuth = calculateNormalizedAzimuth(azimuth);
 
     if (
       this.currentRadius !== clampedRadius ||
@@ -134,7 +134,7 @@ export class PolarBlendTree extends AnimationTree {
     ) {
       this.currentRadius = clampedRadius;
       this.currentAzimuth = normalizedAzimuth;
-      this.updateAnchors();
+      this.updateAnchorsInfluence();
     }
   }
 
@@ -158,7 +158,7 @@ export class PolarBlendTree extends AnimationTree {
     }
   }
 
-  protected updateAnchors(): void {
+  protected updateAnchorsInfluence(): void {
     const weights = new Map<PolarAnchor, number>();
 
     for (const anchor of this.activeAnchors) {
@@ -173,9 +173,12 @@ export class PolarBlendTree extends AnimationTree {
       const lAzimuth = lRay.azimuth;
       const rAzimuth = rRay.azimuth;
 
-      if (isAngleBetween(this.currentAzimuth, lAzimuth, rAzimuth)) {
-        const angularDistance = getAngularDistance(lAzimuth, rAzimuth);
-        const leftDistance = getAngularDistance(lAzimuth, this.currentAzimuth);
+      if (isAzimuthBetween(this.currentAzimuth, lAzimuth, rAzimuth)) {
+        const angularDistance = calculateAngularDistance(lAzimuth, rAzimuth);
+        const leftDistance = calculateAngularDistance(
+          lAzimuth,
+          this.currentAzimuth,
+        );
         const rRayT = leftDistance / angularDistance;
         const lRayT = 1 - rRayT;
 
