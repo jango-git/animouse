@@ -1,4 +1,4 @@
-import { LoopOnce } from "three";
+import { AnimationActionLoopStyles, LoopOnce, LoopRepeat } from "three";
 import { StateEvent } from "../../src/mescellaneous/AnimationStateEvent";
 import { Anchor } from "../../src/mescellaneous/miscellaneous";
 import { FreeformAnchor } from "../../src/states/FreeformBlendTree";
@@ -6,8 +6,12 @@ import { LinearAnchor } from "../../src/states/LinearBlendTree";
 import { PolarAnchor } from "../../src/states/PolarBlendTree";
 import { buildMockAnimationAction } from "./buildMockAnimationAction";
 
-export function buildMockAnchor(weight: number = 0): Anchor {
-  const action = buildMockAnimationAction();
+export function buildMockAnchor(
+  weight: number = 0,
+  loop: AnimationActionLoopStyles = LoopRepeat,
+  duration = 1.0,
+): Anchor {
+  const action = buildMockAnimationAction(loop, duration);
   return {
     action,
     weight,
@@ -19,8 +23,12 @@ export function buildMockAnchor(weight: number = 0): Anchor {
   };
 }
 
-export function buildMockLinearAnchor(weight: number = 0): LinearAnchor {
-  const action = buildMockAnimationAction();
+export function buildMockLinearAnchor(
+  weight: number = 0,
+  loop: AnimationActionLoopStyles = LoopRepeat,
+  duration = 1.0,
+): LinearAnchor {
+  const action = buildMockAnimationAction(loop, duration);
   return {
     action,
     weight,
@@ -33,8 +41,12 @@ export function buildMockLinearAnchor(weight: number = 0): LinearAnchor {
   };
 }
 
-export function buildMockRadialAnchor(weight: number = 0): PolarAnchor {
-  const action = buildMockAnimationAction();
+export function buildMockRadialAnchor(
+  weight: number = 0,
+  loop: AnimationActionLoopStyles = LoopRepeat,
+  duration = 1.0,
+): PolarAnchor {
+  const action = buildMockAnimationAction(loop, duration);
   return {
     action,
     weight,
@@ -48,8 +60,12 @@ export function buildMockRadialAnchor(weight: number = 0): PolarAnchor {
   };
 }
 
-export function buildMockFreeformAnchor(weight: number = 0): FreeformAnchor {
-  const action = buildMockAnimationAction();
+export function buildMockFreeformAnchor(
+  weight: number = 0,
+  loop: AnimationActionLoopStyles = LoopRepeat,
+  duration = 1.0,
+): FreeformAnchor {
+  const action = buildMockAnimationAction(loop, duration);
   return {
     action,
     weight,
