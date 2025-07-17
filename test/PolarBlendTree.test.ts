@@ -1,34 +1,175 @@
-// import {
-//   AnimationActionLoopStyles,
-//   LoopOnce,
-//   LoopRepeat,
-//   MathUtils,
-// } from "three";
-// import { test } from "uvu";
-// import * as assert from "uvu/assert";
-// import { StateEvent } from "../src/mescellaneous/AnimationStateEvent";
-// import { PolarBlendTree, type PolarAction } from "../src/states/PolarBlendTree";
-// import { MockAnimationAction } from "./mocks/buildMockAnimationAction";
+import { test } from "uvu";
+import * as assert from "uvu/assert";
+import { buildMockPolarAction } from "./mocks/buildMockAction";
+import { PolarBlendTreeProxy } from "./proxies/PolarBlendTreeProxy";
 
-// // Helper function to create PolarAction
-// function createPolarAction(
-//   radius: number,
-//   azimuth: number,
-//   loop: AnimationActionLoopStyles = LoopRepeat,
-// ): PolarAction {
-//   const mockAction = new MockAnimationAction(1.0, loop) as any;
-//   return {
-//     action: mockAction,
-//     radius: radius,
-//     azimuth: azimuth,
-//   };
-// }
+function assertEqualWithTolerance(
+  actual: number,
+  expected: number,
+  message?: string,
+): void {
+  const EPSILON = 1e-10;
+  assert.ok(
+    Math.abs(actual - expected) < EPSILON,
+    message || `Expected ${expected}, got ${actual}`,
+  );
+}
 
-// // Constructor tests
-// test("should throw error when fewer than 2 actions provided", () => {
-//   assert.throws(
-//     () => new PolarBlendTree([createPolarAction(1, 0)]),
-//     "At least 2 actions are required",
+test("constructor: should throw error when fewer than 2 actions provided", () => {
+  assert.throws(
+    () => new PolarBlendTreeProxy([buildMockPolarAction(1, 0)]),
+    "Need at least 2 actions",
+  );
+});
+
+test("constructor: should throw error when action has non-finite value", () => {
+  assert.throws(
+    () =>
+      new PolarBlendTreeProxy([
+        buildMockPolarAction(1, NaN),
+        buildMockPolarAction(NaN, 0),
+        buildMockPolarAction(0, 0),
+      ]),
+    /non-finite value/,
+  );
+
+  assert.throws(
+    () =>
+      new PolarBlendTreeProxy([
+        buildMockPolarAction(1, Infinity),
+        buildMockPolarAction(Infinity, 0),
+      ]),
+    /non-finite value/,
+  );
+
+  assert.throws(
+    () =>
+      new PolarBlendTreeProxy([
+        buildMockPolarAction(1, -Infinity),
+        buildMockPolarAction(-Infinity, 0),
+      ]),
+    /non-finite value/,
+  );
+});
+
+test("constructor: should throw error when action has value outside safe range", () => {
+  assert.throws(
+    () =>
+      new PolarBlendTreeProxy([
+        buildMockPolarAction(Number.MAX_SAFE_INTEGER + 1, 0),
+        buildMockPolarAction(0, 0),
+        buildMockPolarAction(-(Number.MAX_SAFE_INTEGER + 1), 0),
+      ]),
+    /outside safe range/,
+  );
+  assert.throws(
+    () =>
+      new PolarBlendTreeProxy([
+        buildMockPolarAction(1, Number.MAX_SAFE_INTEGER + 1),
+        buildMockPolarAction(0, 0),
+        buildMockPolarAction(1, -(Number.MAX_SAFE_INTEGER + 1)),
+      ]),
+    /outside safe range/,
+  );
+});
+
+test("constructor: should throw error when multiple actions have same value", () => {
+  assert.throws(
+    () =>
+      new PolarBlendTreeProxy([
+        buildMockPolarAction(0.5, 0),
+        buildMockPolarAction(0.5, 0),
+      ]),
+    /Duplicate value found/,
+  );
+});
+
+test("constructor: should throw error when only two actions and they are collinear", () => {
+  assert.throws(
+    () =>
+      new PolarBlendTreeProxy([
+        buildMockPolarAction(0.5, 0),
+        buildMockPolarAction(1, 0),
+      ]),
+    /Duplicate value found/,
+  );
+});
+
+test("constructor: should initialize actions to stopped state", () => {
+  const action1 = buildMockPolarAction(1, 0);
+  const action2 = buildMockPolarAction(0.5, 0);
+
+  action1.action.play();
+  action2.action.play();
+
+  // Set initial non-zero values to verify they get reset
+  action1.action.time = 0.5;
+  action1.action.weight = 0.7;
+  action2.action.time = 0.3;
+  action2.action.weight = 0.4;
+
+  new PolarBlendTreeProxy([action1, action2]);
+
+  // Constructor should reset all actions to stopped state
+  assertEqualWithTolerance(
+    action1.action.time,
+    0,
+    "action1 should have time 0",
+  );
+  assertEqualWithTolerance(
+    action1.action.weight,
+    0,
+    "action1 should have weight 0",
+  );
+  assert.equal(
+    action1.action.isRunning(),
+    false,
+    "action1 should not be running",
+  );
+  assertEqualWithTolerance(
+    action2.action.time,
+    0,
+    "action2 should have time 0",
+  );
+  assertEqualWithTolerance(
+    action2.action.weight,
+    0,
+    "action2 should have weight 0",
+  );
+  assert.equal(
+    action2.action.isRunning(),
+    false,
+    "action2 should not be running",
+  );
+});
+
+// test("constructor: should sort actions by value ascending", () => {
+//   // Create actions in unsorted order: 10, -5, 0
+//   const action1 = buildMockLinearAction(10);
+//   const action2 = buildMockLinearAction(-5);
+//   const action3 = buildMockLinearAction(0);
+
+//   const blendTree = new LinearBlendTreeProxy([action1, action2, action3]);
+//   blendTree.invokeSetInfluence(1);
+
+//   // Test by checking blend behavior - should clamp to sorted range
+//   blendTree.setBlend(-10); // Should clamp to -5 (minimum after sorting)
+
+//   // If sorted correctly (-5, 0, 10), action2 should have weight 1
+//   assertEqualWithTolerance(
+//     action1.action.weight,
+//     0,
+//     "action1 (value 10) should have weight 0 when blend is at minimum",
+//   );
+//   assertEqualWithTolerance(
+//     action2.action.weight,
+//     1,
+//     "action2 (value -5) should have weight 1 when blend clamps to minimum",
+//   );
+//   assertEqualWithTolerance(
+//     action3.action.weight,
+//     0,
+//     "action3 (value 0) should have weight 0 when blend is at minimum",
 //   );
 // });
 
@@ -36,8 +177,8 @@
 //   assert.throws(
 //     () =>
 //       new PolarBlendTree([
-//         createPolarAction(1, 0),
-//         createPolarAction(NaN, MathUtils.degToRad(90)),
+//         buildMockPolarAction(1, 0),
+//         buildMockPolarAction(NaN, MathUtils.degToRad(90)),
 //       ]),
 //     /non-finite radius/,
 //   );
@@ -45,8 +186,8 @@
 //   assert.throws(
 //     () =>
 //       new PolarBlendTree([
-//         createPolarAction(1, 0),
-//         createPolarAction(Infinity, MathUtils.degToRad(90)),
+//         buildMockPolarAction(1, 0),
+//         buildMockPolarAction(Infinity, MathUtils.degToRad(90)),
 //       ]),
 //     /non-finite radius/,
 //   );
@@ -55,15 +196,18 @@
 // test("should throw error when action has non-finite azimuth", () => {
 //   assert.throws(
 //     () =>
-//       new PolarBlendTree([createPolarAction(1, 0), createPolarAction(1, NaN)]),
+//       new PolarBlendTree([
+//         buildMockPolarAction(1, 0),
+//         buildMockPolarAction(1, NaN),
+//       ]),
 //     /non-finite azimuth/,
 //   );
 
 //   assert.throws(
 //     () =>
 //       new PolarBlendTree([
-//         createPolarAction(1, 0),
-//         createPolarAction(1, Infinity),
+//         buildMockPolarAction(1, 0),
+//         buildMockPolarAction(1, Infinity),
 //       ]),
 //     /non-finite azimuth/,
 //   );
@@ -73,8 +217,8 @@
 //   assert.throws(
 //     () =>
 //       new PolarBlendTree([
-//         createPolarAction(1, 0),
-//         createPolarAction(-1, MathUtils.degToRad(90)),
+//         buildMockPolarAction(1, 0),
+//         buildMockPolarAction(-1, MathUtils.degToRad(90)),
 //       ]),
 //     /negative radius/,
 //   );
@@ -84,8 +228,8 @@
 //   assert.throws(
 //     () =>
 //       new PolarBlendTree([
-//         createPolarAction(1, MathUtils.degToRad(45)),
-//         createPolarAction(1, MathUtils.degToRad(45)),
+//         buildMockPolarAction(1, MathUtils.degToRad(45)),
+//         buildMockPolarAction(1, MathUtils.degToRad(45)),
 //       ]),
 //     /duplicate polar coordinates/,
 //   );
@@ -93,8 +237,8 @@
 
 // test("should create successfully with minimum valid actions", () => {
 //   const blendTree = new PolarBlendTree([
-//     createPolarAction(1, 0),
-//     createPolarAction(1, MathUtils.degToRad(90)),
+//     buildMockPolarAction(1, 0),
+//     buildMockPolarAction(1, MathUtils.degToRad(90)),
 //   ]);
 
 //   assert.ok(blendTree);
@@ -103,7 +247,10 @@
 // test("should create successfully with center action", () => {
 //   const centerAction = new MockAnimationAction() as any;
 //   const blendTree = new PolarBlendTree(
-//     [createPolarAction(1, 0), createPolarAction(1, MathUtils.degToRad(90))],
+//     [
+//       buildMockPolarAction(1, 0),
+//       buildMockPolarAction(1, MathUtils.degToRad(90)),
+//     ],
 //     centerAction,
 //   );
 
@@ -111,8 +258,8 @@
 // });
 
 // test("should initialize all actions to stopped state", () => {
-//   const action1 = createPolarAction(1, 0);
-//   const action2 = createPolarAction(1, MathUtils.degToRad(90));
+//   const action1 = buildMockPolarAction(1, 0);
+//   const action2 = buildMockPolarAction(1, MathUtils.degToRad(90));
 //   const centerAction = new MockAnimationAction() as any;
 
 //   // Set some initial values
@@ -135,8 +282,8 @@
 
 // // setBlend tests
 // test("should interpolate correctly between two actions", () => {
-//   const action1 = createPolarAction(1, 0); // North
-//   const action2 = createPolarAction(1, MathUtils.degToRad(90)); // East
+//   const action1 = buildMockPolarAction(1, 0); // North
+//   const action2 = buildMockPolarAction(1, MathUtils.degToRad(90)); // East
 //   const blendTree = new PolarBlendTree([action1, action2]);
 
 //   // Set influence to 1 to see actual weights
@@ -151,8 +298,8 @@
 // });
 
 // test("should give 100% weight to exact coordinate matches", () => {
-//   const action1 = createPolarAction(1, 0);
-//   const action2 = createPolarAction(1, MathUtils.degToRad(90));
+//   const action1 = buildMockPolarAction(1, 0);
+//   const action2 = buildMockPolarAction(1, MathUtils.degToRad(90));
 //   const blendTree = new PolarBlendTree([action1, action2]);
 
 //   (blendTree as any).setInfluenceInternal(1);
@@ -165,9 +312,9 @@
 // });
 
 // test("should blend with center action when radius is small", () => {
-//   const action1 = createPolarAction(2, 0);
-//   const action2 = createPolarAction(2, MathUtils.degToRad(90));
-//   const centerAction = new MockAnimationAction() as any;
+//   const action1 = buildMockPolarAction(2, 0);
+//   const action2 = buildMockPolarAction(2, MathUtils.degToRad(90));
+//   const centerAction = buildMockPolarAction(0, MathUtils.degToRad(45));
 //   const blendTree = new PolarBlendTree([action1, action2], centerAction);
 
 //   (blendTree as any).setInfluenceInternal(1);
@@ -182,8 +329,8 @@
 // });
 
 // test("should clamp negative radius to zero", () => {
-//   const action1 = createPolarAction(1, 0);
-//   const action2 = createPolarAction(1, MathUtils.degToRad(90));
+//   const action1 = buildMockPolarAction(1, 0);
+//   const action2 = buildMockPolarAction(1, MathUtils.degToRad(90));
 //   const blendTree = new PolarBlendTree([action1, action2]);
 
 //   (blendTree as any).setInfluenceInternal(1);
@@ -197,8 +344,8 @@
 // });
 
 // test("should normalize azimuth to [0, 2π) range", () => {
-//   const action1 = createPolarAction(1, 0);
-//   const action2 = createPolarAction(1, MathUtils.degToRad(90));
+//   const action1 = buildMockPolarAction(1, 0);
+//   const action2 = buildMockPolarAction(1, MathUtils.degToRad(90));
 //   const blendTree = new PolarBlendTree([action1, action2]);
 
 //   (blendTree as any).setInfluenceInternal(1);
@@ -212,8 +359,8 @@
 // });
 
 // test("should skip update when blend coordinates are unchanged", () => {
-//   const action1 = createPolarAction(1, 0);
-//   const action2 = createPolarAction(1, MathUtils.degToRad(90));
+//   const action1 = buildMockPolarAction(1, 0);
+//   const action2 = buildMockPolarAction(1, MathUtils.degToRad(90));
 //   const blendTree = new PolarBlendTree([action1, action2]);
 
 //   (blendTree as any).setInfluenceInternal(1);
@@ -230,8 +377,8 @@
 // });
 
 // test("should update weights when blend coordinates change", () => {
-//   const action1 = createPolarAction(1, 0);
-//   const action2 = createPolarAction(1, MathUtils.degToRad(90));
+//   const action1 = buildMockPolarAction(1, 0);
+//   const action2 = buildMockPolarAction(1, MathUtils.degToRad(90));
 //   const blendTree = new PolarBlendTree([action1, action2]);
 
 //   (blendTree as any).setInfluenceInternal(1);
@@ -251,8 +398,8 @@
 
 // // Event tests
 // test("should emit PLAY events when actions start", () => {
-//   const action1 = createPolarAction(1, 0);
-//   const action2 = createPolarAction(1, MathUtils.degToRad(90));
+//   const action1 = buildMockPolarAction(1, 0);
+//   const action2 = buildMockPolarAction(1, MathUtils.degToRad(90));
 //   const blendTree = new PolarBlendTree([action1, action2]);
 
 //   (blendTree as any).setInfluenceInternal(1);
@@ -518,4 +665,4 @@
 //   assert.ok(action2.action.weight >= 0 && action2.action.weight <= 1);
 // });
 
-// test.run();
+test.run();
