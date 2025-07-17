@@ -228,14 +228,14 @@ export class FreeformBlendTree extends AnimationTree {
     this.triangles.sort(
       (a, b) =>
         calculateDistanceSquared(
-          a.center.x,
-          a.center.y,
+          a.circumcenter.x,
+          a.circumcenter.y,
           this.currentX,
           this.currentY,
         ) -
         calculateDistanceSquared(
-          b.center.x,
-          b.center.y,
+          b.circumcenter.x,
+          b.circumcenter.y,
           this.currentX,
           this.currentY,
         ),
