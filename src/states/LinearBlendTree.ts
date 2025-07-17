@@ -1,4 +1,5 @@
-import { LoopOnce, MathUtils, type AnimationAction } from "three";
+import type { AnimationAction } from "three";
+import { LoopOnce } from "three";
 import { StateEvent } from "../mescellaneous/AnimationStateEvent";
 import type { Anchor } from "../mescellaneous/miscellaneous";
 import { AnimationTree } from "./AnimationTree";
@@ -60,6 +61,10 @@ export interface LinearAnchor extends Anchor {
  */
 export class LinearBlendTree extends AnimationTree {
   private readonly anchors: LinearAnchor[] = [];
+
+  private lastLeftAnchor?: LinearAnchor;
+  private lastRightAnchor?: LinearAnchor;
+
   private currentBlend = 0;
 
   /**
@@ -105,6 +110,8 @@ export class LinearBlendTree extends AnimationTree {
 
     for (const linearAction of linearActions) {
       const animationAction = linearAction.action;
+
+      animationAction.stop();
       animationAction.time = 0;
       animationAction.weight = 0;
 
@@ -135,13 +142,8 @@ export class LinearBlendTree extends AnimationTree {
    * @param value - The target blend value. Will be clamped to the valid range.
    */
   public setBlend(value: number): void {
-    const clampedValue = MathUtils.clamp(
-      value,
-      this.anchors[0].value,
-      this.anchors[this.anchors.length - 1].value,
-    );
-    if (clampedValue !== this.currentBlend) {
-      this.currentBlend = clampedValue;
+    if (value !== this.currentBlend) {
+      this.currentBlend = value;
       this.updateAnchors();
     }
   }
@@ -180,8 +182,11 @@ export class LinearBlendTree extends AnimationTree {
    * their existing weight distribution from the linear blending.
    */
   protected updateAnchorsInfluence(): void {
-    for (let i = 0; i < this.anchors.length - 1; i++) {
-      this.updateAnchor(this.anchors[i]);
+    if (this.lastLeftAnchor) {
+      this.updateAnchor(this.lastLeftAnchor);
+    }
+    if (this.lastRightAnchor) {
+      this.updateAnchor(this.lastRightAnchor);
     }
   }
 
@@ -196,19 +201,73 @@ export class LinearBlendTree extends AnimationTree {
    * Where difference = (blend - leftValue) / (rightValue - leftValue)
    */
   private updateAnchors(): void {
-    for (let i = 0; i < this.anchors.length - 1; i++) {
-      const l = this.anchors[i];
-      const r = this.anchors[i + 1];
-
-      if (this.currentBlend < l.value) {
-        this.updateAnchor(r, 0);
-      } else if (this.currentBlend > r.value) {
-        this.updateAnchor(l, 0);
-      } else {
-        const difference = (this.currentBlend - l.value) / (r.value - l.value);
-        this.updateAnchor(l, 1 - difference);
-        this.updateAnchor(r, difference);
+    const firstAnchor = this.anchors[0];
+    if (this.currentBlend <= firstAnchor.value) {
+      if (this.lastLeftAnchor && this.lastLeftAnchor !== firstAnchor) {
+        this.updateAnchor(this.lastLeftAnchor, 0);
       }
+
+      if (this.lastRightAnchor) {
+        this.updateAnchor(this.lastRightAnchor, 0);
+      }
+
+      this.updateAnchor(firstAnchor, 1);
+      this.lastLeftAnchor = firstAnchor;
+      this.lastRightAnchor = undefined;
+      return;
+    }
+
+    const lastAnchor = this.anchors[this.anchors.length - 1];
+    if (this.currentBlend >= lastAnchor.value) {
+      if (this.lastRightAnchor && this.lastRightAnchor !== lastAnchor) {
+        this.updateAnchor(this.lastRightAnchor, 0);
+      }
+
+      if (this.lastLeftAnchor) {
+        this.updateAnchor(this.lastLeftAnchor, 0);
+      }
+
+      this.updateAnchor(lastAnchor, 1);
+      this.lastRightAnchor = lastAnchor;
+      this.lastLeftAnchor = undefined;
+      return;
+    }
+
+    {
+      let l = 1;
+      let r = this.anchors.length - 1;
+
+      while (l < r) {
+        const m = (l + r) >>> 1;
+        this.anchors[m].value < this.currentBlend ? (l = m + 1) : (r = m);
+      }
+
+      const lAnchor = this.anchors[l - 1];
+      const rAnchor = this.anchors[l];
+
+      if (
+        this.lastLeftAnchor &&
+        this.lastLeftAnchor !== lAnchor &&
+        this.lastLeftAnchor !== rAnchor
+      ) {
+        this.updateAnchor(this.lastLeftAnchor, 0);
+      }
+
+      if (
+        this.lastRightAnchor &&
+        this.lastRightAnchor !== lAnchor &&
+        this.lastRightAnchor !== rAnchor
+      ) {
+        this.updateAnchor(this.lastRightAnchor, 0);
+      }
+
+      const difference =
+        (this.currentBlend - lAnchor.value) / (rAnchor.value - lAnchor.value);
+      this.updateAnchor(lAnchor, 1 - difference);
+      this.updateAnchor(rAnchor, difference);
+
+      this.lastLeftAnchor = lAnchor;
+      this.lastRightAnchor = rAnchor;
     }
   }
 }

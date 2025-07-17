@@ -31,6 +31,7 @@ export class ClipState extends AnimationState {
       throw new Error("Action duration must be greater than zero");
     }
 
+    animationAction.stop();
     animationAction.time = 0;
     animationAction.weight = 0;
 

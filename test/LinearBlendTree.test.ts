@@ -1,388 +1,625 @@
-// import type { AnimationActionLoopStyles } from "three";
-// import { LoopOnce, LoopRepeat } from "three";
-// import { test } from "uvu";
-// import * as assert from "uvu/assert";
-// import { StateEvent } from "../src/mescellaneous/AnimationStateEvent";
-// import {
-//   LinearBlendTree,
-//   type LinearAction,
-// } from "../src/states/LinearBlendTree";
-
-// // Helper function to create LinearAction
-// function createLinearAction(
-//   value: number,
-//   loop: AnimationActionLoopStyles = LoopRepeat,
-// ): LinearAction {
-//   return { action: new MockAnimationAction(1, loop) as any, value };
-// }
-
-// // Constructor tests
-// test("should throw error when fewer than 2 actions provided", () => {
-//   assert.throws(
-//     () => new LinearBlendTree([createLinearAction(0)]),
-//     "Need at least 2 actions",
-//   );
-// });
-
-// test("should throw error when action has non-finite value", () => {
-//   assert.throws(
-//     () => new LinearBlendTree([createLinearAction(0), createLinearAction(NaN)]),
-//     /non-finite value/,
-//   );
-
-//   assert.throws(
-//     () =>
-//       new LinearBlendTree([
-//         createLinearAction(0),
-//         createLinearAction(Infinity),
-//       ]),
-//     /non-finite value/,
-//   );
-// });
-
-// test("should throw error when action has value outside safe range", () => {
-//   assert.throws(
-//     () =>
-//       new LinearBlendTree([
-//         createLinearAction(0),
-//         createLinearAction(Number.MAX_SAFE_INTEGER + 1),
-//       ]),
-//     /outside safe range/,
-//   );
-// });
-
-// test("should throw error when multiple actions have same value", () => {
-//   assert.throws(
-//     () =>
-//       new LinearBlendTree([createLinearAction(0.5), createLinearAction(0.5)]),
-//     /Duplicate value found/,
-//   );
-// });
-
-// test("should initialize actions to stopped state", () => {
-//   const action1 = createLinearAction(0);
-//   const action2 = createLinearAction(1);
-//   action1.action.time = 0.5;
-//   action1.action.weight = 0.7;
-//   action2.action.time = 0.3;
-//   action2.action.weight = 0.4;
-
-//   new LinearBlendTree([action1, action2]);
-
-//   assert.equal(action1.action.time, 0);
-//   assert.equal(action1.action.weight, 0);
-//   assert.equal(action2.action.time, 0);
-//   assert.equal(action2.action.weight, 0);
-// });
-
-// test("should sort actions by value ascending", () => {
-//   const action1 = createLinearAction(10);
-//   const action2 = createLinearAction(-5);
-//   const action3 = createLinearAction(0);
-
-//   const blendTree = new LinearBlendTree([action1, action2, action3]);
-
-//   // Test by checking blend behavior - should clamp to sorted range
-//   blendTree.setBlend(-10); // Should clamp to -5 (minimum)
-//   // If sorted correctly, action2 should have weight 1
-//   assert.equal(action2.action.weight, 0); // Will be 0 due to influence initially being 0
-// });
-
-// test("should configure iteration events based on loop mode", () => {
-//   const loopOnceAction = createLinearAction(0, LoopOnce);
-//   const loopRepeatAction = createLinearAction(1, LoopRepeat);
-
-//   const blendTree = new LinearBlendTree([loopOnceAction, loopRepeatAction]);
-
-//   let finishEventFired = false;
-//   let iterateEventFired = false;
-
-//   blendTree.on(StateEvent.FINISH, () => {
-//     finishEventFired = true;
-//   });
-
-//   blendTree.on(StateEvent.ITERATE, () => {
-//     iterateEventFired = true;
-//   });
-
-//   // Simulate animation completion
-//   loopOnceAction.action.time = 1.0;
-//   loopRepeatAction.action.time = 1.0;
-//   (blendTree as any).onTickInternal();
-
-//   assert.ok(finishEventFired, "FINISH event should fire for LoopOnce");
-//   assert.ok(iterateEventFired, "ITERATE event should fire for LoopRepeat");
-// });
-
-// test("should work with negative and arbitrary values", () => {
-//   const actions = [
-//     createLinearAction(-10),
-//     createLinearAction(0),
-//     createLinearAction(15),
-//     createLinearAction(100),
-//   ];
-
-//   const blendTree = new LinearBlendTree(actions);
-//   blendTree.setBlend(7.5); // Between 0 and 15
-
-//   // Should interpolate between actions at 0 and 15
-//   const expectedDifference = (7.5 - 0) / (15 - 0); // 0.5
-//   assert.equal(actions[1].action.weight, 0); // 1 - 0.5 = 0.5, but influence is 0
-//   assert.equal(actions[2].action.weight, 0); // 0.5, but influence is 0
-// });
-
-// // setBlend tests
-// test("should clamp blend value to action range", () => {
-//   const blendTree = new LinearBlendTree([
-//     createLinearAction(10),
-//     createLinearAction(20),
-//   ]);
-//   blendTree["setInfluenceInternal"](1);
-
-//   blendTree.setBlend(5); // Below minimum
-//   blendTree.setBlend(25); // Above maximum
-//   // Should not throw errors and should clamp internally
-// });
-
-// test("should skip update when blend value unchanged", () => {
-//   const action1 = createLinearAction(0);
-//   const action2 = createLinearAction(1);
-//   const blendTree = new LinearBlendTree([action1, action2]);
-//   blendTree["setInfluenceInternal"](1);
-
-//   blendTree.setBlend(0.5);
-//   const initialWeight1 = action1.action.weight;
-//   const initialWeight2 = action2.action.weight;
-
-//   blendTree.setBlend(0.5); // Same value
-
-//   assert.equal(action1.action.weight, initialWeight1);
-//   assert.equal(action2.action.weight, initialWeight2);
-// });
-
-// test("should update weights when blend changes", () => {
-//   const action1 = createLinearAction(0);
-//   const action2 = createLinearAction(1);
-//   const blendTree = new LinearBlendTree([action1, action2]);
-//   blendTree["setInfluenceInternal"](1);
-
-//   blendTree.setBlend(0.3);
-//   const weight1_first = action1.action.weight;
-//   const weight2_first = action2.action.weight;
-
-//   blendTree.setBlend(0.7);
-//   const weight1_second = action1.action.weight;
-//   const weight2_second = action2.action.weight;
-
-//   // Weights should have changed
-//   assert.not.equal(weight1_first, weight1_second);
-//   assert.not.equal(weight2_first, weight2_second);
-// });
-
-// // Linear interpolation tests
-// test("should interpolate correctly between two adjacent actions", () => {
-//   const action1 = createLinearAction(0);
-//   const action2 = createLinearAction(1);
-//   const blendTree = new LinearBlendTree([action1, action2]);
-
-//   // Set influence to 1 so we can see actual weights
-//   (blendTree as any).setInfluenceInternal(1);
-
-//   blendTree.setBlend(0.3);
-
-//   // Expected: action1 weight = 1 - 0.3 = 0.7, action2 weight = 0.3
-//   assert.equal(action1.action.weight, 0.7);
-//   assert.equal(action2.action.weight, 0.3);
-// });
-
-// test("should handle boundary values correctly", () => {
-//   const action1 = createLinearAction(0);
-//   const action2 = createLinearAction(1);
-//   const blendTree = new LinearBlendTree([action1, action2]);
-//   blendTree["setInfluenceInternal"](1);
-
-//   // Test exact boundary values
-//   blendTree.setBlend(0);
-//   assert.equal(action1.action.weight, 1);
-//   assert.equal(action2.action.weight, 0);
-
-//   blendTree.setBlend(1);
-//   assert.equal(action1.action.weight, 0);
-//   assert.equal(action2.action.weight, 1);
-// });
-
-// test("should work with multiple actions where only adjacent are active", () => {
-//   const actions = [
-//     createLinearAction(0),
-//     createLinearAction(0.5),
-//     createLinearAction(1),
-//   ];
-//   const blendTree = new LinearBlendTree(actions);
-
-//   (blendTree as any).setInfluenceInternal(1);
-
-//   blendTree.setBlend(0.25); // Between 0 and 0.5
-
-//   // Should interpolate between first and second action
-//   // difference = (0.25 - 0) / (0.5 - 0) = 0.5
-//   assert.equal(actions[0].action.weight, 0.5); // 1 - 0.5
-//   assert.equal(actions[1].action.weight, 0.5); // 0.5
-//   assert.equal(actions[2].action.weight, 0); // Not involved
-// });
-
-// test("should handle actions with same values gracefully", () => {
-//   // This should be prevented by constructor validation, but test edge case
-//   const action1 = createLinearAction(0);
-//   const action2 = createLinearAction(1);
-//   const blendTree = new LinearBlendTree([action1, action2]);
-
-//   // Manually set same values (simulating edge case)
-//   (blendTree as any).anchors[0].value = 0.5;
-//   (blendTree as any).anchors[1].value = 0.5;
-
-//   (blendTree as any).setInfluenceInternal(1);
-//   blendTree.setBlend(0.5);
-
-//   // Should not crash (division by zero protection)
-// });
-
-// // Animation tracking tests
-// test("should emit iteration events when animation completes", () => {
-//   const action1 = createLinearAction(0, LoopOnce);
-//   const action2 = createLinearAction(1);
-//   const blendTree = new LinearBlendTree([action1, action2]);
-
-//   let finishEventFired = false;
-//   let iterateEventFired = false;
-
-//   blendTree.on(StateEvent.FINISH, (action, state) => {
-//     finishEventFired = true;
-//     assert.equal(action, action1.action);
-//     assert.equal(state, blendTree);
-//   });
-
-//   blendTree.on(StateEvent.ITERATE, (action, state) => {
-//     iterateEventFired = true;
-//     assert.equal(action, action2.action);
-//     assert.equal(state, blendTree);
-//   });
-
-//   // Simulate completion
-//   action1.action.time = 1.0;
-//   action2.action.time = 1.0;
-//   (blendTree as any).onTickInternal();
-
-//   assert.ok(finishEventFired);
-//   assert.ok(iterateEventFired);
-// });
-
-// test("should prevent duplicate iteration events", () => {
-//   const action = createLinearAction(0);
-//   const blendTree = new LinearBlendTree([action, createLinearAction(1)]);
-
-//   let eventCount = 0;
-//   blendTree.on(StateEvent.ITERATE, () => {
-//     eventCount++;
-//   });
-
-//   action.action.time = 1.0;
-//   (blendTree as any).onTickInternal();
-//   (blendTree as any).onTickInternal(); // Second tick at same time
-
-//   assert.equal(eventCount, 1);
-// });
-
-// // Influence integration tests
-// test("should apply influence to interpolated weights", () => {
-//   const action1 = createLinearAction(0);
-//   const action2 = createLinearAction(1);
-//   const blendTree = new LinearBlendTree([action1, action2]);
-
-//   (blendTree as any).setInfluenceInternal(0.5); // 50% influence
-//   blendTree.setBlend(0.4);
-
-//   // Base weights would be: action1=0.6, action2=0.4
-//   // With 50% influence: action1=0.3, action2=0.2
-//   assert.equal(action1.action.weight, 0.3);
-//   assert.equal(action2.action.weight, 0.2);
-// });
-
-// test("should update all anchors when influence changes", () => {
-//   const actions = [
-//     createLinearAction(0),
-//     createLinearAction(0.5),
-//     createLinearAction(1),
-//   ];
-//   const blendTree = new LinearBlendTree(actions);
-
-//   (blendTree as any).setInfluenceInternal(1);
-//   blendTree.setBlend(0.25);
-
-//   const initialWeights = actions.map((a) => a.action.weight);
-
-//   (blendTree as any).setInfluenceInternal(0.5);
-
-//   // All weights should be halved
-//   actions.forEach((action, i) => {
-//     assert.equal(action.action.weight, initialWeights[i] * 0.5);
-//   });
-// });
-
-// // Integration tests
-// test("should handle full lifecycle correctly", () => {
-//   const actions = [
-//     createLinearAction(-10),
-//     createLinearAction(0),
-//     createLinearAction(10),
-//   ];
-//   const blendTree = new LinearBlendTree(actions);
-
-//   // Set influence and test various blend values
-//   blendTree["setInfluenceInternal"](1);
-
-//   blendTree.setBlend(-5); // Between -10 and 0
-//   const weights1 = actions.map((a) => a.action.weight);
-
-//   blendTree.setBlend(5); // Between 0 and 10
-//   const weights2 = actions.map((a) => a.action.weight);
-
-//   console.log(weights1, weights2);
-
-//   // Weights should be different for different blend values
-//   assert.not.equal(weights1[0], weights2[0]);
-//   assert.not.equal(weights1[2], weights2[2]);
-// });
-
-// test("should handle performance with many actions", () => {
-//   const actions: LinearAction[] = [];
-//   for (let i = 0; i < 20; i++) {
-//     actions.push(createLinearAction(i * 10));
-//   }
-
-//   const blendTree = new LinearBlendTree(actions);
-//   (blendTree as any).setInfluenceInternal(1);
-
-//   // Should not throw or hang
-//   blendTree.setBlend(95); // Between 90 and 100
-//   blendTree.setBlend(55); // Between 50 and 60
-//   blendTree.setBlend(15); // Between 10 and 20
-// });
-
-// test("should handle extreme values correctly", () => {
-//   const actions = [
-//     createLinearAction(-1000000),
-//     createLinearAction(0),
-//     createLinearAction(1000000),
-//   ];
-
-//   const blendTree = new LinearBlendTree(actions);
-//   (blendTree as any).setInfluenceInternal(1);
-
-//   blendTree.setBlend(500000); // Between 0 and 1000000
-//   // Should not crash and should interpolate correctly
-//   assert.equal(actions[1].action.weight, 0.5);
-//   assert.equal(actions[2].action.weight, 0.5);
-//   assert.equal(actions[0].action.weight, 0);
-// });
-
-// test.run();
+import type { AnimationAction } from "three";
+import { LoopOnce, LoopPingPong, LoopRepeat } from "three";
+import { test } from "uvu";
+import * as assert from "uvu/assert";
+import { StateEvent } from "../src/mescellaneous/AnimationStateEvent";
+import { buildMockLinearAction } from "./mocks/buildMockAction";
+import { LinearBlendTreeProxy } from "./proxies/LinearBlendTreeProxy";
+
+function assertEqualWithTolerance(
+  actual: number,
+  expected: number,
+  message?: string,
+): void {
+  const EPSILON = 1e-10;
+  assert.ok(
+    Math.abs(actual - expected) < EPSILON,
+    message || `Expected ${expected}, got ${actual}`,
+  );
+}
+
+test("constructor: should throw error when fewer than 2 actions provided", () => {
+  assert.throws(
+    () => new LinearBlendTreeProxy([buildMockLinearAction(0)]),
+    "Need at least 2 actions",
+  );
+});
+
+test("constructor: should throw error when action has non-finite value", () => {
+  assert.throws(
+    () =>
+      new LinearBlendTreeProxy([
+        buildMockLinearAction(NaN),
+        buildMockLinearAction(0),
+        buildMockLinearAction(NaN),
+      ]),
+    /non-finite value/,
+  );
+
+  assert.throws(
+    () =>
+      new LinearBlendTreeProxy([
+        buildMockLinearAction(0),
+        buildMockLinearAction(Infinity),
+      ]),
+    /non-finite value/,
+  );
+
+  assert.throws(
+    () =>
+      new LinearBlendTreeProxy([
+        buildMockLinearAction(-Infinity),
+        buildMockLinearAction(0),
+      ]),
+    /non-finite value/,
+  );
+});
+
+test("constructor: should throw error when action has value outside safe range", () => {
+  assert.throws(
+    () =>
+      new LinearBlendTreeProxy([
+        buildMockLinearAction(Number.MAX_SAFE_INTEGER + 1),
+        buildMockLinearAction(0),
+        buildMockLinearAction(-(Number.MAX_SAFE_INTEGER + 1)),
+      ]),
+    /outside safe range/,
+  );
+});
+
+test("constructor: should throw error when multiple actions have same value", () => {
+  assert.throws(
+    () =>
+      new LinearBlendTreeProxy([
+        buildMockLinearAction(0.5),
+        buildMockLinearAction(0.5),
+      ]),
+    /Duplicate value found/,
+  );
+});
+
+test("constructor: should initialize actions to stopped state", () => {
+  const action1 = buildMockLinearAction(0);
+  const action2 = buildMockLinearAction(1);
+
+  // Set initial non-zero values to verify they get reset
+  action1.action.time = 0.5;
+  action1.action.weight = 0.7;
+  action2.action.time = 0.3;
+  action2.action.weight = 0.4;
+
+  new LinearBlendTreeProxy([action1, action2]);
+
+  // Constructor should reset all actions to stopped state
+  assertEqualWithTolerance(
+    action1.action.time,
+    0,
+    "action1 should have time 0",
+  );
+  assertEqualWithTolerance(
+    action1.action.weight,
+    0,
+    "action1 should have weight 0",
+  );
+  assertEqualWithTolerance(
+    action2.action.time,
+    0,
+    "action2 should have time 0",
+  );
+  assertEqualWithTolerance(
+    action2.action.weight,
+    0,
+    "action2 should have weight 0",
+  );
+});
+
+test("constructor: should sort actions by value ascending", () => {
+  // Create actions in unsorted order: 10, -5, 0
+  const action1 = buildMockLinearAction(10);
+  const action2 = buildMockLinearAction(-5);
+  const action3 = buildMockLinearAction(0);
+
+  const blendTree = new LinearBlendTreeProxy([action1, action2, action3]);
+  blendTree.invokeSetInfluence(1);
+
+  // Test by checking blend behavior - should clamp to sorted range
+  blendTree.setBlend(-10); // Should clamp to -5 (minimum after sorting)
+
+  // If sorted correctly (-5, 0, 10), action2 should have weight 1
+  assertEqualWithTolerance(
+    action1.action.weight,
+    0,
+    "action1 (value 10) should have weight 0 when blend is at minimum",
+  );
+  assertEqualWithTolerance(
+    action2.action.weight,
+    1,
+    "action2 (value -5) should have weight 1 when blend clamps to minimum",
+  );
+  assertEqualWithTolerance(
+    action3.action.weight,
+    0,
+    "action3 (value 0) should have weight 0 when blend is at minimum",
+  );
+});
+
+test("events: should emit ENTER/EXIT events", () => {
+  const blendTree = new LinearBlendTreeProxy([
+    buildMockLinearAction(0),
+    buildMockLinearAction(1),
+  ]);
+
+  let enterEventFired = false;
+  let enterState: any = null;
+
+  let exitEventFired = false;
+  let exitState: any = null;
+
+  blendTree.on(StateEvent.ENTER, (state) => {
+    enterEventFired = true;
+    enterState = state;
+  });
+
+  assert.equal(
+    enterEventFired,
+    false,
+    "ENTER event should not be fired initially",
+  );
+  blendTree.invokeOnEnter();
+  assert.equal(
+    enterEventFired,
+    true,
+    "ENTER event should be fired after setting influence",
+  );
+  assert.equal(enterState, blendTree, "ENTER event should provide the state");
+
+  blendTree.on(StateEvent.EXIT, (state) => {
+    exitEventFired = true;
+    exitState = state;
+  });
+
+  assert.equal(
+    exitEventFired,
+    false,
+    "EXIT event should not be fired initially",
+  );
+  blendTree.invokeOnExit();
+  assert.equal(
+    exitEventFired,
+    true,
+    "EXIT event should be fired after setting influence",
+  );
+  assert.equal(exitState, blendTree, "EXIT event should provide the state");
+});
+
+test("events: should emit correct FINISH/ITERATE event based on animation loop mode", () => {
+  const loopOnceAction = buildMockLinearAction(0, LoopOnce);
+  const loopRepeatAction = buildMockLinearAction(0.5, LoopRepeat);
+  const loopPingPongAction = buildMockLinearAction(1, LoopPingPong);
+
+  const blendTree = new LinearBlendTreeProxy([
+    loopOnceAction,
+    loopRepeatAction,
+    loopPingPongAction,
+  ]);
+
+  // Track which events fire for each loop mode
+  let loopOnceFinishEventFired = false;
+  let loopOnceIterateEventFired = false;
+
+  let loopRepeatFinishEventFired = false;
+  let loopRepeatIterateEventFired = false;
+
+  let loopPingPongFinishEventFired = false;
+  let loopPingPongIterateEventFired = false;
+
+  blendTree.on(StateEvent.FINISH, (action: AnimationAction) => {
+    if (action.loop === LoopOnce) {
+      loopOnceFinishEventFired = true;
+    } else if (action.loop === LoopRepeat) {
+      loopRepeatFinishEventFired = true;
+    } else {
+      loopPingPongFinishEventFired = true;
+    }
+  });
+
+  blendTree.on(StateEvent.ITERATE, (action: AnimationAction) => {
+    if (action.loop === LoopOnce) {
+      loopOnceIterateEventFired = true;
+    } else if (action.loop === LoopRepeat) {
+      loopRepeatIterateEventFired = true;
+    } else {
+      loopPingPongIterateEventFired = true;
+    }
+  });
+
+  // Simulate LoopOnce action reaching end (time = duration)
+  loopOnceAction.action.time = 1;
+  loopRepeatAction.action.time = 0;
+  loopPingPongAction.action.time = 0;
+  blendTree.invokeOnTick();
+
+  // Simulate LoopRepeat action reaching end (time = duration)
+  loopOnceAction.action.time = 0;
+  loopRepeatAction.action.time = 1;
+  loopPingPongAction.action.time = 0;
+  blendTree.invokeOnTick();
+
+  // Simulate LoopPingPong action reaching end (time = duration)
+  loopOnceAction.action.time = 0;
+  loopRepeatAction.action.time = 0;
+  loopPingPongAction.action.time = 1;
+  blendTree.invokeOnTick();
+
+  assert.ok(
+    loopOnceFinishEventFired,
+    "FINISH event should fire for LoopOnce animations",
+  );
+  assert.not.ok(
+    loopOnceIterateEventFired,
+    "ITERATE event should not fire for LoopOnce animations",
+  );
+
+  assert.ok(
+    loopRepeatIterateEventFired,
+    "ITERATE event should fire for looped animations",
+  );
+  assert.not.ok(
+    loopRepeatFinishEventFired,
+    "FINISH event should not fire for looped animations",
+  );
+
+  assert.ok(
+    loopPingPongIterateEventFired,
+    "ITERATE event should fire for ping-pong animations",
+  );
+  assert.not.ok(
+    loopPingPongFinishEventFired,
+    "FINISH event should not fire for ping-pong animations",
+  );
+});
+
+test("events: should prevent duplicate iteration events", () => {
+  const action = buildMockLinearAction(0);
+  const blendTree = new LinearBlendTreeProxy([
+    action,
+    buildMockLinearAction(1),
+  ]);
+
+  let eventCount = 0;
+  blendTree.on(StateEvent.ITERATE, () => {
+    eventCount += 1;
+  });
+
+  action.action.time = 1.0;
+  blendTree.invokeOnTick();
+  blendTree.invokeOnTick();
+
+  assert.equal(eventCount, 1);
+});
+
+test("setBlend: should interpolate correctly between two adjacent actions", () => {
+  const action1 = buildMockLinearAction(0);
+  const action2 = buildMockLinearAction(1);
+  const blendTree = new LinearBlendTreeProxy([action1, action2]);
+
+  blendTree.invokeSetInfluence(1);
+  blendTree.setBlend(0.3); // 30% between action1 and action2
+
+  // Linear interpolation: action1 gets (1 - 0.3) = 0.7, action2 gets 0.3
+  assertEqualWithTolerance(
+    action1.action.weight,
+    0.7,
+    "action1 should have 70% weight",
+  );
+  assertEqualWithTolerance(
+    action2.action.weight,
+    0.3,
+    "action2 should have 30% weight",
+  );
+});
+
+test("setBlend: should give full weight to action when blend exactly matches its value", () => {
+  const action1 = buildMockLinearAction(0);
+  const action2 = buildMockLinearAction(0.5);
+  const action3 = buildMockLinearAction(1);
+
+  const blendTree = new LinearBlendTreeProxy([action1, action2, action3]);
+  blendTree.invokeSetInfluence(1);
+
+  // Test exact match with first action (boundary case)
+  blendTree.setBlend(0);
+  assertEqualWithTolerance(
+    action1.action.weight,
+    1,
+    "First action should have weight 1 when blend matches its value",
+  );
+  assertEqualWithTolerance(
+    action2.action.weight,
+    0,
+    "Other actions should have weight 0",
+  );
+  assertEqualWithTolerance(
+    action3.action.weight,
+    0,
+    "Other actions should have weight 0",
+  );
+
+  // Test exact match with middle action
+  blendTree.setBlend(0.5);
+  assertEqualWithTolerance(
+    action1.action.weight,
+    0,
+    "Other actions should have weight 0",
+  );
+  assertEqualWithTolerance(
+    action2.action.weight,
+    1,
+    "Middle action should have weight 1 when blend matches its value",
+  );
+  assertEqualWithTolerance(
+    action3.action.weight,
+    0,
+    "Other actions should have weight 0",
+  );
+
+  // Test exact match with last action (boundary case)
+  blendTree.setBlend(1);
+  assertEqualWithTolerance(
+    action1.action.weight,
+    0,
+    "Other actions should have weight 0",
+  );
+  assertEqualWithTolerance(
+    action2.action.weight,
+    0,
+    "Other actions should have weight 0",
+  );
+  assertEqualWithTolerance(
+    action3.action.weight,
+    1,
+    "Last action should have weight 1 when blend matches its value",
+  );
+});
+
+test("setBlend: should skip update when blend value unchanged", () => {
+  const action1 = buildMockLinearAction(0);
+  const action2 = buildMockLinearAction(1);
+  const blendTree = new LinearBlendTreeProxy([action1, action2]);
+  blendTree.invokeSetInfluence(1);
+
+  const value = 0.5;
+
+  // Set initial blend value
+  blendTree.setBlend(value);
+  const initialWeight1 = action1.action.weight;
+  const initialWeight2 = action2.action.weight;
+
+  // Set same value again - should be optimized to skip update
+  blendTree.setBlend(value);
+
+  // Weights should remain unchanged (optimization working)
+  assertEqualWithTolerance(
+    action1.action.weight,
+    initialWeight1,
+    "action1 weight should remain unchanged",
+  );
+  assertEqualWithTolerance(
+    action2.action.weight,
+    initialWeight2,
+    "action2 weight should remain unchanged",
+  );
+});
+
+test("setBlend: should update weights when blend changes", () => {
+  const action1 = buildMockLinearAction(0);
+  const action2 = buildMockLinearAction(1);
+  const blendTree = new LinearBlendTreeProxy([action1, action2]);
+  blendTree.invokeSetInfluence(1);
+
+  // Set initial blend value
+  blendTree.setBlend(0.3);
+  const weight1First = action1.action.weight;
+  const weight2First = action2.action.weight;
+
+  // Change blend value
+  blendTree.setBlend(0.7);
+  const weight1Second = action1.action.weight;
+  const weight2Second = action2.action.weight;
+
+  // Weights should have changed when blend value changes
+  assert.not.equal(weight1First, weight1Second, "action1 weight should change");
+  assert.not.equal(weight2First, weight2Second, "action2 weight should change");
+});
+
+test("setBlend: should work with negative and arbitrary values", () => {
+  // Test with actions at various arbitrary values including negatives
+  const actions = [
+    buildMockLinearAction(-10),
+    buildMockLinearAction(0),
+    buildMockLinearAction(15),
+    buildMockLinearAction(100),
+  ];
+
+  const blendTree = new LinearBlendTreeProxy(actions);
+  blendTree.invokeSetInfluence(1);
+  blendTree.setBlend(7.5); // Between 0 and 15
+
+  // Should interpolate between actions at 0 and 15 (7.5 is 50% between them)
+  assertEqualWithTolerance(
+    actions[1].action.weight,
+    (7.5 - 0) / (15 - 0),
+    "action at 0 should have 50% weight",
+  );
+  assertEqualWithTolerance(
+    actions[2].action.weight,
+    0.5,
+    "action at 15 should have 50% weight",
+  );
+});
+
+test("setBlend: should handle exact value matching with negative values", () => {
+  const action1 = buildMockLinearAction(-10);
+  const action2 = buildMockLinearAction(-5);
+  const action3 = buildMockLinearAction(0);
+  const action4 = buildMockLinearAction(5);
+
+  const blendTree = new LinearBlendTreeProxy([
+    action1,
+    action2,
+    action3,
+    action4,
+  ]);
+  blendTree.invokeSetInfluence(1);
+
+  // Test exact match with negative value
+  blendTree.setBlend(-5);
+  assertEqualWithTolerance(
+    action1.action.weight,
+    0,
+    "Other actions should have weight 0",
+  );
+  assertEqualWithTolerance(
+    action2.action.weight,
+    1,
+    "Action with matching negative value should have weight 1",
+  );
+  assertEqualWithTolerance(
+    action3.action.weight,
+    0,
+    "Other actions should have weight 0",
+  );
+  assertEqualWithTolerance(
+    action4.action.weight,
+    0,
+    "Other actions should have weight 0",
+  );
+});
+
+test("setBlend: should handle exact value matching with arbitrary decimal values", () => {
+  const action1 = buildMockLinearAction(1.234);
+  const action2 = buildMockLinearAction(5.678);
+  const action3 = buildMockLinearAction(9.999);
+
+  const blendTree = new LinearBlendTreeProxy([action1, action2, action3]);
+  blendTree.invokeSetInfluence(1);
+
+  // Test exact match with decimal value
+  blendTree.setBlend(5.678);
+  assertEqualWithTolerance(
+    action1.action.weight,
+    0,
+    "Other actions should have weight 0",
+  );
+  assertEqualWithTolerance(
+    action2.action.weight,
+    1,
+    "Action with matching decimal value should have weight 1",
+  );
+  assertEqualWithTolerance(
+    action3.action.weight,
+    0,
+    "Other actions should have weight 0",
+  );
+});
+
+test("setBlend: should handle exact value matching with many actions", () => {
+  // Test with many actions to stress-test binary search algorithm
+  const actions = [
+    buildMockLinearAction(0),
+    buildMockLinearAction(10),
+    buildMockLinearAction(20),
+    buildMockLinearAction(30),
+    buildMockLinearAction(40),
+    buildMockLinearAction(50),
+  ];
+
+  const blendTree = new LinearBlendTreeProxy(actions);
+  blendTree.invokeSetInfluence(1);
+
+  // Test exact match with middle action in larger set (tests binary search)
+  blendTree.setBlend(30);
+
+  for (let i = 0; i < actions.length; i++) {
+    if (i === 3) {
+      // Action with value 30 should have full weight
+      assertEqualWithTolerance(
+        actions[i].action.weight,
+        1,
+        `Action at index ${i} should have weight 1 when blend matches its value`,
+      );
+    } else {
+      // All other actions should have zero weight
+      assertEqualWithTolerance(
+        actions[i].action.weight,
+        0,
+        `Action at index ${i} should have weight 0 when blend doesn't match its value`,
+      );
+    }
+  }
+});
+
+test("setBlend: should transition from exact match to interpolation correctly", () => {
+  const action1 = buildMockLinearAction(0);
+  const action2 = buildMockLinearAction(1);
+  const action3 = buildMockLinearAction(2);
+
+  const blendTree = new LinearBlendTreeProxy([action1, action2, action3]);
+  blendTree.invokeSetInfluence(1);
+
+  // Start with exact match at middle action
+  blendTree.setBlend(1);
+  assertEqualWithTolerance(
+    action1.action.weight,
+    0,
+    "First action should be 0 at exact match",
+  );
+  assertEqualWithTolerance(
+    action2.action.weight,
+    1,
+    "Middle action should be 1 at exact match",
+  );
+  assertEqualWithTolerance(
+    action3.action.weight,
+    0,
+    "Third action should be 0 at exact match",
+  );
+
+  // Move slightly off exact match - should interpolate between action2 and action3
+  blendTree.setBlend(1.3); // 30% between actions 2 and 3
+  assertEqualWithTolerance(
+    action1.action.weight,
+    0,
+    "First action should remain 0 (outside interpolation range)",
+  );
+  assertEqualWithTolerance(
+    action2.action.weight,
+    0.7,
+    "Second action should interpolate: 1 - 0.3 = 0.7",
+  );
+  assertEqualWithTolerance(
+    action3.action.weight,
+    0.3,
+    "Third action should interpolate: 0.3",
+  );
+
+  // Move back to exact match at last action
+  blendTree.setBlend(2);
+  assertEqualWithTolerance(
+    action1.action.weight,
+    0,
+    "First action should be 0 at exact match",
+  );
+  assertEqualWithTolerance(
+    action2.action.weight,
+    0,
+    "Second action should be 0 at exact match",
+  );
+  assertEqualWithTolerance(
+    action3.action.weight,
+    1,
+    "Third action should be 1 at exact match",
+  );
+});
+
+test.run();

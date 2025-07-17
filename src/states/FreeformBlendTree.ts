@@ -14,7 +14,7 @@ import { AnimationTree } from "./AnimationTree";
 
 const MIN_ACTIONS = 3;
 
-export interface FreeformActionInput {
+export interface FreeformAction {
   action: AnimationAction;
   x: number;
   y: number;
@@ -39,7 +39,7 @@ export class FreeformBlendTree extends AnimationTree {
   private currentX = 0;
   private currentY = 0;
 
-  constructor(actions: FreeformActionInput[]) {
+  constructor(actions: FreeformAction[]) {
     super();
 
     if (actions.length < MIN_ACTIONS) {
