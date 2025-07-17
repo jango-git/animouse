@@ -5,70 +5,109 @@ import { StateEvent } from "../src/mescellaneous/AnimationStateEvent";
 import { buildMockAnimationAction } from "./mocks/buildMockAnimationAction";
 import { ClipStateProxy } from "./proxies/ClipStateProxy";
 
-// Constructor tests
-test("should initialize anchor with correct properties from AnimationAction", () => {
-  const mockAction = buildMockAnimationAction(LoopRepeat, 2.5);
+test("should throw error when anchor's weight is greater than 1", () => {
+  const mockAction = buildMockAnimationAction(1, LoopRepeat, 0);
+
+  assert.throws(() => {
+    new ClipStateProxy(mockAction);
+  }, "Action duration must be greater than zero");
+});
+
+test("should initialize ClipState with correct properties from AnimationAction", () => {
+  const mockAction = buildMockAnimationAction(1, LoopRepeat, 2.5);
+  mockAction.time = 0.15;
   const clipState = new ClipStateProxy(mockAction);
 
   assert.equal(mockAction.time, 0);
   assert.equal(mockAction.weight, 0);
+  assert.equal(mockAction.isRunning(), false);
   assert.equal(clipState.influence, 0);
 });
 
 test("should configure iteration event type based on animation loop mode", () => {
-  const loopOnceAction = buildMockAnimationAction(LoopOnce, 1.0);
-  const loopRepeatAction = buildMockAnimationAction(LoopRepeat, 1.0);
+  const loopOnceAction = buildMockAnimationAction(1, LoopOnce, 1.0);
+  const loopRepeatAction = buildMockAnimationAction(1, LoopRepeat, 1.0);
+  const loopPingPongAction = buildMockAnimationAction(1, LoopPingPong, 1.0);
 
   const loopOnceState = new ClipStateProxy(loopOnceAction);
   const loopRepeatState = new ClipStateProxy(loopRepeatAction);
+  const loopPingPongState = new ClipStateProxy(loopPingPongAction);
 
-  let finishEventFired = false;
-  let iterateEventFired = false;
+  let loopOnceFinishEventFired = false;
+  let loopOnceIterateEventFired = false;
+
+  let loopRepeatFinishEventFired = false;
+  let loopRepeatIterateEventFired = false;
+
+  let loopPingPongFinishEventFired = false;
+  let loopPingPongIterateEventFired = false;
 
   loopOnceState.on(StateEvent.FINISH, () => {
-    finishEventFired = true;
+    loopOnceFinishEventFired = true;
+  });
+
+  loopOnceState.on(StateEvent.ITERATE, () => {
+    loopOnceIterateEventFired = true;
+  });
+
+  loopRepeatState.on(StateEvent.FINISH, () => {
+    loopRepeatFinishEventFired = true;
   });
 
   loopRepeatState.on(StateEvent.ITERATE, () => {
-    iterateEventFired = true;
+    loopRepeatIterateEventFired = true;
   });
 
-  // Set positive influence to start animations
+  loopPingPongState.on(StateEvent.FINISH, () => {
+    loopPingPongFinishEventFired = true;
+  });
+
+  loopPingPongState.on(StateEvent.ITERATE, () => {
+    loopPingPongIterateEventFired = true;
+  });
+
   loopOnceState.invokeSetInfluence(1.0);
   loopRepeatState.invokeSetInfluence(1.0);
+  loopPingPongState.invokeSetInfluence(1.0);
 
-  // Simulate animation completion by setting time to duration
   loopOnceAction.time = 1.0;
   loopRepeatAction.time = 1.0;
+  loopPingPongAction.time = 1.0;
 
   loopOnceState.invokeOnTick();
   loopRepeatState.invokeOnTick();
+  loopPingPongState.invokeOnTick();
 
   assert.ok(
-    finishEventFired,
+    loopOnceFinishEventFired,
     "FINISH event should fire for LoopOnce animations",
   );
+  assert.not.ok(
+    loopOnceIterateEventFired,
+    "ITERATE event should not fire for LoopOnce animations",
+  );
+
   assert.ok(
-    iterateEventFired,
+    loopRepeatIterateEventFired,
     "ITERATE event should fire for looped animations",
+  );
+  assert.not.ok(
+    loopRepeatFinishEventFired,
+    "FINISH event should not fire for looped animations",
+  );
+
+  assert.ok(
+    loopPingPongIterateEventFired,
+    "ITERATE event should fire for ping-pong animations",
+  );
+  assert.not.ok(
+    loopPingPongFinishEventFired,
+    "FINISH event should not fire for ping-pong animations",
   );
 });
 
-test("should reset AnimationAction to stopped state", () => {
-  const mockAction = buildMockAnimationAction();
-  mockAction.time = 0.5;
-  mockAction.weight = 0.7;
-  mockAction.play();
-
-  new ClipStateProxy(mockAction);
-
-  assert.equal(mockAction.time, 0);
-  assert.equal(mockAction.weight, 0);
-});
-
-// Influence Management tests
 test("should start animation and emit PLAY when influence becomes positive", () => {
-  const mockAction = buildMockAnimationAction();
+  const mockAction = buildMockAnimationAction(1);
   const clipState = new ClipStateProxy(mockAction);
 
   let playEventFired = false;
@@ -95,12 +134,11 @@ test("should start animation and emit PLAY when influence becomes positive", () 
 });
 
 test("should stop animation and emit STOP when influence becomes zero", () => {
-  const mockAction = buildMockAnimationAction();
+  const mockAction = buildMockAnimationAction(1);
   const clipState = new ClipStateProxy(mockAction);
 
-  // Start animation first
   clipState.invokeSetInfluence(0.8);
-  mockAction.time = 0.3; // Simulate some progress
+  mockAction.time = 0.3;
 
   let stopEventFired = false;
   let eventAction: any = null;
@@ -127,31 +165,32 @@ test("should stop animation and emit STOP when influence becomes zero", () => {
 });
 
 test("should update animation weight for positive influence changes", () => {
-  const mockAction = buildMockAnimationAction();
+  const mockAction = buildMockAnimationAction(1);
   const clipState = new ClipStateProxy(mockAction);
 
-  // Start animation
   clipState.invokeSetInfluence(0.3);
   assert.equal(mockAction.weight, 0.3);
 
-  // Change influence
   clipState.invokeSetInfluence(0.7);
   assert.equal(mockAction.weight, 0.7);
 
-  // Should remain playing
   assert.ok(mockAction.isRunning(), "Animation should remain playing");
 });
 
 test("should ignore unchanged influence values", () => {
-  const mockAction = buildMockAnimationAction();
+  const mockAction = buildMockAnimationAction(1);
   const clipState = new ClipStateProxy(mockAction);
 
   clipState.invokeSetInfluence(0.5);
   const initialWeight = mockAction.weight;
 
-  let eventFired = false;
+  let someEventFired = false;
   clipState.on(StateEvent.PLAY, () => {
-    eventFired = true;
+    someEventFired = true;
+  });
+
+  clipState.on(StateEvent.STOP, () => {
+    someEventFired = true;
   });
 
   // Set same influence again
@@ -159,40 +198,17 @@ test("should ignore unchanged influence values", () => {
 
   assert.equal(mockAction.weight, initialWeight);
   assert.not.ok(
-    eventFired,
+    someEventFired,
     "No events should be fired for unchanged influence",
   );
 });
 
-// Animation Tracking tests
-test("should emit appropriate iteration event when animation completes", () => {
-  const mockAction = buildMockAnimationAction(LoopOnce, 1.0);
-  const clipState = new ClipStateProxy(mockAction);
-
-  clipState.invokeSetInfluence(1.0);
-
-  let eventFired = false;
-  clipState.on(StateEvent.FINISH, () => {
-    eventFired = true;
-  });
-
-  // Simulate animation reaching duration
-  mockAction.time = 1.0;
-  clipState.invokeOnTick();
-
-  assert.ok(
-    eventFired,
-    "Iteration event should be emitted when animation completes",
-  );
-});
-
 test("should detect animation restart and emit iteration event", () => {
-  const mockAction = buildMockAnimationAction();
+  const mockAction = buildMockAnimationAction(1);
   const clipState = new ClipStateProxy(mockAction);
 
   clipState.invokeSetInfluence(1.0);
 
-  // Simulate animation progress
   mockAction.time = 0.8;
   clipState.invokeOnTick();
 
@@ -201,7 +217,6 @@ test("should detect animation restart and emit iteration event", () => {
     eventFired = true;
   });
 
-  // Simulate restart (time goes backwards)
   mockAction.time = 0.1;
   clipState.invokeOnTick();
 
@@ -212,20 +227,20 @@ test("should detect animation restart and emit iteration event", () => {
 });
 
 test("should prevent duplicate iteration events for same completion", () => {
-  const mockAction = buildMockAnimationAction();
+  const mockAction = buildMockAnimationAction(1);
   const clipState = new ClipStateProxy(mockAction);
 
   clipState.invokeSetInfluence(1.0);
 
   let eventCount = 0;
   clipState.on(StateEvent.ITERATE, () => {
-    eventCount++;
+    eventCount += 1;
   });
 
   // Simulate animation completion
   mockAction.time = 1.0;
   clipState.invokeOnTick();
-  clipState.invokeOnTick(); // Second tick at same time
+  clipState.invokeOnTick();
 
   assert.equal(
     eventCount,
@@ -235,7 +250,7 @@ test("should prevent duplicate iteration events for same completion", () => {
 });
 
 test("should update internal tracking state on each tick", () => {
-  const mockAction = buildMockAnimationAction();
+  const mockAction = buildMockAnimationAction(1);
   const clipState = new ClipStateProxy(mockAction);
 
   clipState.invokeSetInfluence(1.0);
@@ -278,27 +293,6 @@ test("should update internal tracking state on each tick", () => {
   assert.ok(
     secondEventFired,
     "Should reset iteration flag and fire event again",
-  );
-});
-
-test("should configure ITERATE event for LoopPingPong animations", () => {
-  const pingPongAction = buildMockAnimationAction(LoopPingPong);
-  const clipState = new ClipStateProxy(pingPongAction);
-
-  clipState.invokeSetInfluence(1.0);
-
-  let eventFired = false;
-  clipState.on(StateEvent.ITERATE, () => {
-    eventFired = true;
-  });
-
-  // Simulate animation reaching duration
-  pingPongAction.time = 1.0;
-  clipState.invokeOnTick();
-
-  assert.ok(
-    eventFired,
-    "ITERATE event should fire for LoopPingPong animations",
   );
 });
 

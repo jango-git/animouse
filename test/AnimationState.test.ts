@@ -52,11 +52,40 @@ test("should emit multiple events correctly", () => {
   state.invokeOnEnter();
   state.invokeOnExit();
 
-  assert.equal(events.length, 4);
+  state.invokeOnEnter();
+  state.invokeOnEnter();
+  state.invokeOnExit();
+  state.invokeOnExit();
+
+  assert.equal(events.length, 8);
   assert.equal(events[0], "enter");
   assert.equal(events[1], "exit");
   assert.equal(events[2], "enter");
   assert.equal(events[3], "exit");
+  assert.equal(events[4], "enter");
+  assert.equal(events[5], "enter");
+  assert.equal(events[6], "exit");
+  assert.equal(events[7], "exit");
+});
+
+test("should pass correct state instance data to both ENTER and EXIT event handlers", () => {
+  const state = new AnimationStateProxy();
+  let enterEventData: any = null;
+  let exitEventData: any = null;
+
+  state.on(StateEvent.ENTER, (data) => {
+    enterEventData = data;
+  });
+
+  state.on(StateEvent.EXIT, (data) => {
+    exitEventData = data;
+  });
+
+  state.invokeOnEnter();
+  state.invokeOnExit();
+
+  assert.equal(enterEventData, state);
+  assert.equal(exitEventData, state);
 });
 
 test.run();

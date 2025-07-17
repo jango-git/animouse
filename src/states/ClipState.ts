@@ -28,7 +28,7 @@ export class ClipState extends AnimationState {
     super();
     const duration = animationAction.getClip().duration;
     if (duration <= 0) {
-      throw new Error("Clip duration must be greater than zero");
+      throw new Error("Action duration must be greater than zero");
     }
 
     animationAction.time = 0;

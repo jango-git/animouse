@@ -11,6 +11,7 @@ const OBJECT = new Object3D();
 const MIXER = new AnimationMixer(OBJECT);
 
 export function buildMockAnimationAction(
+  weight: number,
   loop: AnimationActionLoopStyles = LoopRepeat,
   duration = 1.0,
 ): AnimationAction {
@@ -19,6 +20,8 @@ export function buildMockAnimationAction(
   const track = new VectorKeyframeTrack(".position", times, values);
   const clip = new AnimationClip("MockClip", duration, [track]);
   const action = MIXER.clipAction(clip);
+  action.time = 0;
+  action.weight = weight;
   action.loop = loop;
   return action;
 }

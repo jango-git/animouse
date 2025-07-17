@@ -17,9 +17,14 @@ export abstract class AnimationTree extends AnimationState {
    * maintaining their relative weights unchanged.
    *
    * @param influence - The new influence value in range [0, 1]
+   * @throws {Error} When influence is not a finite number or is outside the range [0, 1]
    * @internal This method is intended to be called only by the animation state machine
    */
   protected ["setInfluenceInternal"](influence: number): void {
+    if (influence < 0 || influence > 1 || !Number.isFinite(influence)) {
+      throw new Error("Invalid influence value");
+    }
+
     if (influence !== this.influenceInternal) {
       this.influenceInternal = influence;
       this.updateAnchorsInfluence();
@@ -33,16 +38,17 @@ export abstract class AnimationTree extends AnimationState {
    *
    * @param anchor - The animation anchor containing the action and parameters to update
    * @param weight - The raw weight value before applying tree influence. If not provided, uses the anchor's current weight
+   * @throws {Error} When weight is not a finite number or is outside the range [0, 1]
    */
   protected updateAnchor(anchor: Anchor, weight: number = anchor.weight): void {
     if (weight < 0 || weight > 1 || !Number.isFinite(weight)) {
       throw new Error("Invalid weight value");
     }
 
+    anchor.weight = weight;
+
     const combinedWeight = weight * this.influenceInternal;
     const animationAction = anchor.action;
-
-    anchor.weight = weight;
 
     if (combinedWeight === animationAction.weight) {
       return;

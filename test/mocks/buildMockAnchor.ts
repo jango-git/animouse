@@ -8,14 +8,15 @@ import type { PolarAnchor } from "../../src/states/PolarBlendTree";
 import { buildMockAnimationAction } from "./buildMockAnimationAction";
 
 export function buildMockAnchor(
-  weight = 0,
+  anchorWeight: number,
+  animationWeight: number,
   loop: AnimationActionLoopStyles = LoopRepeat,
   duration = 1.0,
 ): Anchor {
-  const action = buildMockAnimationAction(loop, duration);
+  const action = buildMockAnimationAction(animationWeight, loop, duration);
   return {
     action,
-    weight,
+    weight: anchorWeight,
     previousTime: 0,
     duration: action.getClip().duration,
     hasFiredIterationEvent: false,
@@ -25,14 +26,15 @@ export function buildMockAnchor(
 }
 
 export function buildMockLinearAnchor(
-  weight = 0,
+  anchorWeight: number,
+  animationWeight: number,
   loop: AnimationActionLoopStyles = LoopRepeat,
   duration = 1.0,
 ): LinearAnchor {
-  const action = buildMockAnimationAction(loop, duration);
+  const action = buildMockAnimationAction(animationWeight, loop, duration);
   return {
     action,
-    weight,
+    weight: anchorWeight,
     previousTime: 0,
     duration: action.getClip().duration,
     hasFiredIterationEvent: false,
@@ -43,14 +45,15 @@ export function buildMockLinearAnchor(
 }
 
 export function buildMockRadialAnchor(
-  weight = 0,
+  anchorWeight: number,
+  animationWeight: number,
   loop: AnimationActionLoopStyles = LoopRepeat,
   duration = 1.0,
 ): PolarAnchor {
-  const action = buildMockAnimationAction(loop, duration);
+  const action = buildMockAnimationAction(animationWeight, loop, duration);
   return {
     action,
-    weight,
+    weight: anchorWeight,
     previousTime: 0,
     duration: action.getClip().duration,
     hasFiredIterationEvent: false,
@@ -62,14 +65,15 @@ export function buildMockRadialAnchor(
 }
 
 export function buildMockFreeformAnchor(
-  weight = 0,
+  anchorWeight: number,
+  animationWeight: number,
   loop: AnimationActionLoopStyles = LoopRepeat,
   duration = 1.0,
 ): FreeformAnchor {
-  const action = buildMockAnimationAction(loop, duration);
+  const action = buildMockAnimationAction(animationWeight, loop, duration);
   return {
     action,
-    weight,
+    weight: anchorWeight,
     previousTime: 0,
     duration: action.getClip().duration,
     hasFiredIterationEvent: false,
