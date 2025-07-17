@@ -3,7 +3,7 @@ import * as assert from "uvu/assert";
 import { StateEvent } from "../src/mescellaneous/AnimationStateEvent";
 import { AnimationStateProxy } from "./proxies/AnimationStateProxy";
 
-test("should emit ENTER event when onEnterInternal is called", () => {
+test("events: should emit ENTER event when onEnterInternal is called", () => {
   const state = new AnimationStateProxy();
   let eventFired = false;
   let eventData: any = null;
@@ -19,7 +19,7 @@ test("should emit ENTER event when onEnterInternal is called", () => {
   assert.equal(eventData, state, "Event data should be the state instance");
 });
 
-test("should emit EXIT event when onExitInternal is called", () => {
+test("events: should emit EXIT event when onExitInternal is called", () => {
   const state = new AnimationStateProxy();
   let eventFired = false;
   let eventData: any = null;
@@ -35,7 +35,7 @@ test("should emit EXIT event when onExitInternal is called", () => {
   assert.equal(eventData, state, "Event data should be the state instance");
 });
 
-test("should emit multiple events correctly", () => {
+test("events: should emit multiple events correctly", () => {
   const state = new AnimationStateProxy();
   const events: string[] = [];
 
@@ -68,7 +68,7 @@ test("should emit multiple events correctly", () => {
   assert.equal(events[7], "exit");
 });
 
-test("should pass correct state instance data to both ENTER and EXIT event handlers", () => {
+test("events: should pass correct state instance data to both ENTER and EXIT event handlers", () => {
   const state = new AnimationStateProxy();
   let enterEventData: any = null;
   let exitEventData: any = null;

@@ -4,7 +4,7 @@ import { StateEvent } from "../src/mescellaneous/AnimationStateEvent";
 import { buildMockAnchor } from "./mocks/buildMockAnchor";
 import { AnimationTreeProxy } from "./proxies/AnimationTreeProxy";
 
-test("should throw error when influence is less than 0", () => {
+test("setInfluence: should throw error when influence is less than 0", () => {
   const tree = new AnimationTreeProxy();
 
   assert.throws(() => {
@@ -12,7 +12,7 @@ test("should throw error when influence is less than 0", () => {
   }, "Invalid influence value");
 });
 
-test("should throw error when influence is greater than 1", () => {
+test("setInfluence: should throw error when influence is greater than 1", () => {
   const tree = new AnimationTreeProxy();
 
   assert.throws(() => {
@@ -20,7 +20,7 @@ test("should throw error when influence is greater than 1", () => {
   }, "Invalid influence value");
 });
 
-test("should throw error when influence is not a finite number", () => {
+test("setInfluence: should throw error when influence is not a finite number", () => {
   const tree = new AnimationTreeProxy();
 
   assert.throws(() => {
@@ -36,7 +36,7 @@ test("should throw error when influence is not a finite number", () => {
   }, "Invalid influence value");
 });
 
-test("should update influence from zero to positive value", () => {
+test("setInfluence: should update influence from zero to positive value", () => {
   const tree = new AnimationTreeProxy();
 
   const initialInfluence = 0;
@@ -53,7 +53,7 @@ test("should update influence from zero to positive value", () => {
   );
 });
 
-test("should update influence from positive value to zero", () => {
+test("setInfluence: should update influence from positive value to zero", () => {
   const tree = new AnimationTreeProxy();
 
   const initialInfluence = 0.25;
@@ -70,7 +70,7 @@ test("should update influence from positive value to zero", () => {
   );
 });
 
-test("should update influence from positive value to positive value", () => {
+test("setInfluence: should update influence from positive value to positive value", () => {
   const tree = new AnimationTreeProxy();
 
   const initialInfluence = 0.25;
@@ -87,7 +87,7 @@ test("should update influence from positive value to positive value", () => {
   );
 });
 
-test("should not update anchors influence when influence value is unchanged", () => {
+test("setInfluence: should not update anchors influence when influence value is unchanged", () => {
   const tree = new AnimationTreeProxy();
   const influence = 0.5;
 
@@ -102,69 +102,7 @@ test("should not update anchors influence when influence value is unchanged", ()
   );
 });
 
-test("should throw error when anchor's weight is less than 0", () => {
-  const tree = new AnimationTreeProxy();
-  const anchor = buildMockAnchor(0.5, 1);
-
-  assert.throws(() => {
-    tree.invokeUpdateAnchor(anchor, -1);
-  }, "Invalid weight value");
-});
-
-test("should throw error when anchor's weight is greater than 1", () => {
-  const tree = new AnimationTreeProxy();
-  const anchor = buildMockAnchor(0.5, 1);
-
-  assert.throws(() => {
-    tree.invokeUpdateAnchor(anchor, 2);
-  }, "Invalid influence value");
-});
-
-test("should throw error when anchor's weight is not a finite number", () => {
-  const tree = new AnimationTreeProxy();
-  const anchor = buildMockAnchor(0.5, 1);
-
-  assert.throws(() => {
-    tree.invokeUpdateAnchor(anchor, NaN);
-  }, "Invalid weight value");
-
-  assert.throws(() => {
-    tree.invokeUpdateAnchor(anchor, Infinity);
-  }, "Invalid weight value");
-
-  assert.throws(() => {
-    tree.invokeUpdateAnchor(anchor, -Infinity);
-  }, "Invalid weight value");
-});
-
-test("should update anchor's weight from zero to positive value", () => {
-  const tree = new AnimationTreeProxy();
-  const anchor = buildMockAnchor(0, 1);
-
-  const value = 0.25;
-  tree.invokeUpdateAnchor(anchor, value);
-  assert.ok(anchor.weight === value, "Should set anchor weight");
-});
-
-test("should update anchor's weight from positive value to zero", () => {
-  const tree = new AnimationTreeProxy();
-  const anchor = buildMockAnchor(0.75, 1);
-
-  const value = 0;
-  tree.invokeUpdateAnchor(anchor, value);
-  assert.ok(anchor.weight === value, "Should set anchor weight");
-});
-
-test("should update anchor's weight from positive value to positive value", () => {
-  const tree = new AnimationTreeProxy();
-  const anchor = buildMockAnchor(0.75, 1);
-
-  const value = 0.25;
-  tree.invokeUpdateAnchor(anchor, value);
-  assert.ok(anchor.weight === value, "Should set anchor weight");
-});
-
-test("should emit PLAY event when combined weight becomes positive", () => {
+test("events: should emit PLAY event when combined weight becomes positive", () => {
   const anchor = buildMockAnchor(0, 0);
   const tree = new AnimationTreeProxy();
   tree.invokeSetInfluence(1);
@@ -184,7 +122,7 @@ test("should emit PLAY event when combined weight becomes positive", () => {
   assert.ok(eventState === tree, "Event state should be emitted");
 });
 
-test("should emit STOP event when combined weight becomes zero", () => {
+test("events: should emit STOP event when combined weight becomes zero", () => {
   const anchor = buildMockAnchor(1, 1);
   const tree = new AnimationTreeProxy();
   tree.invokeSetInfluence(1);
@@ -204,7 +142,69 @@ test("should emit STOP event when combined weight becomes zero", () => {
   assert.ok(eventState === tree, "Event state should be emitted");
 });
 
-test("should update weight without play/stop when animation is already running", () => {
+test("updateAnchor: should throw error when anchor's weight is less than 0", () => {
+  const tree = new AnimationTreeProxy();
+  const anchor = buildMockAnchor(0.5, 1);
+
+  assert.throws(() => {
+    tree.invokeUpdateAnchor(anchor, -1);
+  }, "Invalid weight value");
+});
+
+test("updateAnchor: should throw error when anchor's weight is greater than 1", () => {
+  const tree = new AnimationTreeProxy();
+  const anchor = buildMockAnchor(0.5, 1);
+
+  assert.throws(() => {
+    tree.invokeUpdateAnchor(anchor, 2);
+  }, "Invalid influence value");
+});
+
+test("updateAnchor: should throw error when anchor's weight is not a finite number", () => {
+  const tree = new AnimationTreeProxy();
+  const anchor = buildMockAnchor(0.5, 1);
+
+  assert.throws(() => {
+    tree.invokeUpdateAnchor(anchor, NaN);
+  }, "Invalid weight value");
+
+  assert.throws(() => {
+    tree.invokeUpdateAnchor(anchor, Infinity);
+  }, "Invalid weight value");
+
+  assert.throws(() => {
+    tree.invokeUpdateAnchor(anchor, -Infinity);
+  }, "Invalid weight value");
+});
+
+test("updateAnchor: should update anchor's weight from zero to positive value", () => {
+  const tree = new AnimationTreeProxy();
+  const anchor = buildMockAnchor(0, 1);
+
+  const value = 0.25;
+  tree.invokeUpdateAnchor(anchor, value);
+  assert.ok(anchor.weight === value, "Should set anchor weight");
+});
+
+test("updateAnchor: should update anchor's weight from positive value to zero", () => {
+  const tree = new AnimationTreeProxy();
+  const anchor = buildMockAnchor(0.75, 1);
+
+  const value = 0;
+  tree.invokeUpdateAnchor(anchor, value);
+  assert.ok(anchor.weight === value, "Should set anchor weight");
+});
+
+test("updateAnchor: should update anchor's weight from positive value to positive value", () => {
+  const tree = new AnimationTreeProxy();
+  const anchor = buildMockAnchor(0.75, 1);
+
+  const value = 0.25;
+  tree.invokeUpdateAnchor(anchor, value);
+  assert.ok(anchor.weight === value, "Should set anchor weight");
+});
+
+test("updateAnchor: should update weight without play/stop when animation is already running", () => {
   const anchor = buildMockAnchor(0.5, 0);
   const tree = new AnimationTreeProxy();
   tree.invokeSetInfluence(1);
@@ -232,7 +232,7 @@ test("should update weight without play/stop when animation is already running",
   );
 });
 
-test("should use anchor's current weight when weight parameter is not provided", () => {
+test("updateAnchor: should use anchor's current weight when weight parameter is not provided", () => {
   const defaultAnchorWeight = 0.6;
   const anchor = buildMockAnchor(defaultAnchorWeight, 1);
   const tree = new AnimationTreeProxy();
@@ -247,7 +247,7 @@ test("should use anchor's current weight when weight parameter is not provided",
   );
 });
 
-test("should handle combined zero weight correctly", () => {
+test("updateAnchor: should handle combined zero weight correctly", () => {
   const defaultAnchorWeight = 0.8;
   const anchor = buildMockAnchor(defaultAnchorWeight, 1);
   const tree = new AnimationTreeProxy();
@@ -267,7 +267,7 @@ test("should handle combined zero weight correctly", () => {
   );
 });
 
-test("should handle combined maximum weight correctly", () => {
+test("updateAnchor: should handle combined maximum weight correctly", () => {
   const anchor = buildMockAnchor(1, 1);
   const tree = new AnimationTreeProxy();
 

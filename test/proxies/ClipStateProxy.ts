@@ -8,4 +8,12 @@ export class ClipStateProxy extends ClipState {
   public invokeOnTick(): void {
     this.onTickInternal();
   }
+
+  public invokeOnEnter(): void {
+    this.onEnterInternal();
+  }
+
+  public invokeOnExit(): void {
+    this.onExitInternal();
+  }
 }

@@ -82,6 +82,9 @@ test("constructor: should initialize actions to stopped state", () => {
   const action1 = buildMockLinearAction(0);
   const action2 = buildMockLinearAction(1);
 
+  action1.action.play();
+  action2.action.play();
+
   // Set initial non-zero values to verify they get reset
   action1.action.time = 0.5;
   action1.action.weight = 0.7;
@@ -101,6 +104,11 @@ test("constructor: should initialize actions to stopped state", () => {
     0,
     "action1 should have weight 0",
   );
+  assert.equal(
+    action1.action.isRunning(),
+    false,
+    "action1 should not be running",
+  );
   assertEqualWithTolerance(
     action2.action.time,
     0,
@@ -110,6 +118,11 @@ test("constructor: should initialize actions to stopped state", () => {
     action2.action.weight,
     0,
     "action2 should have weight 0",
+  );
+  assert.equal(
+    action2.action.isRunning(),
+    false,
+    "action2 should not be running",
   );
 });
 
@@ -296,6 +309,69 @@ test("events: should prevent duplicate iteration events", () => {
   blendTree.invokeOnTick();
 
   assert.equal(eventCount, 1);
+});
+
+test("events: should start animation and emit PLAY when influence becomes positive", () => {
+  const mockAction = buildMockLinearAction(0);
+  const blendTree = new LinearBlendTreeProxy([
+    mockAction,
+    buildMockLinearAction(1),
+  ]);
+
+  let playEventFired = false;
+  let eventAction: any = null;
+  let eventState: any = null;
+
+  blendTree.on(StateEvent.PLAY, (action, state) => {
+    playEventFired = true;
+    eventAction = action;
+    eventState = state;
+  });
+
+  blendTree.invokeSetInfluence(0.5);
+
+  assert.ok(playEventFired, "PLAY event should be emitted");
+  assert.equal(
+    eventAction,
+    mockAction.action,
+    "Event should include the animation action",
+  );
+  assert.equal(eventState, blendTree, "Event should include the clip state");
+  assert.equal(mockAction.action.weight, 0.5);
+  assert.ok(mockAction.action.isRunning(), "Animation should be playing");
+});
+
+test("events: should stop animation and emit STOP when influence becomes zero", () => {
+  const mockAction = buildMockLinearAction(0);
+  const blendTree = new LinearBlendTreeProxy([
+    mockAction,
+    buildMockLinearAction(1),
+  ]);
+
+  blendTree.invokeSetInfluence(0.8);
+  mockAction.action.time = 0.3;
+
+  let stopEventFired = false;
+  let eventAction: any = null;
+  let eventState: any = null;
+
+  blendTree.on(StateEvent.STOP, (action, state) => {
+    stopEventFired = true;
+    eventAction = action;
+    eventState = state;
+  });
+
+  blendTree.invokeSetInfluence(0);
+
+  assert.ok(stopEventFired, "STOP event should be emitted");
+  assert.equal(
+    eventAction,
+    mockAction.action,
+    "Event should include the animation action",
+  );
+  assert.equal(eventState, blendTree, "Event should include the clip state");
+  assert.equal(mockAction.action.weight, 0);
+  assert.not.ok(mockAction.action.isRunning(), "Animation should be stopped");
 });
 
 test("setBlend: should interpolate correctly between two adjacent actions", () => {
