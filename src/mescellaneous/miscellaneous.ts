@@ -35,15 +35,19 @@ export function calculateNormalizedAzimuth(azimuth: number): number {
 }
 
 /**
- * Calculates the shortest angular distance between two azimuth angles.
+ * Calculates the forward angular distance between two azimuth angles.
+ * Always measures distance in the positive direction, even if shorter path exists backward.
  *
  * @param from - The starting azimuth angle in radians
- * @param to - The ending azimuth angle in radians
- * @returns The shortest angular distance between the angles, in range [0, π]
+ * @param to - The target azimuth angle in radians
+ * @returns The forward angular distance in radians
  */
-export function calculateAngularDistance(from: number, to: number): number {
-  const delta = Math.abs(to - from);
-  return Math.min(delta, PI2 - delta);
+export function calculateAngularDistanceForward(
+  from: number,
+  to: number,
+): number {
+  const delta = to - from;
+  return delta >= 0 ? delta : delta + PI2;
 }
 
 /**

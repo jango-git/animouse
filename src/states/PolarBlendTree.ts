@@ -3,7 +3,7 @@ import { LoopOnce, MathUtils } from "three";
 import { StateEvent } from "../mescellaneous/AnimationStateEvent";
 import type { Anchor } from "../mescellaneous/miscellaneous";
 import {
-  calculateAngularDistance,
+  calculateAngularDistanceForward,
   calculateNormalizedAzimuth,
   EPSILON,
   isAzimuthBetween,
@@ -314,10 +314,11 @@ export class PolarBlendTree extends AnimationTree {
 
     this.rings.sort((a, b) => a.radius - b.radius);
     for (const ring of this.rings) {
-      ring.anchors.sort((a, b) => a.radius - b.radius);
+      ring.anchors.sort((a, b) => a.azimuth - b.azimuth);
     }
 
     if (centerAction) {
+      centerAction.stop();
       centerAction.time = 0;
       centerAction.weight = 0;
 
@@ -334,11 +335,11 @@ export class PolarBlendTree extends AnimationTree {
         radius: 0,
         azimuth: 0,
       };
+
+      this.activeAnchors.add(this.centerAnchor);
     } else {
       this.updateAnchors();
     }
-
-    console.log(this.rings.length, this.rays.length);
   }
 
   /**
@@ -391,22 +392,24 @@ export class PolarBlendTree extends AnimationTree {
    * @override
    */
   protected ["onTickInternal"](): void {
-    for (const anchor of this.activeAnchors) {
-      const action = anchor.action;
-      const time = action.time;
-      const duration = anchor.duration;
+    for (const ray of this.rays) {
+      for (const anchor of ray.anchors) {
+        const action = anchor.action;
+        const time = action.time;
+        const duration = anchor.duration;
 
-      if (
-        time < anchor.previousTime ||
-        (!anchor.hasFiredIterationEvent && time >= duration)
-      ) {
-        this.emit(anchor.iterationEventType, action, this);
-        anchor.hasFiredIterationEvent = true;
-      } else if (time < duration) {
-        anchor.hasFiredIterationEvent = false;
+        if (
+          time < anchor.previousTime ||
+          (!anchor.hasFiredIterationEvent && time >= duration)
+        ) {
+          this.emit(anchor.iterationEventType, action, this);
+          anchor.hasFiredIterationEvent = true;
+        } else if (time < duration) {
+          anchor.hasFiredIterationEvent = false;
+        }
+
+        anchor.previousTime = time;
       }
-
-      anchor.previousTime = time;
     }
   }
 
@@ -460,27 +463,37 @@ export class PolarBlendTree extends AnimationTree {
       const rAzimuth = rRay.azimuth;
 
       if (isAzimuthBetween(this.currentAzimuth, lAzimuth, rAzimuth)) {
-        const angularDistance = calculateAngularDistance(lAzimuth, rAzimuth);
-        const leftDistance = calculateAngularDistance(
+        const angularDistance = calculateAngularDistanceForward(
+          lAzimuth,
+          rAzimuth,
+        );
+
+        const leftDistance = calculateAngularDistanceForward(
           lAzimuth,
           this.currentAzimuth,
         );
+
         const rRayT = leftDistance / angularDistance;
         const lRayT = 1 - rRayT;
 
-        if (this.currentRadius < this.rings[0].radius) {
-          let lWeight = lRayT * this.influenceInternal;
-          let rWeight = rRayT * this.influenceInternal;
+        if (this.currentRadius <= this.rings[0].radius) {
+          let lWeight = lRayT;
+          let rWeight = rRayT;
 
           if (this.centerAnchor) {
             const ringWeight = this.currentRadius / this.rings[0].radius;
-            weights.set(
-              this.centerAnchor,
-              (1 - ringWeight) * this.influenceInternal,
-            );
+            weights.set(this.centerAnchor, 1 - ringWeight);
             lWeight *= ringWeight;
             rWeight *= ringWeight;
           }
+
+          weights.set(lRay.anchors[0], lWeight);
+          weights.set(rRay.anchors[0], rWeight);
+        } else if (
+          this.currentRadius >= this.rings[this.rings.length - 1].radius
+        ) {
+          let lWeight = lRayT;
+          let rWeight = rRayT;
 
           weights.set(lRay.anchors[0], lWeight);
           weights.set(rRay.anchors[0], rWeight);
@@ -548,22 +561,10 @@ export class PolarBlendTree extends AnimationTree {
           (this.currentRadius - innerRadius) / (outerRadius - innerRadius);
         const innerRingT = 1 - outerRingT;
 
-        weights.set(
-          innerRing.anchors[lRayIndex],
-          innerRingT * lRayT * this.influenceInternal,
-        );
-        weights.set(
-          outerRing.anchors[lRayIndex],
-          innerRingT * rRayT * this.influenceInternal,
-        );
-        weights.set(
-          innerRing.anchors[rRayIndex],
-          outerRingT * lRayT * this.influenceInternal,
-        );
-        weights.set(
-          outerRing.anchors[rRayIndex],
-          outerRingT * rRayT * this.influenceInternal,
-        );
+        weights.set(innerRing.anchors[lRayIndex], innerRingT * lRayT);
+        weights.set(outerRing.anchors[lRayIndex], innerRingT * rRayT);
+        weights.set(innerRing.anchors[rRayIndex], outerRingT * lRayT);
+        weights.set(outerRing.anchors[rRayIndex], outerRingT * rRayT);
 
         return;
       }

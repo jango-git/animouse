@@ -3,7 +3,7 @@ import * as assert from "uvu/assert";
 import {
   EPSILON,
   PI2,
-  calculateAngularDistance,
+  calculateAngularDistanceForward,
   calculateDistanceSquared,
   calculateDistanceToEdgeSquared,
   calculateNormalizedAzimuth,
@@ -37,26 +37,46 @@ test("calculateNormalizedAzimuth: should normalize azimuth values greater than 2
   assert.equal(calculateNormalizedAzimuth(5 * Math.PI), Math.PI);
 });
 
-test("calculateAngularDistance: should calculate angular distance for basic cases", () => {
-  assert.equal(calculateAngularDistance(0, Math.PI), Math.PI);
-  assert.equal(calculateAngularDistance(0, PI2), 0);
-  assert.equal(calculateAngularDistance(Math.PI, 0), Math.PI);
+test("calculateAngularDistanceForward: should calculate forward distance for basic cases", () => {
+  assert.equal(calculateAngularDistanceForward(0, Math.PI), Math.PI);
+  assert.equal(calculateAngularDistanceForward(0, PI2), PI2);
+  assert.equal(calculateAngularDistanceForward(Math.PI, 0), Math.PI);
 });
 
-test("calculateAngularDistance: should calculate shortest angular distance around circle", () => {
-  // Should choose shorter path around circle
-  const result = calculateAngularDistance(0.1, PI2 - 0.1);
+test("calculateAngularDistanceForward: should calculate forward distance wrapping around", () => {
+  // Going forward from near 2π to near 0
+  const result = calculateAngularDistanceForward(PI2 - 0.1, 0.1);
   assert.ok(Math.abs(0.2 - result) < EPSILON);
 });
 
-test("calculateAngularDistance: should return zero for identical azimuth values", () => {
-  assert.equal(calculateAngularDistance(Math.PI, Math.PI), 0);
-  assert.equal(calculateAngularDistance(0, 0), 0);
+test("calculateAngularDistanceForward: should return zero for identical azimuth values", () => {
+  assert.equal(calculateAngularDistanceForward(Math.PI, Math.PI), 0);
+  assert.equal(calculateAngularDistanceForward(0, 0), 0);
 });
 
-test("calculateAngularDistance: should calculate quarter circle distances correctly", () => {
-  assert.equal(calculateAngularDistance(0, Math.PI / 2), Math.PI / 2);
-  assert.equal(calculateAngularDistance(Math.PI / 2, Math.PI), Math.PI / 2);
+test("calculateAngularDistanceForward: should calculate quarter circle distances correctly", () => {
+  assert.equal(calculateAngularDistanceForward(0, Math.PI / 2), Math.PI / 2);
+  assert.equal(
+    calculateAngularDistanceForward(Math.PI / 2, Math.PI),
+    Math.PI / 2,
+  );
+  assert.equal(
+    calculateAngularDistanceForward(Math.PI, (3 * Math.PI) / 2),
+    Math.PI / 2,
+  );
+});
+
+test("calculateAngularDistanceForward: should always go forward even if shorter backward", () => {
+  // Going forward from 0 to 3π/2 is 3π/2, not π/2 backward
+  assert.equal(
+    calculateAngularDistanceForward(0, (3 * Math.PI) / 2),
+    (3 * Math.PI) / 2,
+  );
+  // Going forward from π to π/2 wraps around (3π/2 forward distance)
+  assert.equal(
+    calculateAngularDistanceForward(Math.PI, Math.PI / 2),
+    (3 * Math.PI) / 2,
+  );
 });
 
 test("isAzimuthBetween: should detect azimuth within normal range", () => {

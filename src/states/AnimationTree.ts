@@ -42,7 +42,7 @@ export abstract class AnimationTree extends AnimationState {
    */
   protected updateAnchor(anchor: Anchor, weight: number = anchor.weight): void {
     if (weight < 0 || weight > 1 || !Number.isFinite(weight)) {
-      throw new Error("Invalid weight value");
+      throw new Error(`Invalid weight value: ${weight}`);
     }
 
     anchor.weight = weight;
