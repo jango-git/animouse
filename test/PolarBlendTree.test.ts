@@ -1,19 +1,8 @@
 import { test } from "uvu";
 import * as assert from "uvu/assert";
+import { assertEqualWithTolerance } from "./miscellaneous/miscellaneous";
 import { buildMockPolarAction } from "./mocks/buildMockAction";
 import { PolarBlendTreeProxy } from "./proxies/PolarBlendTreeProxy";
-
-function assertEqualWithTolerance(
-  actual: number,
-  expected: number,
-  message?: string,
-): void {
-  const EPSILON = 1e-10;
-  assert.ok(
-    Math.abs(actual - expected) < EPSILON,
-    message || `Expected ${expected}, got ${actual}`,
-  );
-}
 
 test("constructor: should throw error when fewer than 2 actions provided", () => {
   assert.throws(
@@ -30,7 +19,7 @@ test("constructor: should throw error when action has non-finite value", () => {
         buildMockPolarAction(NaN, 0),
         buildMockPolarAction(0, 0),
       ]),
-    /non-finite value/,
+    /non-finite/,
   );
 
   assert.throws(
@@ -39,7 +28,7 @@ test("constructor: should throw error when action has non-finite value", () => {
         buildMockPolarAction(1, Infinity),
         buildMockPolarAction(Infinity, 0),
       ]),
-    /non-finite value/,
+    /non-finite/,
   );
 
   assert.throws(
@@ -48,7 +37,7 @@ test("constructor: should throw error when action has non-finite value", () => {
         buildMockPolarAction(1, -Infinity),
         buildMockPolarAction(-Infinity, 0),
       ]),
-    /non-finite value/,
+    /non-finite/,
   );
 });
 
@@ -79,8 +68,9 @@ test("constructor: should throw error when multiple actions have same value", ()
       new PolarBlendTreeProxy([
         buildMockPolarAction(0.5, 0),
         buildMockPolarAction(0.5, 0),
+        buildMockPolarAction(0.5, 0),
       ]),
-    /Duplicate value found/,
+    /Duplicate coordinates found/,
   );
 });
 
@@ -91,13 +81,24 @@ test("constructor: should throw error when only two actions and they are colline
         buildMockPolarAction(0.5, 0),
         buildMockPolarAction(1, 0),
       ]),
-    /Duplicate value found/,
+    /they cannot all have the same azimuth/,
+  );
+});
+
+test("constructor: should throw error when anchors do not form a valid grid", () => {
+  assert.throws(
+    () =>
+      new PolarBlendTreeProxy([
+        buildMockPolarAction(0.5, -1),
+        buildMockPolarAction(1, 1),
+      ]),
+    /valid grid/,
   );
 });
 
 test("constructor: should initialize actions to stopped state", () => {
-  const action1 = buildMockPolarAction(1, 0);
-  const action2 = buildMockPolarAction(0.5, 0);
+  const action1 = buildMockPolarAction(1, -1);
+  const action2 = buildMockPolarAction(1, 1);
 
   action1.action.play();
   action2.action.play();

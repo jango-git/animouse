@@ -1,7 +1,7 @@
 import type { AnimationAction } from "three";
 import { LoopOnce } from "three";
 import { StateEvent } from "../mescellaneous/AnimationStateEvent";
-import type { Anchor } from "../mescellaneous/miscellaneous";
+import { EPSILON, type Anchor } from "../mescellaneous/miscellaneous";
 import { AnimationTree } from "./AnimationTree";
 
 /**
@@ -85,7 +85,6 @@ export class LinearBlendTree extends AnimationTree {
       throw new Error("Need at least 2 actions");
     }
 
-    const values = new Set<number>();
     for (let i = 0; i < linearActions.length; i++) {
       const value = linearActions[i].value;
 
@@ -98,14 +97,17 @@ export class LinearBlendTree extends AnimationTree {
           `Action at index ${i} has value outside safe range: ${value}`,
         );
       }
+    }
 
-      if (values.has(value)) {
-        throw new Error(
-          `Duplicate value found: ${value}. All action values must be unique.`,
-        );
+    for (let i = 0; i < linearActions.length - 1; i++) {
+      const value = linearActions[i].value;
+      for (let j = i + 1; j < linearActions.length; j++) {
+        if (Math.abs(value - linearActions[j].value) < EPSILON) {
+          throw new Error(
+            `Duplicate value found, value: ${value}. All action values must be unique.`,
+          );
+        }
       }
-
-      values.add(value);
     }
 
     for (const linearAction of linearActions) {

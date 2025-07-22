@@ -43,12 +43,12 @@
   },
   "type": "module",
   "peerDependencies": {
-    "three": ">=0.178.0 <1.0.0"
+    "three": ">=0.175.0 <0.180.0"
   },
   "devDependencies": {
     "@rollup/plugin-node-resolve": "^16.0.1",
     "@rollup/plugin-terser": "^0.4.4",
-    "@types/three": "^0.178.0",
+    "@types/three": "^0.175.0",
     "@typescript-eslint/eslint-plugin": "^8.32.0",
     "@typescript-eslint/parser": "^8.32.0",
     "eslint": "^9.26.0",

@@ -200,12 +200,8 @@ export class PolarBlendTree extends AnimationTree {
       );
     }
 
-    const coordinates = new Set<string>();
-    const azimuths = new Set<number>();
-
     for (let i = 0; i < polarActions.length; i++) {
-      const action = polarActions[i];
-      const { radius, azimuth } = action;
+      const { radius, azimuth } = polarActions[i];
 
       if (!Number.isFinite(radius)) {
         throw new Error(
@@ -219,7 +215,9 @@ export class PolarBlendTree extends AnimationTree {
       }
 
       if (radius < EPSILON) {
-        throw new Error(`Action at index ${i} has negative radius: ${radius}`);
+        throw new Error(
+          `Action at index ${i} has negative or small radius: ${radius}`,
+        );
       }
 
       if (Math.abs(radius) > Number.MAX_SAFE_INTEGER) {
@@ -232,30 +230,42 @@ export class PolarBlendTree extends AnimationTree {
           `Action at index ${i} has azimuth outside safe range: ${azimuth}`,
         );
       }
-
-      const normalizedAzimuth = calculateNormalizedAzimuth(azimuth);
-      const coordKey = `${radius},${normalizedAzimuth}`;
-      if (coordinates.has(coordKey)) {
-        throw new Error(
-          `Duplicate coordinates found at radius=${radius}, azimuth=${azimuth}. All action coordinates must be unique.`,
-        );
-      }
-      coordinates.add(coordKey);
-      azimuths.add(normalizedAzimuth);
     }
 
-    // Check for collinearity when exactly 3 actions
-    if (polarActions.length === MIN_POLAR_ACTIONS && azimuths.size === 1) {
+    for (const polarAction of polarActions) {
+      polarAction.azimuth = calculateNormalizedAzimuth(polarAction.azimuth);
+    }
+
+    if (
+      polarActions.length === MIN_POLAR_ACTIONS &&
+      Math.abs(polarActions[0].azimuth - polarActions[1].azimuth) < EPSILON
+    ) {
       throw new Error(
-        `When using exactly ${MIN_POLAR_ACTIONS} actions, they cannot all have the same azimuth (collinear). ` +
-          "Actions must form a proper triangulation.",
+        `When using exactly ${MIN_POLAR_ACTIONS} actions, they cannot all have the same azimuth (collinear). All action values must be unique.`,
       );
     }
 
-    for (const action of polarActions) {
-      const animationAction = action.action;
-      action.action.time = 0;
-      action.action.weight = 0;
+    for (let i = 0; i < polarActions.length - 1; i++) {
+      const azimuth = polarActions[i].azimuth;
+      const radius = polarActions[i].radius;
+
+      for (let j = i + 1; j < polarActions.length; j++) {
+        if (
+          Math.abs(azimuth - polarActions[j].azimuth) < EPSILON &&
+          Math.abs(radius - polarActions[j].radius) < EPSILON
+        ) {
+          throw new Error(
+            `Duplicate coordinates found, azimuth: ${azimuth}, radius: ${radius}. All action values must be unique.`,
+          );
+        }
+      }
+    }
+
+    for (const polarAction of polarActions) {
+      const animationAction = polarAction.action;
+      animationAction.stop();
+      animationAction.time = 0;
+      animationAction.weight = 0;
 
       const anchor: PolarAnchor = {
         action: animationAction,
@@ -267,26 +277,34 @@ export class PolarBlendTree extends AnimationTree {
           animationAction.loop === LoopOnce
             ? StateEvent.FINISH
             : StateEvent.ITERATE,
-        radius: action.radius,
-        azimuth: calculateNormalizedAzimuth(action.azimuth),
+        radius: polarAction.radius,
+        azimuth: polarAction.azimuth,
       };
 
       const ray = this.rays.find(
-        (r) => Math.abs(r.azimuth - action.azimuth) < EPSILON,
+        (r) => Math.abs(r.azimuth - polarAction.azimuth) < EPSILON,
+      );
+
+      const ring = this.rings.find(
+        (r) => Math.abs(r.radius - polarAction.radius) < EPSILON,
       );
 
       ray
         ? ray.anchors.push(anchor)
         : this.rays.push({ azimuth: anchor.azimuth, anchors: [anchor] });
+
+      ring
+        ? ring.anchors.push(anchor)
+        : this.rings.push({ radius: anchor.radius, anchors: [anchor] });
     }
 
     if (this.rays.length < 2) {
       throw new Error("At least two rays are required.");
     }
 
-    const ringCount = this.rays[0].anchors.length;
+    const ringCount = this.rings.length;
     if (this.rays.some((r) => r.anchors.length !== ringCount)) {
-      throw new Error("All rays must have the same number of anchors.");
+      throw new Error("The anchors must form a valid grid.");
     }
 
     this.rays.sort((a, b) => a.azimuth - b.azimuth);
@@ -294,9 +312,9 @@ export class PolarBlendTree extends AnimationTree {
       ray.anchors.sort((a, b) => a.radius - b.radius);
     }
 
-    for (let i = 0; i < ringCount; i++) {
-      const anchors = this.rays.map((r) => r.anchors[i]);
-      this.rings.push({ radius: anchors[0].radius, anchors });
+    this.rings.sort((a, b) => a.radius - b.radius);
+    for (const ring of this.rings) {
+      ring.anchors.sort((a, b) => a.radius - b.radius);
     }
 
     if (centerAction) {
@@ -319,6 +337,8 @@ export class PolarBlendTree extends AnimationTree {
     } else {
       this.updateAnchors();
     }
+
+    console.log(this.rings.length, this.rays.length);
   }
 
   /**

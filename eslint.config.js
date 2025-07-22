@@ -18,10 +18,7 @@ export default [
     },
     rules: {
       "no-unused-vars": "off",
-      "@typescript-eslint/no-unused-vars": [
-        "error",
-        { argsIgnorePattern: "^_" },
-      ],
+      "@typescript-eslint/no-unused-vars": "error",
       "no-console": "error",
       "no-debugger": "error",
       "no-implicit-coercion": "error",
@@ -30,7 +27,7 @@ export default [
         "warn",
         {
           ignore: [
-            0, 1, -1, 2, 0xff, 0xffff, 0xffffff, 360, 180, 90, 100, 1000,
+            0, 1, -1, 2, 0xff, 0xffff, 0xffffff, 360, 270, 180, 90, 100, 1000,
           ],
           ignoreArrayIndexes: true,
           enforceConst: true,
@@ -61,6 +58,14 @@ export default [
       "@typescript-eslint/prefer-optional-chain": "error",
       "@typescript-eslint/consistent-type-imports": "error",
       "@typescript-eslint/consistent-type-definitions": ["error", "interface"],
+      "@typescript-eslint/prefer-nullish-coalescing": "error",
+      "@typescript-eslint/prefer-string-starts-ends-with": "error",
+      "@typescript-eslint/prefer-includes": "error",
+      "@typescript-eslint/no-unnecessary-boolean-literal-compare": "error",
+      "@typescript-eslint/prefer-reduce-type-parameter": "error",
+      "@typescript-eslint/prefer-function-type": "error",
+      "@typescript-eslint/array-type": ["error", { default: "array" }],
+      "@typescript-eslint/prefer-for-of": "error",
 
       "@typescript-eslint/member-ordering": "warn",
       "@typescript-eslint/naming-convention": [
@@ -71,7 +76,7 @@ export default [
         { selector: "enumMember", format: ["UPPER_CASE"] },
         {
           selector: "property",
-          format: ["camelCase", "snake_case"],
+          format: ["camelCase"],
           leadingUnderscore: "allow",
         },
         {
@@ -106,10 +111,7 @@ export default [
     },
     rules: {
       "no-unused-vars": "off",
-      "@typescript-eslint/no-unused-vars": [
-        "error",
-        { argsIgnorePattern: "^_" },
-      ],
+      "@typescript-eslint/no-unused-vars": "error",
       "no-implicit-coercion": "error",
       "no-extend-native": "error",
       eqeqeq: ["error", "always"],
@@ -134,6 +136,14 @@ export default [
       "@typescript-eslint/prefer-optional-chain": "error",
       "@typescript-eslint/consistent-type-imports": "error",
       "@typescript-eslint/consistent-type-definitions": ["error", "interface"],
+      "@typescript-eslint/prefer-nullish-coalescing": "error",
+      "@typescript-eslint/prefer-string-starts-ends-with": "error",
+      "@typescript-eslint/prefer-includes": "error",
+      "@typescript-eslint/no-unnecessary-boolean-literal-compare": "error",
+      "@typescript-eslint/prefer-reduce-type-parameter": "error",
+      "@typescript-eslint/prefer-function-type": "error",
+      "@typescript-eslint/array-type": ["error", { default: "array" }],
+      "@typescript-eslint/prefer-for-of": "error",
 
       "@typescript-eslint/member-ordering": "warn",
       "@typescript-eslint/naming-convention": [
@@ -144,7 +154,7 @@ export default [
         { selector: "enumMember", format: ["UPPER_CASE"] },
         {
           selector: "property",
-          format: ["camelCase", "snake_case"],
+          format: ["camelCase"],
           leadingUnderscore: "allow",
         },
         {

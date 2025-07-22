@@ -3,20 +3,9 @@ import { LoopOnce, LoopPingPong, LoopRepeat } from "three";
 import { test } from "uvu";
 import * as assert from "uvu/assert";
 import { StateEvent } from "../src/mescellaneous/AnimationStateEvent";
+import { assertEqualWithTolerance } from "./miscellaneous/miscellaneous";
 import { buildMockLinearAction } from "./mocks/buildMockAction";
 import { LinearBlendTreeProxy } from "./proxies/LinearBlendTreeProxy";
-
-function assertEqualWithTolerance(
-  actual: number,
-  expected: number,
-  message?: string,
-): void {
-  const EPSILON = 1e-10;
-  assert.ok(
-    Math.abs(actual - expected) < EPSILON,
-    message || `Expected ${expected}, got ${actual}`,
-  );
-}
 
 test("constructor: should throw error when fewer than 2 actions provided", () => {
   assert.throws(
