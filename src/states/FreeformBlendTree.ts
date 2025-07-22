@@ -39,10 +39,10 @@ export class FreeformBlendTree extends AnimationTree {
   private currentX = 0;
   private currentY = 0;
 
-  constructor(actions: FreeformAction[]) {
+  constructor(freeformActions: FreeformAction[]) {
     super();
 
-    if (actions.length < MIN_ACTIONS) {
+    if (freeformActions.length < MIN_ACTIONS) {
       throw new Error(
         "FreeformBlendTree requires at least 3 actions for triangulation",
       );
@@ -50,22 +50,29 @@ export class FreeformBlendTree extends AnimationTree {
 
     const anchors: FreeformAnchor[] = [];
 
-    for (const action of actions) {
-      action.action.weight = 0;
-      action.action.time = 0;
+    for (const freeformAction of freeformActions) {
+      const animationAction = freeformAction.action;
+      animationAction.stop();
+      animationAction.time = 0;
+      animationAction.weight = 0;
+
+      const duration = animationAction.getClip().duration;
+      if (duration <= 0) {
+        throw new Error("Action duration must be greater than zero");
+      }
 
       anchors.push({
-        action: action.action,
+        action: animationAction,
         weight: 0,
-        duration: action.action.getClip().duration,
+        duration,
         previousTime: 0,
         hasFiredIterationEvent: false,
         iterationEventType:
-          action.action.loop === LoopOnce
+          animationAction.loop === LoopOnce
             ? StateEvent.FINISH
             : StateEvent.ITERATE,
-        x: action.x,
-        y: action.y,
+        x: freeformAction.x,
+        y: freeformAction.y,
       });
     }
 

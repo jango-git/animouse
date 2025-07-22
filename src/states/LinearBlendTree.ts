@@ -117,10 +117,15 @@ export class LinearBlendTree extends AnimationTree {
       animationAction.time = 0;
       animationAction.weight = 0;
 
+      const duration = animationAction.getClip().duration;
+      if (duration <= 0) {
+        throw new Error("Action duration must be greater than zero");
+      }
+
       this.anchors.push({
         action: animationAction,
         weight: 0,
-        duration: animationAction.getClip().duration,
+        duration,
         previousTime: 0,
         hasFiredIterationEvent: false,
         iterationEventType:
@@ -144,6 +149,14 @@ export class LinearBlendTree extends AnimationTree {
    * @param value - The target blend value. Will be clamped to the valid range.
    */
   public setBlend(value: number): void {
+    if (!Number.isFinite(value)) {
+      throw new Error("Invalid blend value: not a finite number");
+    }
+
+    if (Math.abs(value) > Number.MAX_SAFE_INTEGER) {
+      throw new Error("Invalid blend value: exceeds maximum safe integer");
+    }
+
     if (value !== this.currentBlend) {
       this.currentBlend = value;
       this.updateAnchors();

@@ -1,5 +1,5 @@
 import type { AnimationAction } from "three";
-import { LoopOnce, MathUtils } from "three";
+import { LoopOnce } from "three";
 import { StateEvent } from "../mescellaneous/AnimationStateEvent";
 import type { Anchor } from "../mescellaneous/miscellaneous";
 import {
@@ -263,6 +263,12 @@ export class PolarBlendTree extends AnimationTree {
 
     for (const polarAction of polarActions) {
       const animationAction = polarAction.action;
+
+      const duration = animationAction.getClip().duration;
+      if (duration <= 0) {
+        throw new Error("Action duration must be greater than zero");
+      }
+
       animationAction.stop();
       animationAction.time = 0;
       animationAction.weight = 0;
@@ -270,7 +276,7 @@ export class PolarBlendTree extends AnimationTree {
       const anchor: PolarAnchor = {
         action: animationAction,
         weight: 0,
-        duration: animationAction.getClip().duration,
+        duration,
         previousTime: 0,
         hasFiredIterationEvent: false,
         iterationEventType:
@@ -318,6 +324,11 @@ export class PolarBlendTree extends AnimationTree {
     }
 
     if (centerAction) {
+      const duration = centerAction.getClip().duration;
+      if (duration <= 0) {
+        throw new Error("Action duration must be greater than zero");
+      }
+
       centerAction.stop();
       centerAction.time = 0;
       centerAction.weight = 0;
@@ -325,7 +336,7 @@ export class PolarBlendTree extends AnimationTree {
       this.centerAnchor = {
         action: centerAction,
         weight: 1,
-        duration: centerAction.getClip().duration,
+        duration,
         previousTime: 0,
         hasFiredIterationEvent: false,
         iterationEventType:
@@ -367,15 +378,33 @@ export class PolarBlendTree extends AnimationTree {
    * @public
    */
   public setBlend(radius: number, azimuth: number): void {
-    const maxRadius = this.rings[this.rings.length - 1].radius;
-    const clampedRadius = MathUtils.clamp(radius, 0, maxRadius);
+    if (!Number.isFinite(radius)) {
+      throw new Error("Invalid radius value: not a finite number");
+    }
+
+    if (Math.abs(radius) > Number.MAX_SAFE_INTEGER) {
+      throw new Error("Invalid radius value: exceeds maximum safe integer");
+    }
+
+    if (radius < 0) {
+      throw new Error("Invalid radius value: less than zero");
+    }
+
+    if (!Number.isFinite(azimuth)) {
+      throw new Error("Invalid azimuth value: not a finite number");
+    }
+
+    if (Math.abs(azimuth) > Number.MAX_SAFE_INTEGER) {
+      throw new Error("Invalid azimuth value: exceeds maximum safe integer");
+    }
+
     const normalizedAzimuth = calculateNormalizedAzimuth(azimuth);
 
     if (
-      this.currentRadius !== clampedRadius ||
+      this.currentRadius !== radius ||
       this.currentAzimuth !== normalizedAzimuth
     ) {
-      this.currentRadius = clampedRadius;
+      this.currentRadius = radius;
       this.currentAzimuth = normalizedAzimuth;
       this.updateAnchors();
     }

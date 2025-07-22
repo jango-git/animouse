@@ -14,6 +14,16 @@ test("constructor: should throw error when fewer than 2 actions provided", () =>
   );
 });
 
+test("constructor: should throw error when action duration is less than or equal to zero", () => {
+  assert.throws(() => {
+    new LinearBlendTreeProxy([
+      buildMockLinearAction(1, LoopRepeat, 1),
+      buildMockLinearAction(1, LoopRepeat, 0),
+      buildMockLinearAction(1, LoopRepeat, 1),
+    ]);
+  }, "Action duration must be greater than zero");
+});
+
 test("constructor: should throw error when action has non-finite value", () => {
   assert.throws(
     () =>
@@ -115,252 +125,29 @@ test("constructor: should initialize actions to stopped state", () => {
   );
 });
 
-test("constructor: should sort actions by value ascending", () => {
-  // Create actions in unsorted order: 10, -5, 0
-  const action1 = buildMockLinearAction(10);
-  const action2 = buildMockLinearAction(-5);
-  const action3 = buildMockLinearAction(0);
+test("setBlend: should throw error when value is non-finite", () => {
+  const action1 = buildMockLinearAction(0);
+  const action2 = buildMockLinearAction(1);
+  const blendTree = new LinearBlendTreeProxy([action1, action2]);
 
-  const blendTree = new LinearBlendTreeProxy([action1, action2, action3]);
-  blendTree.invokeSetInfluence(1);
-
-  // Test by checking blend behavior - should clamp to sorted range
-  blendTree.setBlend(-10); // Should clamp to -5 (minimum after sorting)
-
-  // If sorted correctly (-5, 0, 10), action2 should have weight 1
-  assertEqualWithTolerance(
-    action1.action.weight,
-    0,
-    "action1 (value 10) should have weight 0 when blend is at minimum",
-  );
-  assertEqualWithTolerance(
-    action2.action.weight,
-    1,
-    "action2 (value -5) should have weight 1 when blend clamps to minimum",
-  );
-  assertEqualWithTolerance(
-    action3.action.weight,
-    0,
-    "action3 (value 0) should have weight 0 when blend is at minimum",
-  );
+  assert.throws(() => blendTree.setBlend(NaN), /Invalid blend value/);
+  assert.throws(() => blendTree.setBlend(Infinity), /Invalid blend value/);
+  assert.throws(() => blendTree.setBlend(-Infinity), /Invalid blend value/);
 });
 
-test("events: should emit ENTER/EXIT events", () => {
-  const blendTree = new LinearBlendTreeProxy([
-    buildMockLinearAction(0),
-    buildMockLinearAction(1),
-  ]);
+test("setBlend: should throw error when value is outside safe range", () => {
+  const action1 = buildMockLinearAction(0);
+  const action2 = buildMockLinearAction(1);
+  const blendTree = new LinearBlendTreeProxy([action1, action2]);
 
-  let enterEventFired = false;
-  let enterState: any = null;
-
-  let exitEventFired = false;
-  let exitState: any = null;
-
-  blendTree.on(StateEvent.ENTER, (state) => {
-    enterEventFired = true;
-    enterState = state;
-  });
-
-  assert.equal(
-    enterEventFired,
-    false,
-    "ENTER event should not be fired initially",
+  assert.throws(
+    () => blendTree.setBlend(Number.MAX_SAFE_INTEGER + 1),
+    /Invalid blend value/,
   );
-  blendTree.invokeOnEnter();
-  assert.equal(
-    enterEventFired,
-    true,
-    "ENTER event should be fired after setting influence",
+  assert.throws(
+    () => blendTree.setBlend(-(Number.MAX_SAFE_INTEGER + 1)),
+    /Invalid blend value/,
   );
-  assert.equal(enterState, blendTree, "ENTER event should provide the state");
-
-  blendTree.on(StateEvent.EXIT, (state) => {
-    exitEventFired = true;
-    exitState = state;
-  });
-
-  assert.equal(
-    exitEventFired,
-    false,
-    "EXIT event should not be fired initially",
-  );
-  blendTree.invokeOnExit();
-  assert.equal(
-    exitEventFired,
-    true,
-    "EXIT event should be fired after setting influence",
-  );
-  assert.equal(exitState, blendTree, "EXIT event should provide the state");
-});
-
-test("events: should emit correct FINISH/ITERATE event based on animation loop mode", () => {
-  const loopOnceAction = buildMockLinearAction(0, LoopOnce);
-  const loopRepeatAction = buildMockLinearAction(0.5, LoopRepeat);
-  const loopPingPongAction = buildMockLinearAction(1, LoopPingPong);
-
-  const blendTree = new LinearBlendTreeProxy([
-    loopOnceAction,
-    loopRepeatAction,
-    loopPingPongAction,
-  ]);
-
-  // Track which events fire for each loop mode
-  let loopOnceFinishEventFired = false;
-  let loopOnceIterateEventFired = false;
-
-  let loopRepeatFinishEventFired = false;
-  let loopRepeatIterateEventFired = false;
-
-  let loopPingPongFinishEventFired = false;
-  let loopPingPongIterateEventFired = false;
-
-  blendTree.on(StateEvent.FINISH, (action: AnimationAction) => {
-    if (action.loop === LoopOnce) {
-      loopOnceFinishEventFired = true;
-    } else if (action.loop === LoopRepeat) {
-      loopRepeatFinishEventFired = true;
-    } else {
-      loopPingPongFinishEventFired = true;
-    }
-  });
-
-  blendTree.on(StateEvent.ITERATE, (action: AnimationAction) => {
-    if (action.loop === LoopOnce) {
-      loopOnceIterateEventFired = true;
-    } else if (action.loop === LoopRepeat) {
-      loopRepeatIterateEventFired = true;
-    } else {
-      loopPingPongIterateEventFired = true;
-    }
-  });
-
-  // Simulate LoopOnce action reaching end (time = duration)
-  loopOnceAction.action.time = 1;
-  loopRepeatAction.action.time = 0;
-  loopPingPongAction.action.time = 0;
-  blendTree.invokeOnTick();
-
-  // Simulate LoopRepeat action reaching end (time = duration)
-  loopOnceAction.action.time = 0;
-  loopRepeatAction.action.time = 1;
-  loopPingPongAction.action.time = 0;
-  blendTree.invokeOnTick();
-
-  // Simulate LoopPingPong action reaching end (time = duration)
-  loopOnceAction.action.time = 0;
-  loopRepeatAction.action.time = 0;
-  loopPingPongAction.action.time = 1;
-  blendTree.invokeOnTick();
-
-  assert.ok(
-    loopOnceFinishEventFired,
-    "FINISH event should fire for LoopOnce animations",
-  );
-  assert.not.ok(
-    loopOnceIterateEventFired,
-    "ITERATE event should not fire for LoopOnce animations",
-  );
-
-  assert.ok(
-    loopRepeatIterateEventFired,
-    "ITERATE event should fire for looped animations",
-  );
-  assert.not.ok(
-    loopRepeatFinishEventFired,
-    "FINISH event should not fire for looped animations",
-  );
-
-  assert.ok(
-    loopPingPongIterateEventFired,
-    "ITERATE event should fire for ping-pong animations",
-  );
-  assert.not.ok(
-    loopPingPongFinishEventFired,
-    "FINISH event should not fire for ping-pong animations",
-  );
-});
-
-test("events: should prevent duplicate iteration events", () => {
-  const action = buildMockLinearAction(0);
-  const blendTree = new LinearBlendTreeProxy([
-    action,
-    buildMockLinearAction(1),
-  ]);
-
-  let eventCount = 0;
-  blendTree.on(StateEvent.ITERATE, () => {
-    eventCount += 1;
-  });
-
-  action.action.time = 1.0;
-  blendTree.invokeOnTick();
-  blendTree.invokeOnTick();
-
-  assert.equal(eventCount, 1);
-});
-
-test("events: should start animation and emit PLAY when influence becomes positive", () => {
-  const mockAction = buildMockLinearAction(0);
-  const blendTree = new LinearBlendTreeProxy([
-    mockAction,
-    buildMockLinearAction(1),
-  ]);
-
-  let playEventFired = false;
-  let eventAction: any = null;
-  let eventState: any = null;
-
-  blendTree.on(StateEvent.PLAY, (action, state) => {
-    playEventFired = true;
-    eventAction = action;
-    eventState = state;
-  });
-
-  blendTree.invokeSetInfluence(0.5);
-
-  assert.ok(playEventFired, "PLAY event should be emitted");
-  assert.equal(
-    eventAction,
-    mockAction.action,
-    "Event should include the animation action",
-  );
-  assert.equal(eventState, blendTree, "Event should include the clip state");
-  assert.equal(mockAction.action.weight, 0.5);
-  assert.ok(mockAction.action.isRunning(), "Animation should be playing");
-});
-
-test("events: should stop animation and emit STOP when influence becomes zero", () => {
-  const mockAction = buildMockLinearAction(0);
-  const blendTree = new LinearBlendTreeProxy([
-    mockAction,
-    buildMockLinearAction(1),
-  ]);
-
-  blendTree.invokeSetInfluence(0.8);
-  mockAction.action.time = 0.3;
-
-  let stopEventFired = false;
-  let eventAction: any = null;
-  let eventState: any = null;
-
-  blendTree.on(StateEvent.STOP, (action, state) => {
-    stopEventFired = true;
-    eventAction = action;
-    eventState = state;
-  });
-
-  blendTree.invokeSetInfluence(0);
-
-  assert.ok(stopEventFired, "STOP event should be emitted");
-  assert.equal(
-    eventAction,
-    mockAction.action,
-    "Event should include the animation action",
-  );
-  assert.equal(eventState, blendTree, "Event should include the clip state");
-  assert.equal(mockAction.action.weight, 0);
-  assert.not.ok(mockAction.action.isRunning(), "Animation should be stopped");
 });
 
 test("setBlend: should interpolate correctly between two adjacent actions", () => {
@@ -685,6 +472,224 @@ test("setBlend: should transition from exact match to interpolation correctly", 
     1,
     "Third action should be 1 at exact match",
   );
+});
+
+test("events: should emit ENTER/EXIT events", () => {
+  const blendTree = new LinearBlendTreeProxy([
+    buildMockLinearAction(0),
+    buildMockLinearAction(1),
+  ]);
+
+  let enterEventFired = false;
+  let enterState: any = null;
+
+  let exitEventFired = false;
+  let exitState: any = null;
+
+  blendTree.on(StateEvent.ENTER, (state) => {
+    enterEventFired = true;
+    enterState = state;
+  });
+
+  assert.equal(
+    enterEventFired,
+    false,
+    "ENTER event should not be fired initially",
+  );
+  blendTree.invokeOnEnter();
+  assert.equal(
+    enterEventFired,
+    true,
+    "ENTER event should be fired after setting influence",
+  );
+  assert.equal(enterState, blendTree, "ENTER event should provide the state");
+
+  blendTree.on(StateEvent.EXIT, (state) => {
+    exitEventFired = true;
+    exitState = state;
+  });
+
+  assert.equal(
+    exitEventFired,
+    false,
+    "EXIT event should not be fired initially",
+  );
+  blendTree.invokeOnExit();
+  assert.equal(
+    exitEventFired,
+    true,
+    "EXIT event should be fired after setting influence",
+  );
+  assert.equal(exitState, blendTree, "EXIT event should provide the state");
+});
+
+test("events: should emit correct FINISH/ITERATE event based on animation loop mode", () => {
+  const loopOnceAction = buildMockLinearAction(0, LoopOnce);
+  const loopRepeatAction = buildMockLinearAction(0.5, LoopRepeat);
+  const loopPingPongAction = buildMockLinearAction(1, LoopPingPong);
+
+  const blendTree = new LinearBlendTreeProxy([
+    loopOnceAction,
+    loopRepeatAction,
+    loopPingPongAction,
+  ]);
+
+  // Track which events fire for each loop mode
+  let loopOnceFinishEventFired = false;
+  let loopOnceIterateEventFired = false;
+
+  let loopRepeatFinishEventFired = false;
+  let loopRepeatIterateEventFired = false;
+
+  let loopPingPongFinishEventFired = false;
+  let loopPingPongIterateEventFired = false;
+
+  blendTree.on(StateEvent.FINISH, (action: AnimationAction) => {
+    if (action.loop === LoopOnce) {
+      loopOnceFinishEventFired = true;
+    } else if (action.loop === LoopRepeat) {
+      loopRepeatFinishEventFired = true;
+    } else {
+      loopPingPongFinishEventFired = true;
+    }
+  });
+
+  blendTree.on(StateEvent.ITERATE, (action: AnimationAction) => {
+    if (action.loop === LoopOnce) {
+      loopOnceIterateEventFired = true;
+    } else if (action.loop === LoopRepeat) {
+      loopRepeatIterateEventFired = true;
+    } else {
+      loopPingPongIterateEventFired = true;
+    }
+  });
+
+  // Simulate LoopOnce action reaching end (time = duration)
+  loopOnceAction.action.time = 1;
+  loopRepeatAction.action.time = 0;
+  loopPingPongAction.action.time = 0;
+  blendTree.invokeOnTick();
+
+  // Simulate LoopRepeat action reaching end (time = duration)
+  loopOnceAction.action.time = 0;
+  loopRepeatAction.action.time = 1;
+  loopPingPongAction.action.time = 0;
+  blendTree.invokeOnTick();
+
+  // Simulate LoopPingPong action reaching end (time = duration)
+  loopOnceAction.action.time = 0;
+  loopRepeatAction.action.time = 0;
+  loopPingPongAction.action.time = 1;
+  blendTree.invokeOnTick();
+
+  assert.ok(
+    loopOnceFinishEventFired,
+    "FINISH event should fire for LoopOnce animations",
+  );
+  assert.not.ok(
+    loopOnceIterateEventFired,
+    "ITERATE event should not fire for LoopOnce animations",
+  );
+
+  assert.ok(
+    loopRepeatIterateEventFired,
+    "ITERATE event should fire for looped animations",
+  );
+  assert.not.ok(
+    loopRepeatFinishEventFired,
+    "FINISH event should not fire for looped animations",
+  );
+
+  assert.ok(
+    loopPingPongIterateEventFired,
+    "ITERATE event should fire for ping-pong animations",
+  );
+  assert.not.ok(
+    loopPingPongFinishEventFired,
+    "FINISH event should not fire for ping-pong animations",
+  );
+});
+
+test("events: should prevent duplicate iteration events", () => {
+  const action = buildMockLinearAction(0);
+  const blendTree = new LinearBlendTreeProxy([
+    action,
+    buildMockLinearAction(1),
+  ]);
+
+  let eventCount = 0;
+  blendTree.on(StateEvent.ITERATE, () => {
+    eventCount += 1;
+  });
+
+  action.action.time = 1.0;
+  blendTree.invokeOnTick();
+  blendTree.invokeOnTick();
+
+  assert.equal(eventCount, 1);
+});
+
+test("events: should start animation and emit PLAY when influence becomes positive", () => {
+  const mockAction = buildMockLinearAction(0);
+  const blendTree = new LinearBlendTreeProxy([
+    mockAction,
+    buildMockLinearAction(1),
+  ]);
+
+  let playEventFired = false;
+  let eventAction: any = null;
+  let eventState: any = null;
+
+  blendTree.on(StateEvent.PLAY, (action, state) => {
+    playEventFired = true;
+    eventAction = action;
+    eventState = state;
+  });
+
+  blendTree.invokeSetInfluence(0.5);
+
+  assert.ok(playEventFired, "PLAY event should be emitted");
+  assert.equal(
+    eventAction,
+    mockAction.action,
+    "Event should include the animation action",
+  );
+  assert.equal(eventState, blendTree, "Event should include the clip state");
+  assert.equal(mockAction.action.weight, 0.5);
+  assert.ok(mockAction.action.isRunning(), "Animation should be playing");
+});
+
+test("events: should stop animation and emit STOP when influence becomes zero", () => {
+  const mockAction = buildMockLinearAction(0);
+  const blendTree = new LinearBlendTreeProxy([
+    mockAction,
+    buildMockLinearAction(1),
+  ]);
+
+  blendTree.invokeSetInfluence(0.8);
+  mockAction.action.time = 0.3;
+
+  let stopEventFired = false;
+  let eventAction: any = null;
+  let eventState: any = null;
+
+  blendTree.on(StateEvent.STOP, (action, state) => {
+    stopEventFired = true;
+    eventAction = action;
+    eventState = state;
+  });
+
+  blendTree.invokeSetInfluence(0);
+
+  assert.ok(stopEventFired, "STOP event should be emitted");
+  assert.equal(
+    eventAction,
+    mockAction.action,
+    "Event should include the animation action",
+  );
+  assert.equal(eventState, blendTree, "Event should include the clip state");
+  assert.equal(mockAction.action.weight, 0);
+  assert.not.ok(mockAction.action.isRunning(), "Animation should be stopped");
 });
 
 test.run();

@@ -9,7 +9,7 @@ test("setInfluence: should throw error when influence is less than 0", () => {
 
   assert.throws(() => {
     tree.invokeSetInfluence(-0.1);
-  }, "Invalid influence value");
+  }, /Invalid influence value/);
 });
 
 test("setInfluence: should throw error when influence is greater than 1", () => {
@@ -17,7 +17,7 @@ test("setInfluence: should throw error when influence is greater than 1", () => 
 
   assert.throws(() => {
     tree.invokeSetInfluence(1.1);
-  }, "Invalid influence value");
+  }, /Invalid influence value/);
 });
 
 test("setInfluence: should throw error when influence is not a finite number", () => {
@@ -25,15 +25,19 @@ test("setInfluence: should throw error when influence is not a finite number", (
 
   assert.throws(() => {
     tree.invokeSetInfluence(NaN);
-  }, "Invalid influence value");
+  }, /Invalid influence value/);
 
   assert.throws(() => {
     tree.invokeSetInfluence(Infinity);
-  }, "Invalid influence value");
+  }, /Invalid influence value/);
 
   assert.throws(() => {
     tree.invokeSetInfluence(-Infinity);
-  }, "Invalid influence value");
+  }, /Invalid influence value/);
+
+  assert.throws(() => {
+    tree.invokeSetInfluence(Number.MAX_SAFE_INTEGER + 1);
+  }, /Invalid influence value/);
 });
 
 test("setInfluence: should update influence from zero to positive value", () => {
@@ -102,53 +106,13 @@ test("setInfluence: should not update anchors influence when influence value is 
   );
 });
 
-test("events: should emit PLAY event when combined weight becomes positive", () => {
-  const anchor = buildMockAnchor(0, 0);
-  const tree = new AnimationTreeProxy();
-  tree.invokeSetInfluence(1);
-
-  let eventFired = false;
-  let eventAction: any = null;
-  let eventState: any = null;
-  tree.on(StateEvent.PLAY, (action, state) => {
-    eventFired = true;
-    eventAction = action;
-    eventState = state;
-  });
-
-  tree.invokeUpdateAnchor(anchor, 0.5);
-  assert.ok(eventFired, "PLAY event should be emitted");
-  assert.ok(eventAction === anchor.action, "Event action should be emitted");
-  assert.ok(eventState === tree, "Event state should be emitted");
-});
-
-test("events: should emit STOP event when combined weight becomes zero", () => {
-  const anchor = buildMockAnchor(1, 1);
-  const tree = new AnimationTreeProxy();
-  tree.invokeSetInfluence(1);
-
-  let eventFired = false;
-  let eventAction: any = null;
-  let eventState: any = null;
-  tree.on(StateEvent.STOP, (action, state) => {
-    eventFired = true;
-    eventAction = action;
-    eventState = state;
-  });
-
-  tree.invokeUpdateAnchor(anchor, 0);
-  assert.ok(eventFired, "STOP event should be emitted");
-  assert.ok(eventAction === anchor.action, "Event action should be emitted");
-  assert.ok(eventState === tree, "Event state should be emitted");
-});
-
 test("updateAnchor: should throw error when anchor's weight is less than 0", () => {
   const tree = new AnimationTreeProxy();
   const anchor = buildMockAnchor(0.5, 1);
 
   assert.throws(() => {
     tree.invokeUpdateAnchor(anchor, -1);
-  }, "Invalid weight value");
+  }, /Invalid weight value/);
 });
 
 test("updateAnchor: should throw error when anchor's weight is greater than 1", () => {
@@ -157,7 +121,7 @@ test("updateAnchor: should throw error when anchor's weight is greater than 1", 
 
   assert.throws(() => {
     tree.invokeUpdateAnchor(anchor, 2);
-  }, "Invalid influence value");
+  }, /Invalid weight value/);
 });
 
 test("updateAnchor: should throw error when anchor's weight is not a finite number", () => {
@@ -166,15 +130,33 @@ test("updateAnchor: should throw error when anchor's weight is not a finite numb
 
   assert.throws(() => {
     tree.invokeUpdateAnchor(anchor, NaN);
-  }, "Invalid weight value");
+  }, /Invalid weight value/);
 
   assert.throws(() => {
     tree.invokeUpdateAnchor(anchor, Infinity);
-  }, "Invalid weight value");
+  }, /Invalid weight value/);
 
   assert.throws(() => {
     tree.invokeUpdateAnchor(anchor, -Infinity);
-  }, "Invalid weight value");
+  }, /Invalid weight value/);
+
+  assert.throws(() => {
+    tree.invokeUpdateAnchor(anchor, Number.MAX_SAFE_INTEGER + 1);
+  }, /Invalid weight value/);
+});
+
+test("updateAnchor: should throw error when anchor's weight is outside safe range", () => {
+  const tree = new AnimationTreeProxy();
+  const anchor = buildMockAnchor(0.5, 1);
+
+  assert.throws(
+    () => tree.invokeUpdateAnchor(anchor, Number.MAX_SAFE_INTEGER + 1),
+    /Invalid weight value/,
+  );
+  assert.throws(
+    () => tree.invokeUpdateAnchor(anchor, -(Number.MAX_SAFE_INTEGER + 1)),
+    /Invalid weight value/,
+  );
 });
 
 test("updateAnchor: should update anchor's weight from zero to positive value", () => {
@@ -233,7 +215,7 @@ test("updateAnchor: should update weight without play/stop when animation is alr
 });
 
 test("updateAnchor: should use anchor's current weight when weight parameter is not provided", () => {
-  const defaultAnchorWeight = 0.6;
+  const defaultAnchorWeight = 0.631;
   const anchor = buildMockAnchor(defaultAnchorWeight, 1);
   const tree = new AnimationTreeProxy();
 
@@ -280,6 +262,46 @@ test("updateAnchor: should handle combined maximum weight correctly", () => {
     "Combined weight should be 1.0 when both influence and weight are 1.0",
   );
   assert.equal(anchor.weight, 1.0);
+});
+
+test("events: should emit PLAY event when combined weight becomes positive", () => {
+  const anchor = buildMockAnchor(0, 0);
+  const tree = new AnimationTreeProxy();
+  tree.invokeSetInfluence(1);
+
+  let eventFired = false;
+  let eventAction: any = null;
+  let eventState: any = null;
+  tree.on(StateEvent.PLAY, (action, state) => {
+    eventFired = true;
+    eventAction = action;
+    eventState = state;
+  });
+
+  tree.invokeUpdateAnchor(anchor, 0.5);
+  assert.ok(eventFired, "PLAY event should be emitted");
+  assert.ok(eventAction === anchor.action, "Event action should be emitted");
+  assert.ok(eventState === tree, "Event state should be emitted");
+});
+
+test("events: should emit STOP event when combined weight becomes zero", () => {
+  const anchor = buildMockAnchor(1, 1);
+  const tree = new AnimationTreeProxy();
+  tree.invokeSetInfluence(1);
+
+  let eventFired = false;
+  let eventAction: any = null;
+  let eventState: any = null;
+  tree.on(StateEvent.STOP, (action, state) => {
+    eventFired = true;
+    eventAction = action;
+    eventState = state;
+  });
+
+  tree.invokeUpdateAnchor(anchor, 0);
+  assert.ok(eventFired, "STOP event should be emitted");
+  assert.ok(eventAction === anchor.action, "Event action should be emitted");
+  assert.ok(eventState === tree, "Event state should be emitted");
 });
 
 test.run();

@@ -21,8 +21,16 @@ export abstract class AnimationTree extends AnimationState {
    * @internal This method is intended to be called only by the animation state machine
    */
   protected ["setInfluenceInternal"](influence: number): void {
-    if (influence < 0 || influence > 1 || !Number.isFinite(influence)) {
-      throw new Error("Invalid influence value");
+    if (!Number.isFinite(influence)) {
+      throw new Error("Invalid influence value: not a finite number");
+    }
+
+    if (Math.abs(influence) > Number.MAX_SAFE_INTEGER) {
+      throw new Error("Invalid influence value: exceeds maximum safe integer");
+    }
+
+    if (influence < 0 || influence > 1) {
+      throw new Error("Invalid influence value: out of range [0, 1]");
     }
 
     if (influence !== this.influenceInternal) {
@@ -41,8 +49,16 @@ export abstract class AnimationTree extends AnimationState {
    * @throws {Error} When weight is not a finite number or is outside the range [0, 1]
    */
   protected updateAnchor(anchor: Anchor, weight: number = anchor.weight): void {
-    if (weight < 0 || weight > 1 || !Number.isFinite(weight)) {
-      throw new Error(`Invalid weight value: ${weight}`);
+    if (!Number.isFinite(weight)) {
+      throw new Error("Invalid weight value: not a finite number");
+    }
+
+    if (Math.abs(weight) > Number.MAX_SAFE_INTEGER) {
+      throw new Error("Invalid weight value: exceeds maximum safe integer");
+    }
+
+    if (weight < 0 || weight > 1) {
+      throw new Error("Invalid weight value: out of range [0, 1]");
     }
 
     anchor.weight = weight;

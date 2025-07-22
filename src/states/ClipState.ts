@@ -57,12 +57,16 @@ export class ClipState extends AnimationState {
    * @internal This method is intended to be called only by the animation state machine
    */
   protected ["setInfluenceInternal"](influence: number): void {
-    if (influence < 0 || influence > 1 || !Number.isFinite(influence)) {
-      throw new Error("Invalid influence value");
+    if (!Number.isFinite(influence)) {
+      throw new Error("Invalid influence value: not a finite number");
     }
 
-    if (influence === this.influenceInternal) {
-      return;
+    if (Math.abs(influence) > Number.MAX_SAFE_INTEGER) {
+      throw new Error("Invalid influence value: exceeds maximum safe integer");
+    }
+
+    if (influence < 0 || influence > 1) {
+      throw new Error("Invalid influence value: out of range [0, 1]");
     }
 
     this.influenceInternal = influence;
