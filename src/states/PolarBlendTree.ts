@@ -327,8 +327,8 @@ export class PolarBlendTree extends AnimationTree {
    * the azimuth to [0, 2π). When the position changes, animation weights are
    * recalculated using bilinear interpolation between the closest anchors.
    *
-   * @param radius - Target radial distance from origin. Will be clamped to [0, maxRadius].
    * @param azimuth - Target angular position in radians. Will be normalized to [0, 2π).
+   * @param radius - Target radial distance from origin. Will be clamped to [0, maxRadius].
    *
    * @example
    * ```typescript
@@ -344,9 +344,9 @@ export class PolarBlendTree extends AnimationTree {
    *
    * @public
    */
-  public setBlend(radius: number, azimuth: number): void {
-    assertValidPositiveNumber(radius, "Blend radius");
+  public setBlend(azimuth: number, radius: number): void {
     assertValidNumber(azimuth, "Blend azimuth");
+    assertValidPositiveNumber(radius, "Blend radius");
 
     const normalizedAzimuth = calculateNormalizedAzimuth(azimuth);
 
