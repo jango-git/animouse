@@ -1,4 +1,4 @@
-import { PI2 } from "./miscellaneous";
+import { EPSILON, PI2 } from "./miscellaneous";
 
 /**
  * Asserts that a number is valid (finite and within safe integer range).
@@ -9,11 +9,11 @@ import { PI2 } from "./miscellaneous";
  */
 export function assertValidNumber(value: number, message: string): void {
   if (!Number.isFinite(value)) {
-    throw new Error(`${message}: Value must be a finite number`);
+    throw new Error(`${message}: value must be a finite number`);
   }
 
   if (Math.abs(value) > Number.MAX_SAFE_INTEGER) {
-    throw new Error(`${message}: Value exceeds maximum safe integer range`);
+    throw new Error(`${message}: value exceeds maximum safe integer range`);
   }
 }
 
@@ -28,7 +28,7 @@ export function assertValidAzimuth(value: number, message: string): void {
   assertValidNumber(value, message);
 
   if (value < 0 || value > PI2) {
-    throw new Error(`${message}: Azimuth must be between 0 and 2π radians`);
+    throw new Error(`${message}: azimuth must be between 0 and 2π radians`);
   }
 }
 
@@ -43,12 +43,12 @@ export function assertValidUnitRange(value: number, message: string): void {
   assertValidNumber(value, message);
 
   if (value < 0 || value > 1) {
-    throw new Error(`${message}: Value must be between 0 and 1`);
+    throw new Error(`${message}: value must be between 0 and 1`);
   }
 }
 
 /**
- * Asserts that a number is positive (greater than 0).
+ * Asserts that a number is positive (greater or equal to EPSILON).
  *
  * @param value - The number to validate
  * @param message - Custom error message for validation failure
@@ -60,7 +60,7 @@ export function assertValidPositiveNumber(
 ): void {
   assertValidNumber(value, message);
 
-  if (value <= 0) {
-    throw new Error(`${message}: Value must be greater than 0`);
+  if (value < EPSILON) {
+    throw new Error(`${message}: value must be greater or equal to ${EPSILON}`);
   }
 }

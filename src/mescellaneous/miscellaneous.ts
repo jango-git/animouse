@@ -39,10 +39,10 @@ export interface Anchor {
  * @see {@link assertValidAzimuth} for validation details
  */
 export function calculateNormalizedAzimuth(value: number): number {
-  assertValidAzimuth(value, "Invalid azimuth for normalization");
+  assertValidAzimuth(value, "Azimuth for normalization");
 
-  const azimuth = value % (2 * Math.PI);
-  return azimuth < 0 ? azimuth + 2 * Math.PI : azimuth;
+  const azimuth = value % PI2;
+  return azimuth < 0 ? azimuth + PI2 : azimuth;
 }
 
 /**
@@ -59,11 +59,11 @@ export function calculateAngularDistanceForward(
   from: number,
   to: number,
 ): number {
-  assertValidAzimuth(from, "Invalid 'from' azimuth");
-  assertValidAzimuth(to, "Invalid 'to' azimuth");
+  assertValidAzimuth(from, "Azimuth 'from'");
+  assertValidAzimuth(to, "Azimuth 'to'");
 
   const delta = to - from;
-  return delta >= 0 ? delta : delta + 2 * Math.PI;
+  return delta >= 0 ? delta : delta + PI2;
 }
 
 /**
@@ -82,9 +82,9 @@ export function isAzimuthBetween(
   from: number,
   to: number,
 ): boolean {
-  assertValidAzimuth(value, "Invalid azimuth value");
-  assertValidAzimuth(from, "Invalid 'from' azimuth");
-  assertValidAzimuth(to, "Invalid 'to' azimuth");
+  assertValidAzimuth(value, "Azimuth value");
+  assertValidAzimuth(from, "Azimuth 'from'");
+  assertValidAzimuth(to, "Azimuth 'to'");
 
   return from <= to
     ? value >= from && value <= to
@@ -109,10 +109,10 @@ export function calculateDistanceSquared(
   x2: number,
   y2: number,
 ): number {
-  assertValidNumber(x1, "Invalid x1 coordinate");
-  assertValidNumber(y1, "Invalid y1 coordinate");
-  assertValidNumber(x2, "Invalid x2 coordinate");
-  assertValidNumber(y2, "Invalid y2 coordinate");
+  assertValidNumber(x1, "Coordinate 'x1'");
+  assertValidNumber(y1, "Coordinate 'y1'");
+  assertValidNumber(x2, "Coordinate 'x2'");
+  assertValidNumber(y2, "Coordinate 'y2'");
 
   return (x2 - x1) ** 2 + (y2 - y1) ** 2;
 }
@@ -133,12 +133,12 @@ export function calculateDistanceToEdgeSquared(
   x: number,
   y: number,
 ): number {
-  assertValidNumber(p1.x, "Invalid p1.x coordinate");
-  assertValidNumber(p1.y, "Invalid p1.y coordinate");
-  assertValidNumber(p2.x, "Invalid p2.x coordinate");
-  assertValidNumber(p2.y, "Invalid p2.y coordinate");
-  assertValidNumber(x, "Invalid x coordinate");
-  assertValidNumber(y, "Invalid y coordinate");
+  assertValidNumber(p1.x, "Coordinate 'p1.x'");
+  assertValidNumber(p1.y, "Coordinate 'p1.y'");
+  assertValidNumber(p2.x, "Coordinate 'p2.x'");
+  assertValidNumber(p2.y, "Coordinate 'p2.y'");
+  assertValidNumber(x, "Coordinate 'x'");
+  assertValidNumber(y, "Coordinate 'y'");
 
   const dx = p2.x - p1.x;
   const dy = p2.y - p1.y;

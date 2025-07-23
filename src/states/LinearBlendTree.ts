@@ -1,6 +1,10 @@
 import type { AnimationAction } from "three";
 import { LoopOnce } from "three";
 import { StateEvent } from "../mescellaneous/AnimationStateEvent";
+import {
+  assertValidNumber,
+  assertValidPositiveNumber,
+} from "../mescellaneous/assertions";
 import { EPSILON, type Anchor } from "../mescellaneous/miscellaneous";
 import { AnimationTree } from "./AnimationTree";
 
@@ -87,16 +91,7 @@ export class LinearBlendTree extends AnimationTree {
 
     for (let i = 0; i < linearActions.length; i++) {
       const value = linearActions[i].value;
-
-      if (!Number.isFinite(value)) {
-        throw new Error(`Action at index ${i} has non-finite value: ${value}`);
-      }
-
-      if (Math.abs(value) > Number.MAX_SAFE_INTEGER) {
-        throw new Error(
-          `Action at index ${i} has value outside safe range: ${value}`,
-        );
-      }
+      assertValidNumber(value, `Linear action at index ${i} value`);
     }
 
     for (let i = 0; i < linearActions.length - 1; i++) {
@@ -118,9 +113,7 @@ export class LinearBlendTree extends AnimationTree {
       animationAction.weight = 0;
 
       const duration = animationAction.getClip().duration;
-      if (duration <= 0) {
-        throw new Error("Action duration must be greater than zero");
-      }
+      assertValidPositiveNumber(duration, "Clip duration");
 
       this.anchors.push({
         action: animationAction,
@@ -149,13 +142,7 @@ export class LinearBlendTree extends AnimationTree {
    * @param value - The target blend value. Will be clamped to the valid range.
    */
   public setBlend(value: number): void {
-    if (!Number.isFinite(value)) {
-      throw new Error("Invalid blend value: not a finite number");
-    }
-
-    if (Math.abs(value) > Number.MAX_SAFE_INTEGER) {
-      throw new Error("Invalid blend value: exceeds maximum safe integer");
-    }
+    assertValidNumber(value, "Blend value");
 
     if (value !== this.currentBlend) {
       this.currentBlend = value;

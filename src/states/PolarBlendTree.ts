@@ -1,6 +1,10 @@
 import type { AnimationAction } from "three";
 import { LoopOnce } from "three";
 import { StateEvent } from "../mescellaneous/AnimationStateEvent";
+import {
+  assertValidNumber,
+  assertValidPositiveNumber,
+} from "../mescellaneous/assertions";
 import type { Anchor } from "../mescellaneous/miscellaneous";
 import {
   calculateAngularDistanceForward,
@@ -203,33 +207,9 @@ export class PolarBlendTree extends AnimationTree {
     for (let i = 0; i < polarActions.length; i++) {
       const { radius, azimuth } = polarActions[i];
 
-      if (!Number.isFinite(radius)) {
-        throw new Error(
-          `Action at index ${i} has non-finite radius: ${radius}`,
-        );
-      }
-      if (!Number.isFinite(azimuth)) {
-        throw new Error(
-          `Action at index ${i} has non-finite azimuth: ${azimuth}`,
-        );
-      }
-
-      if (radius < EPSILON) {
-        throw new Error(
-          `Action at index ${i} has negative or small radius: ${radius}`,
-        );
-      }
-
-      if (Math.abs(radius) > Number.MAX_SAFE_INTEGER) {
-        throw new Error(
-          `Action at index ${i} has radius outside safe range: ${radius}`,
-        );
-      }
-      if (Math.abs(azimuth) > Number.MAX_SAFE_INTEGER) {
-        throw new Error(
-          `Action at index ${i} has azimuth outside safe range: ${azimuth}`,
-        );
-      }
+      assertValidNumber(radius, `Polar action at index ${i} radius`);
+      assertValidNumber(azimuth, `Polar action at index ${i} azimuth`);
+      assertValidPositiveNumber(radius, `Polar action at index ${i} radius`);
     }
 
     for (const polarAction of polarActions) {
@@ -265,9 +245,7 @@ export class PolarBlendTree extends AnimationTree {
       const animationAction = polarAction.action;
 
       const duration = animationAction.getClip().duration;
-      if (duration <= 0) {
-        throw new Error("Action duration must be greater than zero");
-      }
+      assertValidPositiveNumber(duration, "Clip duration");
 
       animationAction.stop();
       animationAction.time = 0;
@@ -325,9 +303,7 @@ export class PolarBlendTree extends AnimationTree {
 
     if (centerAction) {
       const duration = centerAction.getClip().duration;
-      if (duration <= 0) {
-        throw new Error("Action duration must be greater than zero");
-      }
+      assertValidPositiveNumber(duration, "Center clip duration");
 
       centerAction.stop();
       centerAction.time = 0;
@@ -378,25 +354,8 @@ export class PolarBlendTree extends AnimationTree {
    * @public
    */
   public setBlend(radius: number, azimuth: number): void {
-    if (!Number.isFinite(radius)) {
-      throw new Error("Invalid radius value: not a finite number");
-    }
-
-    if (Math.abs(radius) > Number.MAX_SAFE_INTEGER) {
-      throw new Error("Invalid radius value: exceeds maximum safe integer");
-    }
-
-    if (radius < 0) {
-      throw new Error("Invalid radius value: less than zero");
-    }
-
-    if (!Number.isFinite(azimuth)) {
-      throw new Error("Invalid azimuth value: not a finite number");
-    }
-
-    if (Math.abs(azimuth) > Number.MAX_SAFE_INTEGER) {
-      throw new Error("Invalid azimuth value: exceeds maximum safe integer");
-    }
+    assertValidPositiveNumber(radius, "Blend radius");
+    assertValidNumber(azimuth, "Blend azimuth");
 
     const normalizedAzimuth = calculateNormalizedAzimuth(azimuth);
 

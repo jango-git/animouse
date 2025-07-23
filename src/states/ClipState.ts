@@ -1,5 +1,9 @@
 import { LoopOnce, type AnimationAction } from "three";
 import { StateEvent } from "../mescellaneous/AnimationStateEvent";
+import {
+  assertValidPositiveNumber,
+  assertValidUnitRange,
+} from "../mescellaneous/assertions";
 import type { Anchor } from "../mescellaneous/miscellaneous";
 import { AnimationState } from "./AnimationState";
 
@@ -27,9 +31,7 @@ export class ClipState extends AnimationState {
   constructor(animationAction: AnimationAction) {
     super();
     const duration = animationAction.getClip().duration;
-    if (duration <= 0) {
-      throw new Error("Action duration must be greater than zero");
-    }
+    assertValidPositiveNumber(duration, "Clip duration");
 
     animationAction.stop();
     animationAction.time = 0;
@@ -57,17 +59,7 @@ export class ClipState extends AnimationState {
    * @internal This method is intended to be called only by the animation state machine
    */
   protected ["setInfluenceInternal"](influence: number): void {
-    if (!Number.isFinite(influence)) {
-      throw new Error("Invalid influence value: not a finite number");
-    }
-
-    if (Math.abs(influence) > Number.MAX_SAFE_INTEGER) {
-      throw new Error("Invalid influence value: exceeds maximum safe integer");
-    }
-
-    if (influence < 0 || influence > 1) {
-      throw new Error("Invalid influence value: out of range [0, 1]");
-    }
+    assertValidUnitRange(influence, "Influence");
 
     this.influenceInternal = influence;
     const anchor = this.anchor;

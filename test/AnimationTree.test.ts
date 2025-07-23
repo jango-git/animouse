@@ -4,40 +4,30 @@ import { StateEvent } from "../src/mescellaneous/AnimationStateEvent";
 import { buildMockAnchor } from "./mocks/buildMockAnchor";
 import { AnimationTreeProxy } from "./proxies/AnimationTreeProxy";
 
-test("setInfluence: should throw error when influence is less than 0", () => {
-  const tree = new AnimationTreeProxy();
-
-  assert.throws(() => {
-    tree.invokeSetInfluence(-0.1);
-  }, /Invalid influence value/);
-});
-
-test("setInfluence: should throw error when influence is greater than 1", () => {
-  const tree = new AnimationTreeProxy();
-
-  assert.throws(() => {
-    tree.invokeSetInfluence(1.1);
-  }, /Invalid influence value/);
-});
-
-test("setInfluence: should throw error when influence is not a finite number", () => {
+test("setInluence: should throw for invalid influence values", () => {
   const tree = new AnimationTreeProxy();
 
   assert.throws(() => {
     tree.invokeSetInfluence(NaN);
-  }, /Invalid influence value/);
-
+  }, /value must be a finite number/);
   assert.throws(() => {
     tree.invokeSetInfluence(Infinity);
-  }, /Invalid influence value/);
-
+  }, /value must be a finite number/);
   assert.throws(() => {
     tree.invokeSetInfluence(-Infinity);
-  }, /Invalid influence value/);
-
+  }, /value must be a finite number/);
   assert.throws(() => {
     tree.invokeSetInfluence(Number.MAX_SAFE_INTEGER + 1);
-  }, /Invalid influence value/);
+  }, /value exceeds maximum safe integer range/);
+  assert.throws(() => {
+    tree.invokeSetInfluence(-Number.MAX_SAFE_INTEGER - 1);
+  }, /value exceeds maximum safe integer range/);
+  assert.throws(() => {
+    tree.invokeSetInfluence(-0.1);
+  }, /value must be between 0 and 1/);
+  assert.throws(() => {
+    tree.invokeSetInfluence(1.1);
+  }, /value must be between 0 and 1/);
 });
 
 test("setInfluence: should update influence from zero to positive value", () => {
@@ -106,57 +96,31 @@ test("setInfluence: should not update anchors influence when influence value is 
   );
 });
 
-test("updateAnchor: should throw error when anchor's weight is less than 0", () => {
-  const tree = new AnimationTreeProxy();
-  const anchor = buildMockAnchor(0.5, 1);
-
-  assert.throws(() => {
-    tree.invokeUpdateAnchor(anchor, -1);
-  }, /Invalid weight value/);
-});
-
-test("updateAnchor: should throw error when anchor's weight is greater than 1", () => {
-  const tree = new AnimationTreeProxy();
-  const anchor = buildMockAnchor(0.5, 1);
-
-  assert.throws(() => {
-    tree.invokeUpdateAnchor(anchor, 2);
-  }, /Invalid weight value/);
-});
-
-test("updateAnchor: should throw error when anchor's weight is not a finite number", () => {
+test("updateAnchor: should throw for invalid blend values", () => {
   const tree = new AnimationTreeProxy();
   const anchor = buildMockAnchor(0.5, 1);
 
   assert.throws(() => {
     tree.invokeUpdateAnchor(anchor, NaN);
-  }, /Invalid weight value/);
-
+  }, /value must be a finite number/);
   assert.throws(() => {
     tree.invokeUpdateAnchor(anchor, Infinity);
-  }, /Invalid weight value/);
-
+  }, /value must be a finite number/);
   assert.throws(() => {
     tree.invokeUpdateAnchor(anchor, -Infinity);
-  }, /Invalid weight value/);
-
+  }, /value must be a finite number/);
   assert.throws(() => {
     tree.invokeUpdateAnchor(anchor, Number.MAX_SAFE_INTEGER + 1);
-  }, /Invalid weight value/);
-});
-
-test("updateAnchor: should throw error when anchor's weight is outside safe range", () => {
-  const tree = new AnimationTreeProxy();
-  const anchor = buildMockAnchor(0.5, 1);
-
-  assert.throws(
-    () => tree.invokeUpdateAnchor(anchor, Number.MAX_SAFE_INTEGER + 1),
-    /Invalid weight value/,
-  );
-  assert.throws(
-    () => tree.invokeUpdateAnchor(anchor, -(Number.MAX_SAFE_INTEGER + 1)),
-    /Invalid weight value/,
-  );
+  }, /value exceeds maximum safe integer range/);
+  assert.throws(() => {
+    tree.invokeUpdateAnchor(anchor, -Number.MAX_SAFE_INTEGER - 1);
+  }, /value exceeds maximum safe integer range/);
+  assert.throws(() => {
+    tree.invokeUpdateAnchor(anchor, -0.1);
+  }, /value must be between 0 and 1/);
+  assert.throws(() => {
+    tree.invokeUpdateAnchor(anchor, 1.1);
+  }, /value must be between 0 and 1/);
 });
 
 test("updateAnchor: should update anchor's weight from zero to positive value", () => {

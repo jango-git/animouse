@@ -7,7 +7,12 @@ import {
   calculateNormalizedAzimuth,
   EPSILON,
   isAzimuthBetween,
+  PI2,
 } from "../src/mescellaneous/miscellaneous";
+
+test("constants: should have PI2 equal to 2π", () => {
+  assert.equal(PI2, Math.PI * 2);
+});
 
 test("constants: should have EPSILON equal to 1e-6", () => {
   assert.equal(EPSILON, 1e-6);
@@ -23,19 +28,23 @@ test("calculateNormalizedAzimuth: should normalize positive azimuth values corre
 test("calculateNormalizedAzimuth: should throw for invalid azimuth values", () => {
   assert.throws(
     () => calculateNormalizedAzimuth(-0.1),
-    /Invalid azimuth for normalization: Azimuth must be between 0 and 2π radians/,
+    /azimuth must be between 0 and 2π radians/,
   );
   assert.throws(
     () => calculateNormalizedAzimuth(2 * Math.PI + 0.1),
-    /Invalid azimuth for normalization: Azimuth must be between 0 and 2π radians/,
+    /azimuth must be between 0 and 2π radians/,
   );
   assert.throws(
     () => calculateNormalizedAzimuth(NaN),
-    /Invalid azimuth for normalization: Value must be a finite number/,
+    /value must be a finite number/,
   );
   assert.throws(
     () => calculateNormalizedAzimuth(Infinity),
-    /Invalid azimuth for normalization: Value must be a finite number/,
+    /value must be a finite number/,
+  );
+  assert.throws(
+    () => calculateNormalizedAzimuth(Number.MAX_SAFE_INTEGER + 1),
+    /value exceeds maximum safe integer range/,
   );
 });
 
@@ -48,19 +57,23 @@ test("calculateAngularDistanceForward: should calculate forward distance for bas
 test("calculateAngularDistanceForward: should throw for invalid azimuth values", () => {
   assert.throws(
     () => calculateAngularDistanceForward(-0.1, Math.PI),
-    /Invalid 'from' azimuth: Azimuth must be between 0 and 2π radians/,
+    /azimuth must be between 0 and 2π radians/,
   );
   assert.throws(
     () => calculateAngularDistanceForward(0, 2 * Math.PI + 0.1),
-    /Invalid 'to' azimuth: Azimuth must be between 0 and 2π radians/,
+    /azimuth must be between 0 and 2π radians/,
   );
   assert.throws(
     () => calculateAngularDistanceForward(NaN, Math.PI),
-    /Invalid 'from' azimuth: Value must be a finite number/,
+    /value must be a finite number/,
   );
   assert.throws(
     () => calculateAngularDistanceForward(0, Infinity),
-    /Invalid 'to' azimuth: Value must be a finite number/,
+    /value must be a finite number/,
+  );
+  assert.throws(
+    () => calculateAngularDistanceForward(0, Number.MAX_SAFE_INTEGER + 1),
+    /value exceeds maximum safe integer range/,
   );
 });
 
@@ -110,27 +123,31 @@ test("isAzimuthBetween: should detect azimuth within normal range", () => {
 test("isAzimuthBetween: should throw for invalid azimuth values", () => {
   assert.throws(
     () => isAzimuthBetween(-0.1, 0, Math.PI),
-    /Invalid azimuth value: Azimuth must be between 0 and 2π radians/,
+    /azimuth must be between 0 and 2π radians/,
   );
   assert.throws(
     () => isAzimuthBetween(Math.PI, -0.1, Math.PI),
-    /Invalid 'from' azimuth: Azimuth must be between 0 and 2π radians/,
+    /azimuth must be between 0 and 2π radians/,
   );
   assert.throws(
     () => isAzimuthBetween(Math.PI, 0, 2 * Math.PI + 0.1),
-    /Invalid 'to' azimuth: Azimuth must be between 0 and 2π radians/,
+    /azimuth must be between 0 and 2π radians/,
   );
   assert.throws(
     () => isAzimuthBetween(NaN, 0, Math.PI),
-    /Invalid azimuth value: Value must be a finite number/,
+    /value must be a finite number/,
   );
   assert.throws(
     () => isAzimuthBetween(Math.PI, Infinity, Math.PI),
-    /Invalid 'from' azimuth: Value must be a finite number/,
+    /value must be a finite number/,
   );
   assert.throws(
     () => isAzimuthBetween(Math.PI, 0, -Infinity),
-    /Invalid 'to' azimuth: Value must be a finite number/,
+    /value must be a finite number/,
+  );
+  assert.throws(
+    () => isAzimuthBetween(0, Number.MAX_SAFE_INTEGER + 1, 0),
+    /value exceeds maximum safe integer range/,
   );
 });
 
@@ -158,19 +175,19 @@ test("calculateDistanceSquared: should calculate squared distance for basic case
 test("calculateDistanceSquared: should throw for invalid coordinate values", () => {
   assert.throws(
     () => calculateDistanceSquared(NaN, 0, 3, 4),
-    /Invalid x1 coordinate: Value must be a finite number/,
+    /value must be a finite number/,
   );
   assert.throws(
     () => calculateDistanceSquared(0, Infinity, 3, 4),
-    /Invalid y1 coordinate: Value must be a finite number/,
+    /value must be a finite number/,
   );
   assert.throws(
     () => calculateDistanceSquared(0, 0, -Infinity, 4),
-    /Invalid x2 coordinate: Value must be a finite number/,
+    /value must be a finite number/,
   );
   assert.throws(
     () => calculateDistanceSquared(0, 0, 3, Number.MAX_SAFE_INTEGER + 1),
-    /Invalid y2 coordinate: Value exceeds maximum safe integer range/,
+    /value exceeds maximum safe integer range/,
   );
 });
 
@@ -212,18 +229,18 @@ test("calculateDistanceToEdgeSquared: should throw for invalid coordinate values
 
   assert.throws(
     () => calculateDistanceToEdgeSquared(invalidEdge, 5, 0),
-    /Invalid p1.x coordinate: Value must be a finite number/,
+    /value must be a finite number/,
   );
 
   assert.throws(
     () => calculateDistanceToEdgeSquared(validEdge, Infinity, 0),
-    /Invalid x coordinate: Value must be a finite number/,
+    /value must be a finite number/,
   );
 
   assert.throws(
     () =>
       calculateDistanceToEdgeSquared(validEdge, 5, Number.MAX_SAFE_INTEGER + 1),
-    /Invalid y coordinate: Value exceeds maximum safe integer range/,
+    /value exceeds maximum safe integer range/,
   );
 });
 
