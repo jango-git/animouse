@@ -11,6 +11,28 @@ import { buildMockPolarAction } from "./mocks/buildMockAction";
 import { buildMockAnimationAction } from "./mocks/buildMockAnimationAction";
 import { PolarBlendTreeProxy } from "./proxies/PolarBlendTreeProxy";
 
+function testOuterRingBlending(
+  blend: number,
+  radius: number,
+  action1Message: string,
+  action2Message: string,
+): void {
+  const value1 = -Math.PI / 4;
+  const value2 = Math.PI / 4;
+
+  const action1 = buildMockPolarAction(1, value1);
+  const action2 = buildMockPolarAction(1, value2);
+  const blendTree = new PolarBlendTreeProxy([action1, action2]);
+
+  blendTree.invokeSetInfluence(1);
+  blendTree.setBlend(blend, radius);
+
+  const [weight2, weight1] = lerpAngular(blend, value2, value1);
+
+  assertEqualWithTolerance(action1.action.weight, weight1, action1Message);
+  assertEqualWithTolerance(action2.action.weight, weight2, action2Message);
+}
+
 test("constructor: should throw error when fewer than 2 actions provided", () => {
   assert.throws(
     () => new PolarBlendTreeProxy([buildMockPolarAction(1, 0)]),
@@ -272,143 +294,70 @@ test("setBlend: should throw error for invalid blend values", () => {
   );
 });
 
-test("setBlend: outer ring: should update weights when blend changes", () => {
-  const action1 = buildMockPolarAction(1, 0);
-  const action2 = buildMockPolarAction(1, 1);
-  const blendTree = new PolarBlendTreeProxy([action1, action2]);
-  blendTree.invokeSetInfluence(1);
-
-  // Set initial blend value
-  blendTree.setBlend(0.3, 1);
-  const weight1First = action1.action.weight;
-  const weight2First = action2.action.weight;
-
-  // Change blend value
-  blendTree.setBlend(0.7, 1);
-  const weight1Second = action1.action.weight;
-  const weight2Second = action2.action.weight;
-
-  // Weights should have changed when blend value changes
-  assert.not.equal(weight1First, weight1Second, "action1 weight should change");
-  assert.not.equal(weight2First, weight2Second, "action2 weight should change");
-});
-
-test("setBlend: outer ring: should give full weight to action when blend exactly matches its value", () => {
-  const action1 = buildMockPolarAction(1, 0);
-  const action2 = buildMockPolarAction(1, 0.5);
-  const action3 = buildMockPolarAction(1, 1);
-
-  const blendTree = new PolarBlendTreeProxy([action1, action2, action3]);
-  blendTree.invokeSetInfluence(1);
-
-  // Test exact match with first action (boundary case)
-  blendTree.setBlend(0, 1);
-  assertEqualWithTolerance(
-    action1.action.weight,
+test("setBlend: exact outer ring match: should blend at center point between two actions", () => {
+  testOuterRingBlending(
+    0,
     1,
-    "First action should have weight 1 when blend matches its value",
+    "action1 should have correct weight for center blend",
+    "action2 should have correct weight for center blend",
   );
-  assertEqualWithTolerance(
-    action2.action.weight,
-    0,
-    "Other actions should have weight 0",
-  );
-  assertEqualWithTolerance(
-    action3.action.weight,
-    0,
-    "Other actions should have weight 0",
-  );
+});
 
-  // Test exact match with middle action
-  blendTree.setBlend(0.5, 1);
-  assertEqualWithTolerance(
-    action1.action.weight,
-    0,
-    "Other actions should have weight 0",
-  );
-  assertEqualWithTolerance(
-    action2.action.weight,
+test("setBlend: exact outer ring match: should blend slightly towards second action", () => {
+  testOuterRingBlending(
+    0.1,
     1,
-    "Middle action should have weight 1 when blend matches its value",
+    "action1 should have reduced weight when blend moves towards action2",
+    "action2 should have increased weight when blend moves towards action2",
   );
-  assertEqualWithTolerance(
-    action3.action.weight,
-    0,
-    "Other actions should have weight 0",
-  );
+});
 
-  // Test exact match with last action (boundary case)
-  blendTree.setBlend(1, 1);
-  assertEqualWithTolerance(
-    action1.action.weight,
-    0,
-    "Other actions should have weight 0",
-  );
-  assertEqualWithTolerance(
-    action2.action.weight,
-    0,
-    "Other actions should have weight 0",
-  );
-  assertEqualWithTolerance(
-    action3.action.weight,
+test("setBlend: exact outer ring match: should blend exactly at second action position", () => {
+  testOuterRingBlending(
+    Math.PI / 4,
     1,
-    "Last action should have weight 1 when blend matches its value",
+    "action1 should have minimal weight when blend is at action2 position",
+    "action2 should have maximum weight when blend is at its position",
   );
 });
 
-test("setBlend: outer ring: should interpolate correctly between two actions", () => {
-  const action1 = buildMockPolarAction(1, 0);
-  const action2 = buildMockPolarAction(1, 1);
-  const blendTree = new PolarBlendTreeProxy([action1, action2]);
-
-  blendTree.invokeSetInfluence(1);
-  blendTree.setBlend(0.3, 1); // 30% between action1 and action2
-
-  // Linear interpolation: action1 gets (1 - 0.3) = 0.7, action2 gets 0.3
-  assertEqualWithTolerance(
-    action1.action.weight,
-    0.7,
-    "action1 should have 70% weight",
-  );
-  assertEqualWithTolerance(
-    action2.action.weight,
-    0.3,
-    "action2 should have 30% weight",
+test("setBlend: exact outer ring match: should blend past second action position", () => {
+  testOuterRingBlending(
+    Math.PI / 4 + 0.1,
+    1,
+    "action1 should have correct weight when blend exceeds action2 position",
+    "action2 should have correct weight when blend exceeds its position",
   );
 });
 
-test("setBlend: outer ring: should interpolate correctly between two actions backward", () => {
-  const action1Value = -0.5;
-  const action2Value = 0.5;
-  const blendValue = -0.6;
-
-  const action1 = buildMockPolarAction(1, action1Value);
-  const action2 = buildMockPolarAction(1, action2Value);
-  const blendTree = new PolarBlendTreeProxy([action1, action2]);
-
-  blendTree.invokeSetInfluence(1);
-  blendTree.setBlend(blendValue, 1);
-
-  const [action2Weight, action1Weight] = lerpAngular(
-    blendValue,
-    action2Value,
-    action1Value,
-  );
-
-  assertEqualWithTolerance(
-    action1.action.weight,
-    action1Weight,
-    "action1 should have ...",
-  );
-
-  assertEqualWithTolerance(
-    action2.action.weight,
-    action2Weight,
-    "action2 should have ...",
+test("setBlend: exact outer ring match: should handle opposite direction blend", () => {
+  testOuterRingBlending(
+    Math.PI,
+    1,
+    "action1 should have correct weight for opposite direction blend",
+    "action2 should have correct weight for opposite direction blend",
   );
 });
 
-test("setBlend: outer ring: should skip update when blend value unchanged", () => {
+test("setBlend: exact outer ring match: should blend exactly at first action position", () => {
+  testOuterRingBlending(
+    -Math.PI / 4,
+    1,
+    "action1 should have maximum weight when blend is at its position",
+    "action2 should have minimal weight when blend is at action1 position",
+  );
+});
+
+test("setBlend: exact outer ring match: should blend slightly past first action position", () => {
+  testOuterRingBlending(
+    -Math.PI / 4 + 0.1,
+    1,
+    "action1 should have correct weight when blend slightly exceeds its position",
+    "action2 should have correct weight when blend slightly exceeds action1 position",
+  );
+});
+
+test("setBlend: exact outer ring match: should skip update when blend value unchanged", () => {
   const action1 = buildMockPolarAction(1, 0);
   const action2 = buildMockPolarAction(1, 1);
   const blendTree = new PolarBlendTreeProxy([action1, action2]);
@@ -437,193 +386,130 @@ test("setBlend: outer ring: should skip update when blend value unchanged", () =
   );
 });
 
-test("setBlend: outer ring: should work with negative and arbitrary values", () => {
-  // Test with actions at various arbitrary values including negatives
-  const actions = [
-    buildMockPolarAction(1, -10),
-    buildMockPolarAction(1, 0),
-    buildMockPolarAction(1, 15),
-    buildMockPolarAction(1, 100),
-  ];
-
-  const blendTree = new PolarBlendTreeProxy(actions);
-  blendTree.invokeSetInfluence(1);
-  blendTree.setBlend(7.5, 1); // Between 0 and 15
-
-  // Should interpolate between actions at 0 and 15 (7.5 is 50% between them)
-  assertEqualWithTolerance(
-    actions[1].action.weight,
-    (7.5 - 0) / (15 - 0),
-    "action at 0 should have 50% weight",
-  );
-  assertEqualWithTolerance(
-    actions[2].action.weight,
-    0.5,
-    "action at 15 should have 50% weight",
+test("setBlend: beyond outer ring: should blend at center point between two actions", () => {
+  testOuterRingBlending(
+    0,
+    1.1,
+    "action1 should have correct weight for center blend",
+    "action2 should have correct weight for center blend",
   );
 });
 
-test("setBlend: outer ring: should handle exact value matching with negative values", () => {
-  const action1 = buildMockPolarAction(1, -10);
-  const action2 = buildMockPolarAction(1, -5);
-  const action3 = buildMockPolarAction(1, 0);
-  const action4 = buildMockPolarAction(1, 5);
-
-  const blendTree = new PolarBlendTreeProxy([
-    action1,
-    action2,
-    action3,
-    action4,
-  ]);
-  blendTree.invokeSetInfluence(1);
-
-  // Test exact match with negative value
-  blendTree.setBlend(-5, 1);
-  assertEqualWithTolerance(
-    action1.action.weight,
-    0,
-    "Other actions should have weight 0",
-  );
-  assertEqualWithTolerance(
-    action2.action.weight,
-    1,
-    "Action with matching negative value should have weight 1",
-  );
-  assertEqualWithTolerance(
-    action3.action.weight,
-    0,
-    "Other actions should have weight 0",
-  );
-  assertEqualWithTolerance(
-    action4.action.weight,
-    0,
-    "Other actions should have weight 0",
+test("setBlend: beyond outer ring: should blend slightly towards second action", () => {
+  testOuterRingBlending(
+    0.1,
+    1.1,
+    "action1 should have reduced weight when blend moves towards action2",
+    "action2 should have increased weight when blend moves towards action2",
   );
 });
 
-test("setBlend: outer ring: should handle exact value matching with arbitrary decimal values", () => {
-  const action1 = buildMockPolarAction(1, 1.234);
-  const action2 = buildMockPolarAction(1, 5.678);
-  const action3 = buildMockPolarAction(1, 9.999);
-
-  const blendTree = new PolarBlendTreeProxy([action1, action2, action3]);
-  blendTree.invokeSetInfluence(1);
-
-  // Test exact match with decimal value
-  blendTree.setBlend(5.678, 1);
-  assertEqualWithTolerance(
-    action1.action.weight,
-    0,
-    "Other actions should have weight 0",
-  );
-  assertEqualWithTolerance(
-    action2.action.weight,
-    1,
-    "Action with matching decimal value should have weight 1",
-  );
-  assertEqualWithTolerance(
-    action3.action.weight,
-    0,
-    "Other actions should have weight 0",
+test("setBlend: beyond outer ring: should blend exactly at second action position", () => {
+  testOuterRingBlending(
+    Math.PI / 4,
+    1.1,
+    "action1 should have minimal weight when blend is at action2 position",
+    "action2 should have maximum weight when blend is at its position",
   );
 });
 
-test("setBlend: outer ring: should handle exact value matching with many actions", () => {
-  // Test with many actions to stress-test binary search algorithm
-  const actions = [
-    buildMockPolarAction(1, 0),
-    buildMockPolarAction(1, 10),
-    buildMockPolarAction(1, 20),
-    buildMockPolarAction(1, 30),
-    buildMockPolarAction(1, 40),
-    buildMockPolarAction(1, 50),
-  ];
-
-  const blendTree = new PolarBlendTreeProxy(actions);
-  blendTree.invokeSetInfluence(1);
-
-  // Test exact match with middle action in larger set (tests binary search)
-  blendTree.setBlend(30, 1);
-
-  for (let i = 0; i < actions.length; i++) {
-    if (i === 3) {
-      // Action with value 30 should have full weight
-      assertEqualWithTolerance(
-        actions[i].action.weight,
-        1,
-        `Action at index ${i} should have weight 1 when blend matches its value`,
-      );
-    } else {
-      // All other actions should have zero weight
-      assertEqualWithTolerance(
-        actions[i].action.weight,
-        0,
-        `Action at index ${i} should have weight 0 when blend doesn't match its value`,
-      );
-    }
-  }
+test("setBlend: beyond outer ring: should blend past second action position", () => {
+  testOuterRingBlending(
+    Math.PI / 4 + 0.1,
+    1.1,
+    "action1 should have correct weight when blend exceeds action2 position",
+    "action2 should have correct weight when blend exceeds its position",
+  );
 });
 
-test("setBlend: outer ring: should transition from exact match to interpolation correctly", () => {
-  const action1 = buildMockPolarAction(1, 0);
-  const action2 = buildMockPolarAction(1, 1);
-  const action3 = buildMockPolarAction(1, 2);
+test("setBlend: beyond outer ring: should handle opposite direction blend", () => {
+  testOuterRingBlending(
+    Math.PI,
+    1.1,
+    "action1 should have correct weight for opposite direction blend",
+    "action2 should have correct weight for opposite direction blend",
+  );
+});
 
-  const blendTree = new PolarBlendTreeProxy([action1, action2, action3]);
-  blendTree.invokeSetInfluence(1);
+test("setBlend: beyond outer ring: should blend exactly at first action position", () => {
+  testOuterRingBlending(
+    -Math.PI / 4,
+    1.1,
+    "action1 should have maximum weight when blend is at its position",
+    "action2 should have minimal weight when blend is at action1 position",
+  );
+});
 
-  // Start with exact match at middle action
-  blendTree.setBlend(1, 1);
-  assertEqualWithTolerance(
-    action1.action.weight,
-    0,
-    "First action should be 0 at exact match",
+test("setBlend: beyond outer ring: should blend slightly past first action position", () => {
+  testOuterRingBlending(
+    -Math.PI / 4 + 0.1,
+    1.1,
+    "action1 should have correct weight when blend slightly exceeds its position",
+    "action2 should have correct weight when blend slightly exceeds action1 position",
   );
-  assertEqualWithTolerance(
-    action2.action.weight,
-    1,
-    "Middle action should be 1 at exact match",
-  );
-  assertEqualWithTolerance(
-    action3.action.weight,
-    0,
-    "Third action should be 0 at exact match",
-  );
+});
 
-  // Move slightly off exact match - should interpolate between action2 and action3
-  blendTree.setBlend(1.3, 1); // 30% between actions 2 and 3
-  assertEqualWithTolerance(
-    action1.action.weight,
+// Tests with radius 0.9
+test("setBlend: within outer ring: should blend at center point between two actions", () => {
+  testOuterRingBlending(
     0,
-    "First action should remain 0 (outside interpolation range)",
+    0.9,
+    "action1 should have correct weight for center blend",
+    "action2 should have correct weight for center blend",
   );
-  assertEqualWithTolerance(
-    action2.action.weight,
-    0.7,
-    "Second action should interpolate: 1 - 0.3 = 0.7",
-  );
-  assertEqualWithTolerance(
-    action3.action.weight,
-    0.3,
-    "Third action should interpolate: 0.3",
-  );
+});
 
-  // Move back to exact match at last action
-  blendTree.setBlend(2, 1);
-  assertEqualWithTolerance(
-    action1.action.weight,
-    0,
-    "First action should be 0 at exact match",
+test("setBlend: within outer ring: should blend slightly towards second action", () => {
+  testOuterRingBlending(
+    0.1,
+    0.9,
+    "action1 should have reduced weight when blend moves towards action2",
+    "action2 should have increased weight when blend moves towards action2",
   );
-  assertEqualWithTolerance(
-    action2.action.weight,
-    0,
-    "Second action should be 0 at exact match",
+});
+
+test("setBlend: within outer ring: should blend exactly at second action position", () => {
+  testOuterRingBlending(
+    Math.PI / 4,
+    0.9,
+    "action1 should have minimal weight when blend is at action2 position",
+    "action2 should have maximum weight when blend is at its position",
   );
-  assertEqualWithTolerance(
-    action3.action.weight,
-    1,
-    "Third action should be 1 at exact match",
+});
+
+test("setBlend: within outer ring: should blend past second action position", () => {
+  testOuterRingBlending(
+    Math.PI / 4 + 0.1,
+    0.9,
+    "action1 should have correct weight when blend exceeds action2 position",
+    "action2 should have correct weight when blend exceeds its position",
+  );
+});
+
+test("setBlend: within outer ring: should handle opposite direction blend", () => {
+  testOuterRingBlending(
+    Math.PI,
+    0.9,
+    "action1 should have correct weight for opposite direction blend",
+    "action2 should have correct weight for opposite direction blend",
+  );
+});
+
+test("setBlend: within outer ring: should blend exactly at first action position", () => {
+  testOuterRingBlending(
+    -Math.PI / 4,
+    0.9,
+    "action1 should have maximum weight when blend is at its position",
+    "action2 should have minimal weight when blend is at action1 position",
+  );
+});
+
+test("setBlend: within outer ring: should blend slightly past first action position", () => {
+  testOuterRingBlending(
+    -Math.PI / 4 + 0.1,
+    0.9,
+    "action1 should have correct weight when blend slightly exceeds its position",
+    "action2 should have correct weight when blend slightly exceeds action1 position",
   );
 });
 

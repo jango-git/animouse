@@ -38,14 +38,19 @@ export function lerpAngular(
   const lNormalized = calculateNormalizedAzimuth(from);
   const rNormalized = calculateNormalizedAzimuth(to);
 
-  if (!isAzimuthBetween(vNormalized, lNormalized, rNormalized)) {
-    throw new Error(`Value ${value} is not between ${from} and ${to}`);
+  if (isAzimuthBetween(vNormalized, lNormalized, rNormalized)) {
+    const distance = calculateAngularDistanceForward(lNormalized, rNormalized);
+    const lDistance = calculateAngularDistanceForward(lNormalized, vNormalized);
+
+    const weight = lDistance / distance;
+    const inverseWeight = 1 - weight;
+    return [inverseWeight, weight];
+  } else {
+    const distance = calculateAngularDistanceForward(rNormalized, lNormalized);
+    const lDistance = calculateAngularDistanceForward(rNormalized, vNormalized);
+
+    const weight = lDistance / distance;
+    const inverseWeight = 1 - weight;
+    return [weight, inverseWeight];
   }
-
-  const distance = calculateAngularDistanceForward(lNormalized, rNormalized);
-  const lDistance = calculateAngularDistanceForward(lNormalized, vNormalized);
-
-  const weight = lDistance / distance;
-  const inverseWeight = 1 - weight;
-  return [inverseWeight, weight];
 }
