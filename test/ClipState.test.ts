@@ -24,7 +24,7 @@ test("constructor: should initialize ClipState to stopped state", () => {
   assert.equal(clipState.influence, 0);
 });
 
-test("setInluence: should throw for invalid blend values", () => {
+test("setInluence: should throw error for invalid blend values", () => {
   const action = buildMockAnimationAction(1, LoopRepeat, 2.5);
   const clipState = new ClipStateProxy(action);
 

@@ -33,16 +33,16 @@ export interface Anchor {
 /**
  * Normalizes an azimuth angle to the range [0, 2π).
  *
- * @param value - The azimuth angle in radians
+ * @param azimuth - The azimuth angle in radians
  * @returns The normalized azimuth in the range [0, 2π)
- * @throws {Error} When the value is not a valid azimuth angle
- * @see {@link assertValidAzimuth} for validation details
+ * @throws {Error} When the value is not a valid number
+ * @see {@link assertValidNumber} for validation details
  */
-export function calculateNormalizedAzimuth(value: number): number {
-  assertValidAzimuth(value, "Azimuth for normalization");
+export function calculateNormalizedAzimuth(azimuth: number): number {
+  assertValidNumber(azimuth, "Azimuth for normalization");
 
-  const azimuth = value % PI2;
-  return azimuth < 0 ? azimuth + PI2 : azimuth;
+  const result = azimuth % PI2;
+  return result < 0 ? result + PI2 : result;
 }
 
 /**

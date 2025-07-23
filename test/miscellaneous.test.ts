@@ -18,22 +18,18 @@ test("constants: should have EPSILON equal to 1e-6", () => {
   assert.equal(EPSILON, 1e-6);
 });
 
-test("calculateNormalizedAzimuth: should normalize positive azimuth values correctly", () => {
+test("calculateNormalizedAzimuth: should normalize values correctly", () => {
   assert.equal(calculateNormalizedAzimuth(0), 0);
   assert.equal(calculateNormalizedAzimuth(Math.PI), Math.PI);
   assert.equal(calculateNormalizedAzimuth(2 * Math.PI), 0);
   assert.equal(calculateNormalizedAzimuth(Math.PI / 2), Math.PI / 2);
+  assert.equal(calculateNormalizedAzimuth(-0), 0);
+  assert.equal(calculateNormalizedAzimuth(-Math.PI), Math.PI);
+  assert.equal(calculateNormalizedAzimuth(-2 * Math.PI), 0);
+  assert.equal(calculateNormalizedAzimuth(-Math.PI / 2), Math.PI * 1.5);
 });
 
 test("calculateNormalizedAzimuth: should throw for invalid azimuth values", () => {
-  assert.throws(
-    () => calculateNormalizedAzimuth(-0.1),
-    /azimuth must be between 0 and 2π radians/,
-  );
-  assert.throws(
-    () => calculateNormalizedAzimuth(2 * Math.PI + 0.1),
-    /azimuth must be between 0 and 2π radians/,
-  );
   assert.throws(
     () => calculateNormalizedAzimuth(NaN),
     /value must be a finite number/,
@@ -43,7 +39,15 @@ test("calculateNormalizedAzimuth: should throw for invalid azimuth values", () =
     /value must be a finite number/,
   );
   assert.throws(
+    () => calculateNormalizedAzimuth(-Infinity),
+    /value must be a finite number/,
+  );
+  assert.throws(
     () => calculateNormalizedAzimuth(Number.MAX_SAFE_INTEGER + 1),
+    /value exceeds maximum safe integer range/,
+  );
+  assert.throws(
+    () => calculateNormalizedAzimuth(-Number.MAX_SAFE_INTEGER - 1),
     /value exceeds maximum safe integer range/,
   );
 });
@@ -56,14 +60,6 @@ test("calculateAngularDistanceForward: should calculate forward distance for bas
 
 test("calculateAngularDistanceForward: should throw for invalid azimuth values", () => {
   assert.throws(
-    () => calculateAngularDistanceForward(-0.1, Math.PI),
-    /azimuth must be between 0 and 2π radians/,
-  );
-  assert.throws(
-    () => calculateAngularDistanceForward(0, 2 * Math.PI + 0.1),
-    /azimuth must be between 0 and 2π radians/,
-  );
-  assert.throws(
     () => calculateAngularDistanceForward(NaN, Math.PI),
     /value must be a finite number/,
   );
@@ -74,6 +70,18 @@ test("calculateAngularDistanceForward: should throw for invalid azimuth values",
   assert.throws(
     () => calculateAngularDistanceForward(0, Number.MAX_SAFE_INTEGER + 1),
     /value exceeds maximum safe integer range/,
+  );
+  assert.throws(
+    () => calculateAngularDistanceForward(0, -Number.MAX_SAFE_INTEGER - 1),
+    /value exceeds maximum safe integer range/,
+  );
+  assert.throws(
+    () => calculateAngularDistanceForward(-0.1, Math.PI),
+    /azimuth must be between 0 and 2π radians/,
+  );
+  assert.throws(
+    () => calculateAngularDistanceForward(0, 2 * Math.PI + 0.1),
+    /azimuth must be between 0 and 2π radians/,
   );
 });
 

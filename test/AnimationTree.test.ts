@@ -4,7 +4,7 @@ import { StateEvent } from "../src/mescellaneous/AnimationStateEvent";
 import { buildMockAnchor } from "./mocks/buildMockAnchor";
 import { AnimationTreeProxy } from "./proxies/AnimationTreeProxy";
 
-test("setInluence: should throw for invalid influence values", () => {
+test("setInluence: should throw error for invalid influence values", () => {
   const tree = new AnimationTreeProxy();
 
   assert.throws(() => {
@@ -96,7 +96,7 @@ test("setInfluence: should not update anchors influence when influence value is 
   );
 });
 
-test("updateAnchor: should throw for invalid blend values", () => {
+test("updateAnchor: should throw error for invalid blend values", () => {
   const tree = new AnimationTreeProxy();
   const anchor = buildMockAnchor(0.5, 1);
 

@@ -216,15 +216,6 @@ export class PolarBlendTree extends AnimationTree {
       polarAction.azimuth = calculateNormalizedAzimuth(polarAction.azimuth);
     }
 
-    if (
-      polarActions.length === MIN_POLAR_ACTIONS &&
-      Math.abs(polarActions[0].azimuth - polarActions[1].azimuth) < EPSILON
-    ) {
-      throw new Error(
-        `When using exactly ${MIN_POLAR_ACTIONS} actions, they cannot all have the same azimuth (collinear). All action values must be unique.`,
-      );
-    }
-
     for (let i = 0; i < polarActions.length - 1; i++) {
       const azimuth = polarActions[i].azimuth;
       const radius = polarActions[i].radius;

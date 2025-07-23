@@ -1,6 +1,9 @@
+import { LoopRepeat } from "three";
 import { test } from "uvu";
 import * as assert from "uvu/assert";
+import { assertEqualWithTolerance } from "./miscellaneous/miscellaneous";
 import { buildMockPolarAction } from "./mocks/buildMockAction";
+import { buildMockAnimationAction } from "./mocks/buildMockAnimationAction";
 import { PolarBlendTreeProxy } from "./proxies/PolarBlendTreeProxy";
 
 test("constructor: should throw error when fewer than 2 actions provided", () => {
@@ -10,178 +13,259 @@ test("constructor: should throw error when fewer than 2 actions provided", () =>
   );
 });
 
-// test("constructor: should throw error when action duration is less than or equal to zero", () => {
-//   assert.throws(() => {
-//     new PolarBlendTreeProxy([
-//       buildMockPolarAction(1, -1, LoopRepeat, 1),
-//       buildMockPolarAction(1, 0, LoopRepeat, 0),
-//       buildMockPolarAction(1, 1, LoopRepeat, 1),
-//     ]);
-//   }, "Action duration must be greater than zero");
+test("constructor: should throw error when action duration is less than or equal to zero", () => {
+  assert.throws(() => {
+    new PolarBlendTreeProxy([
+      buildMockPolarAction(1, -1, LoopRepeat, 1),
+      buildMockPolarAction(1, 0, LoopRepeat, 0),
+      buildMockPolarAction(1, 1, LoopRepeat, 1),
+    ]);
+  }, "value must be greater or equal to");
 
-//   assert.throws(() => {
-//     new PolarBlendTreeProxy(
-//       [
-//         buildMockPolarAction(1, -1, LoopRepeat, 1),
-//         buildMockPolarAction(1, 1, LoopRepeat, 1),
-//       ],
-//       buildMockAnimationAction(1, LoopRepeat, 0),
-//     );
-//   }, "Action duration must be greater than zero");
-// });
+  assert.throws(() => {
+    new PolarBlendTreeProxy(
+      [
+        buildMockPolarAction(1, -1, LoopRepeat, 1),
+        buildMockPolarAction(1, 1, LoopRepeat, 1),
+      ],
+      buildMockAnimationAction(1, LoopRepeat, 0),
+    );
+  }, "value must be greater or equal to");
+});
 
-// test("constructor: should throw error when action has non-finite value", () => {
-//   assert.throws(
-//     () =>
-//       new PolarBlendTreeProxy([
-//         buildMockPolarAction(1, NaN),
-//         buildMockPolarAction(NaN, 0),
-//         buildMockPolarAction(0, 0),
-//       ]),
-//     /non-finite/,
-//   );
+test("constructor: should throw error for invalid linear action values", () => {
+  assert.throws(
+    () =>
+      new PolarBlendTreeProxy([
+        buildMockPolarAction(1, 0),
+        buildMockPolarAction(NaN, 1),
+      ]),
+    /value must be a finite number/,
+  );
 
-//   assert.throws(
-//     () =>
-//       new PolarBlendTreeProxy([
-//         buildMockPolarAction(1, Infinity),
-//         buildMockPolarAction(Infinity, 0),
-//       ]),
-//     /non-finite/,
-//   );
+  assert.throws(
+    () =>
+      new PolarBlendTreeProxy([
+        buildMockPolarAction(1, 0),
+        buildMockPolarAction(Infinity, 1),
+      ]),
+    /value must be a finite number/,
+  );
 
-//   assert.throws(
-//     () =>
-//       new PolarBlendTreeProxy([
-//         buildMockPolarAction(1, -Infinity),
-//         buildMockPolarAction(-Infinity, 0),
-//       ]),
-//     /non-finite/,
-//   );
-// });
+  assert.throws(
+    () =>
+      new PolarBlendTreeProxy([
+        buildMockPolarAction(1, 0),
+        buildMockPolarAction(-Infinity, 1),
+      ]),
+    /value must be a finite number/,
+  );
 
-// test("constructor: should throw error when action has value outside safe range", () => {
-//   assert.throws(
-//     () =>
-//       new PolarBlendTreeProxy([
-//         buildMockPolarAction(Number.MAX_SAFE_INTEGER + 1, 0),
-//         buildMockPolarAction(0, 0),
-//         buildMockPolarAction(-(Number.MAX_SAFE_INTEGER + 1), 0),
-//       ]),
-//     /outside safe range/,
-//   );
-//   assert.throws(
-//     () =>
-//       new PolarBlendTreeProxy([
-//         buildMockPolarAction(1, Number.MAX_SAFE_INTEGER + 1),
-//         buildMockPolarAction(0, 0),
-//         buildMockPolarAction(1, -(Number.MAX_SAFE_INTEGER + 1)),
-//       ]),
-//     /outside safe range/,
-//   );
-// });
+  assert.throws(
+    () =>
+      new PolarBlendTreeProxy([
+        buildMockPolarAction(1, 0),
+        buildMockPolarAction(Number.MAX_SAFE_INTEGER + 1, 1),
+      ]),
+    /value exceeds maximum safe integer range/,
+  );
 
-// test("constructor: should throw error when multiple actions have same value", () => {
-//   assert.throws(
-//     () =>
-//       new PolarBlendTreeProxy([
-//         buildMockPolarAction(0.5, 0),
-//         buildMockPolarAction(0.5, 0),
-//         buildMockPolarAction(0.5, 0),
-//       ]),
-//     /Duplicate coordinates found/,
-//   );
-// });
+  assert.throws(
+    () =>
+      new PolarBlendTreeProxy([
+        buildMockPolarAction(1, 0),
+        buildMockPolarAction(-Number.MAX_SAFE_INTEGER - 1, 1),
+      ]),
+    /value exceeds maximum safe integer range/,
+  );
 
-// test("constructor: should throw error when only two actions and they are collinear", () => {
-//   assert.throws(
-//     () =>
-//       new PolarBlendTreeProxy([
-//         buildMockPolarAction(0.5, 0),
-//         buildMockPolarAction(1, 0),
-//       ]),
-//     /they cannot all have the same azimuth/,
-//   );
-// });
+  assert.throws(
+    () =>
+      new PolarBlendTreeProxy([
+        buildMockPolarAction(1, 0),
+        buildMockPolarAction(1, NaN),
+      ]),
+    /value must be a finite number/,
+  );
 
-// test("constructor: should throw error when anchors do not form a valid grid", () => {
-//   assert.throws(
-//     () =>
-//       new PolarBlendTreeProxy([
-//         buildMockPolarAction(0.5, -1),
-//         buildMockPolarAction(1, 1),
-//       ]),
-//     /valid grid/,
-//   );
-// });
+  assert.throws(
+    () =>
+      new PolarBlendTreeProxy([
+        buildMockPolarAction(1, 0),
+        buildMockPolarAction(1, Infinity),
+      ]),
+    /value must be a finite number/,
+  );
 
-// test("constructor: should initialize actions to stopped state", () => {
-//   const action1 = buildMockPolarAction(1, -1);
-//   const action2 = buildMockPolarAction(1, 1);
-//   const central = buildMockAnimationAction(1);
+  assert.throws(
+    () =>
+      new PolarBlendTreeProxy([
+        buildMockPolarAction(1, 0),
+        buildMockPolarAction(1, -Infinity),
+      ]),
+    /value must be a finite number/,
+  );
 
-//   action1.action.play();
-//   action2.action.play();
-//   central.play();
+  assert.throws(
+    () =>
+      new PolarBlendTreeProxy([
+        buildMockPolarAction(1, 0),
+        buildMockPolarAction(1, Number.MAX_SAFE_INTEGER + 1),
+      ]),
+    /value exceeds maximum safe integer range/,
+  );
 
-//   // Set initial non-zero values to verify they get reset
-//   action1.action.time = 0.5;
-//   action1.action.weight = 0.7;
-//   action2.action.time = 0.3;
-//   action2.action.weight = 0.4;
-//   central.time = 0.1;
-//   central.weight = 0.5;
+  assert.throws(
+    () =>
+      new PolarBlendTreeProxy([
+        buildMockPolarAction(1, 0),
+        buildMockPolarAction(1, -Number.MAX_SAFE_INTEGER - 1),
+      ]),
+    /value exceeds maximum safe integer range/,
+  );
+});
 
-//   new PolarBlendTreeProxy([action1, action2], central);
+test("constructor: should throw error when multiple actions have same value", () => {
+  assert.throws(
+    () =>
+      new PolarBlendTreeProxy([
+        buildMockPolarAction(0.5, 0),
+        buildMockPolarAction(0.5, 0),
+        buildMockPolarAction(0.5, 0),
+      ]),
+    /Duplicate coordinates found/,
+  );
+});
 
-//   // Constructor should reset all actions to stopped state
-//   assertEqualWithTolerance(
-//     action1.action.time,
-//     0,
-//     "action1 should have time 0",
-//   );
-//   assertEqualWithTolerance(
-//     action1.action.weight,
-//     0,
-//     "action1 should have weight 0",
-//   );
-//   assert.equal(
-//     action1.action.isRunning(),
-//     false,
-//     "action1 should not be running",
-//   );
-//   assertEqualWithTolerance(
-//     action2.action.time,
-//     0,
-//     "action2 should have time 0",
-//   );
-//   assertEqualWithTolerance(
-//     action2.action.weight,
-//     0,
-//     "action2 should have weight 0",
-//   );
-//   assert.equal(
-//     action2.action.isRunning(),
-//     false,
-//     "action2 should not be running",
-//   );
-// });
+test("constructor: should throw error when only one ray", () => {
+  assert.throws(
+    () =>
+      new PolarBlendTreeProxy([
+        buildMockPolarAction(0.5, 0),
+        buildMockPolarAction(1, 0),
+      ]),
+    /At least two rays are required/,
+  );
+  assert.throws(
+    () =>
+      new PolarBlendTreeProxy([
+        buildMockPolarAction(0.5, 0),
+        buildMockPolarAction(0.75, 0),
+        buildMockPolarAction(1, 0),
+      ]),
+    /At least two rays are required/,
+  );
+});
 
-// test("setBlend: should throw error when value is non-finite", () => {
-//   const action1 = buildMockPolarAction(1, -1);
-//   const action2 = buildMockPolarAction(1, 1);
-//   const blendTree = new PolarBlendTreeProxy([action1, action2]);
+test("constructor: should throw error when anchors do not form a valid grid", () => {
+  assert.throws(
+    () =>
+      new PolarBlendTreeProxy([
+        buildMockPolarAction(0.5, -1),
+        buildMockPolarAction(1, 1),
+      ]),
+    /valid grid/,
+  );
+});
 
-//   assert.throws(() => blendTree.setBlend(NaN, 1), /Invalid radius value/);
-//   assert.throws(() => blendTree.setBlend(Infinity, 1), /Invalid radius value/);
-//   assert.throws(() => blendTree.setBlend(-Infinity, 1), /Invalid radius value/);
-//   assert.throws(() => blendTree.setBlend(1, NaN), /Invalid azimuth value/);
-//   assert.throws(() => blendTree.setBlend(1, Infinity), /Invalid azimuth value/);
-//   assert.throws(
-//     () => blendTree.setBlend(1, -Infinity),
-//     /Invalid azimuth value/,
-//   );
-// });
+test("constructor: should initialize actions to stopped state", () => {
+  const action1 = buildMockPolarAction(1, -1);
+  const action2 = buildMockPolarAction(1, 1);
+  const central = buildMockAnimationAction(1);
+
+  action1.action.play();
+  action2.action.play();
+  central.play();
+
+  // Set initial non-zero values to verify they get reset
+  action1.action.time = 0.5;
+  action1.action.weight = 0.7;
+  action2.action.time = 0.3;
+  action2.action.weight = 0.4;
+  central.time = 0.1;
+  central.weight = 0.5;
+
+  new PolarBlendTreeProxy([action1, action2], central);
+
+  // Constructor should reset all actions to stopped state
+  assertEqualWithTolerance(
+    action1.action.time,
+    0,
+    "action1 should have time 0",
+  );
+  assertEqualWithTolerance(
+    action1.action.weight,
+    0,
+    "action1 should have weight 0",
+  );
+  assert.equal(
+    action1.action.isRunning(),
+    false,
+    "action1 should not be running",
+  );
+  assertEqualWithTolerance(
+    action2.action.time,
+    0,
+    "action2 should have time 0",
+  );
+  assertEqualWithTolerance(
+    action2.action.weight,
+    0,
+    "action2 should have weight 0",
+  );
+  assert.equal(
+    action2.action.isRunning(),
+    false,
+    "action2 should not be running",
+  );
+});
+
+test("setBlend: should throw error for invalid blend values", () => {
+  const action1 = buildMockPolarAction(1, -1);
+  const action2 = buildMockPolarAction(1, 1);
+  const blendTree = new PolarBlendTreeProxy([action1, action2]);
+
+  assert.throws(
+    () => blendTree.setBlend(NaN, 1),
+    /value must be a finite number/,
+  );
+  assert.throws(
+    () => blendTree.setBlend(Infinity, 1),
+    /value must be a finite number/,
+  );
+  assert.throws(
+    () => blendTree.setBlend(-Infinity, 1),
+    /value must be a finite number/,
+  );
+  assert.throws(
+    () => blendTree.setBlend(Number.MAX_SAFE_INTEGER + 1, 1),
+    /value exceeds maximum safe integer range/,
+  );
+  assert.throws(
+    () => blendTree.setBlend(-Number.MAX_SAFE_INTEGER - 1, 1),
+    /value exceeds maximum safe integer range/,
+  );
+  assert.throws(
+    () => blendTree.setBlend(1, NaN),
+    /value must be a finite number/,
+  );
+  assert.throws(
+    () => blendTree.setBlend(1, Infinity),
+    /value must be a finite number/,
+  );
+  assert.throws(
+    () => blendTree.setBlend(1, -Infinity),
+    /value must be a finite number/,
+  );
+  assert.throws(
+    () => blendTree.setBlend(1, Number.MAX_SAFE_INTEGER + 1),
+    /value exceeds maximum safe integer range/,
+  );
+  assert.throws(
+    () => blendTree.setBlend(1, -Number.MAX_SAFE_INTEGER - 1),
+    /value exceeds maximum safe integer range/,
+  );
+});
 
 // test("setBlend: should throw error when value is outside safe range", () => {
 //   const action1 = buildMockPolarAction(1, -1);

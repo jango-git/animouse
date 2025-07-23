@@ -24,7 +24,7 @@ test("constructor: should throw error when action duration is less than or equal
   }, "Action duration must be greater than zero");
 });
 
-test("constructor: should throw for invalid linar action values", () => {
+test("constructor: should throw error for invalid linear action values", () => {
   assert.throws(
     () =>
       new LinearBlendTreeProxy([
@@ -82,35 +82,6 @@ test("constructor: should throw error when multiple actions have same value", ()
   );
 });
 
-test("setInluence: should throw for invalid influence values", () => {
-  const tree = new LinearBlendTreeProxy([
-    buildMockLinearAction(0),
-    buildMockLinearAction(1),
-  ]);
-
-  assert.throws(() => {
-    tree.invokeSetInfluence(NaN);
-  }, /value must be a finite number/);
-  assert.throws(() => {
-    tree.invokeSetInfluence(Infinity);
-  }, /value must be a finite number/);
-  assert.throws(() => {
-    tree.invokeSetInfluence(-Infinity);
-  }, /value must be a finite number/);
-  assert.throws(() => {
-    tree.invokeSetInfluence(Number.MAX_SAFE_INTEGER + 1);
-  }, /value exceeds maximum safe integer range/);
-  assert.throws(() => {
-    tree.invokeSetInfluence(-Number.MAX_SAFE_INTEGER - 1);
-  }, /value exceeds maximum safe integer range/);
-  assert.throws(() => {
-    tree.invokeSetInfluence(-0.1);
-  }, /value must be between 0 and 1/);
-  assert.throws(() => {
-    tree.invokeSetInfluence(1.1);
-  }, /value must be between 0 and 1/);
-});
-
 test("constructor: should initialize actions to stopped state", () => {
   const action1 = buildMockLinearAction(0);
   const action2 = buildMockLinearAction(1);
@@ -159,7 +130,36 @@ test("constructor: should initialize actions to stopped state", () => {
   );
 });
 
-test("setBlend: should throw for invalid blend values", () => {
+test("setInluence: should throw error for invalid influence values", () => {
+  const tree = new LinearBlendTreeProxy([
+    buildMockLinearAction(0),
+    buildMockLinearAction(1),
+  ]);
+
+  assert.throws(() => {
+    tree.invokeSetInfluence(NaN);
+  }, /value must be a finite number/);
+  assert.throws(() => {
+    tree.invokeSetInfluence(Infinity);
+  }, /value must be a finite number/);
+  assert.throws(() => {
+    tree.invokeSetInfluence(-Infinity);
+  }, /value must be a finite number/);
+  assert.throws(() => {
+    tree.invokeSetInfluence(Number.MAX_SAFE_INTEGER + 1);
+  }, /value exceeds maximum safe integer range/);
+  assert.throws(() => {
+    tree.invokeSetInfluence(-Number.MAX_SAFE_INTEGER - 1);
+  }, /value exceeds maximum safe integer range/);
+  assert.throws(() => {
+    tree.invokeSetInfluence(-0.1);
+  }, /value must be between 0 and 1/);
+  assert.throws(() => {
+    tree.invokeSetInfluence(1.1);
+  }, /value must be between 0 and 1/);
+});
+
+test("setBlend: should throw error for invalid blend values", () => {
   const action1 = buildMockLinearAction(0);
   const action2 = buildMockLinearAction(1);
   const blendTree = new LinearBlendTreeProxy([action1, action2]);

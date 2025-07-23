@@ -3,7 +3,8 @@ import { MathUtils } from "three";
 import { StateEvent } from "./mescellaneous/AnimationStateEvent";
 import type { AnimationState } from "./states/AnimationState";
 
-type Condition = (...args: unknown[]) => boolean;
+/* eslint-disable @typescript-eslint/no-explicit-any -- Using any here for generic condition function arguments */
+type Condition = (...args: any[]) => boolean;
 
 /**
  * Configuration for event-triggered transitions between animation states.
@@ -172,8 +173,8 @@ export class AnimationStateMachine {
    */
   public handleEvent(eventName: string, ...args: unknown[]): boolean {
     const transitions = [
-      ...(this.eventTransitions.get(eventName) || []),
-      ...(this.eventTransitions.get("*") || []),
+      ...(this.eventTransitions.get(eventName) ?? []),
+      ...(this.eventTransitions.get("*") ?? []),
     ];
 
     for (const { from, to, duration, condition } of transitions) {
