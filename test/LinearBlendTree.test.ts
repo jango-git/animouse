@@ -3,9 +3,58 @@ import { LoopOnce, LoopPingPong, LoopRepeat } from "three";
 import { test } from "uvu";
 import * as assert from "uvu/assert";
 import { StateEvent } from "../src/mescellaneous/AnimationStateEvent";
-import { assertEqualWithTolerance } from "./miscellaneous/miscellaneous";
+import {
+  assertEqualWithTolerance,
+  lerpLinear,
+} from "./miscellaneous/miscellaneous";
 import { buildMockLinearAction } from "./mocks/buildMockAction";
 import { LinearBlendTreeProxy } from "./proxies/LinearBlendTreeProxy";
+
+function testLinearBlending(
+  value: number,
+  lMessage: string,
+  cMessage: string,
+  rMessage: string,
+): void {
+  const lValue = -1;
+  const cValue = 0;
+  const rValue = 1;
+
+  const lAction = buildMockLinearAction(lValue);
+  const cAction = buildMockLinearAction(cValue);
+  const rAction = buildMockLinearAction(rValue);
+
+  const blendTree = new LinearBlendTreeProxy([lAction, cAction, rAction]);
+  blendTree.invokeSetInfluence(1);
+  blendTree.setBlend(value);
+
+  const clampedValue = Math.min(Math.max(value, lValue), rValue);
+
+  let lWeight = 0;
+  let cWeight = 0;
+  let rWeight = 0;
+
+  if (value <= cValue) {
+    const [oneWeight, twoWeight] = lerpLinear(clampedValue, lValue, cValue);
+    lWeight = oneWeight;
+    cWeight = twoWeight;
+    rWeight = 0;
+  } else {
+    const [oneWeight, twoWeight] = lerpLinear(clampedValue, cValue, rValue);
+    lWeight = 0;
+    cWeight = oneWeight;
+    rWeight = twoWeight;
+  }
+
+  assertEqualWithTolerance(lAction.action.weight, lWeight, lMessage);
+  assertEqualWithTolerance(cAction.action.weight, cWeight, cMessage);
+  assertEqualWithTolerance(rAction.action.weight, rWeight, rMessage);
+  assertEqualWithTolerance(
+    lAction.action.weight + rAction.action.weight + cAction.action.weight,
+    1,
+    "Sum of weights should equal 1",
+  );
+}
 
 test("constructor: should throw error when fewer than 2 actions provided", () => {
   assert.throws(
@@ -183,90 +232,6 @@ test("setBlend: should throw error for invalid blend values", () => {
   );
 });
 
-test("setBlend: should interpolate correctly between two adjacent actions", () => {
-  const action1 = buildMockLinearAction(0);
-  const action2 = buildMockLinearAction(1);
-  const blendTree = new LinearBlendTreeProxy([action1, action2]);
-
-  blendTree.invokeSetInfluence(1);
-  blendTree.setBlend(0.3); // 30% between action1 and action2
-
-  // Linear interpolation: action1 gets (1 - 0.3) = 0.7, action2 gets 0.3
-  assertEqualWithTolerance(
-    action1.action.weight,
-    0.7,
-    "action1 should have 70% weight",
-  );
-  assertEqualWithTolerance(
-    action2.action.weight,
-    0.3,
-    "action2 should have 30% weight",
-  );
-});
-
-test("setBlend: should give full weight to action when blend exactly matches its value", () => {
-  const action1 = buildMockLinearAction(0);
-  const action2 = buildMockLinearAction(0.5);
-  const action3 = buildMockLinearAction(1);
-
-  const blendTree = new LinearBlendTreeProxy([action1, action2, action3]);
-  blendTree.invokeSetInfluence(1);
-
-  // Test exact match with first action (boundary case)
-  blendTree.setBlend(0);
-  assertEqualWithTolerance(
-    action1.action.weight,
-    1,
-    "First action should have weight 1 when blend matches its value",
-  );
-  assertEqualWithTolerance(
-    action2.action.weight,
-    0,
-    "Other actions should have weight 0",
-  );
-  assertEqualWithTolerance(
-    action3.action.weight,
-    0,
-    "Other actions should have weight 0",
-  );
-
-  // Test exact match with middle action
-  blendTree.setBlend(0.5);
-  assertEqualWithTolerance(
-    action1.action.weight,
-    0,
-    "Other actions should have weight 0",
-  );
-  assertEqualWithTolerance(
-    action2.action.weight,
-    1,
-    "Middle action should have weight 1 when blend matches its value",
-  );
-  assertEqualWithTolerance(
-    action3.action.weight,
-    0,
-    "Other actions should have weight 0",
-  );
-
-  // Test exact match with last action (boundary case)
-  blendTree.setBlend(1);
-  assertEqualWithTolerance(
-    action1.action.weight,
-    0,
-    "Other actions should have weight 0",
-  );
-  assertEqualWithTolerance(
-    action2.action.weight,
-    0,
-    "Other actions should have weight 0",
-  );
-  assertEqualWithTolerance(
-    action3.action.weight,
-    1,
-    "Last action should have weight 1 when blend matches its value",
-  );
-});
-
 test("setBlend: should skip update when blend value unchanged", () => {
   const action1 = buildMockLinearAction(0);
   const action2 = buildMockLinearAction(1);
@@ -275,15 +240,12 @@ test("setBlend: should skip update when blend value unchanged", () => {
 
   const value = 0.5;
 
-  // Set initial blend value
   blendTree.setBlend(value);
   const initialWeight1 = action1.action.weight;
   const initialWeight2 = action2.action.weight;
 
-  // Set same value again - should be optimized to skip update
   blendTree.setBlend(value);
 
-  // Weights should remain unchanged (optimization working)
   assertEqualWithTolerance(
     action1.action.weight,
     initialWeight1,
@@ -296,215 +258,32 @@ test("setBlend: should skip update when blend value unchanged", () => {
   );
 });
 
-test("setBlend: should update weights when blend changes", () => {
-  const action1 = buildMockLinearAction(0);
-  const action2 = buildMockLinearAction(1);
-  const blendTree = new LinearBlendTreeProxy([action1, action2]);
-  blendTree.invokeSetInfluence(1);
-
-  // Set initial blend value
-  blendTree.setBlend(0.3);
-  const weight1First = action1.action.weight;
-  const weight2First = action2.action.weight;
-
-  // Change blend value
-  blendTree.setBlend(0.7);
-  const weight1Second = action1.action.weight;
-  const weight2Second = action2.action.weight;
-
-  // Weights should have changed when blend value changes
-  assert.not.equal(weight1First, weight1Second, "action1 weight should change");
-  assert.not.equal(weight2First, weight2Second, "action2 weight should change");
+test("setBlend: three actions: beyond left: ...", () => {
+  testLinearBlending(-2, "...l", "...c", "...r");
 });
 
-test("setBlend: should work with negative and arbitrary values", () => {
-  // Test with actions at various arbitrary values including negatives
-  const actions = [
-    buildMockLinearAction(-10),
-    buildMockLinearAction(0),
-    buildMockLinearAction(15),
-    buildMockLinearAction(100),
-  ];
-
-  const blendTree = new LinearBlendTreeProxy(actions);
-  blendTree.invokeSetInfluence(1);
-  blendTree.setBlend(7.5); // Between 0 and 15
-
-  // Should interpolate between actions at 0 and 15 (7.5 is 50% between them)
-  assertEqualWithTolerance(
-    actions[1].action.weight,
-    (7.5 - 0) / (15 - 0),
-    "action at 0 should have 50% weight",
-  );
-  assertEqualWithTolerance(
-    actions[2].action.weight,
-    0.5,
-    "action at 15 should have 50% weight",
-  );
+test("setBlend: three actions: exact left: ...", () => {
+  testLinearBlending(-1, "...", "...", "...");
 });
 
-test("setBlend: should handle exact value matching with negative values", () => {
-  const action1 = buildMockLinearAction(-10);
-  const action2 = buildMockLinearAction(-5);
-  const action3 = buildMockLinearAction(0);
-  const action4 = buildMockLinearAction(5);
-
-  const blendTree = new LinearBlendTreeProxy([
-    action1,
-    action2,
-    action3,
-    action4,
-  ]);
-  blendTree.invokeSetInfluence(1);
-
-  // Test exact match with negative value
-  blendTree.setBlend(-5);
-  assertEqualWithTolerance(
-    action1.action.weight,
-    0,
-    "Other actions should have weight 0",
-  );
-  assertEqualWithTolerance(
-    action2.action.weight,
-    1,
-    "Action with matching negative value should have weight 1",
-  );
-  assertEqualWithTolerance(
-    action3.action.weight,
-    0,
-    "Other actions should have weight 0",
-  );
-  assertEqualWithTolerance(
-    action4.action.weight,
-    0,
-    "Other actions should have weight 0",
-  );
+test("setBlend: three actions: between left and center: ...", () => {
+  testLinearBlending(-0.5, "...", "...", "...");
 });
 
-test("setBlend: should handle exact value matching with arbitrary decimal values", () => {
-  const action1 = buildMockLinearAction(1.234);
-  const action2 = buildMockLinearAction(5.678);
-  const action3 = buildMockLinearAction(9.999);
-
-  const blendTree = new LinearBlendTreeProxy([action1, action2, action3]);
-  blendTree.invokeSetInfluence(1);
-
-  // Test exact match with decimal value
-  blendTree.setBlend(5.678);
-  assertEqualWithTolerance(
-    action1.action.weight,
-    0,
-    "Other actions should have weight 0",
-  );
-  assertEqualWithTolerance(
-    action2.action.weight,
-    1,
-    "Action with matching decimal value should have weight 1",
-  );
-  assertEqualWithTolerance(
-    action3.action.weight,
-    0,
-    "Other actions should have weight 0",
-  );
+test("setBlend: three actions: exact center: ...", () => {
+  testLinearBlending(0, "...", "...", "...");
 });
 
-test("setBlend: should handle exact value matching with many actions", () => {
-  // Test with many actions to stress-test binary search algorithm
-  const actions = [
-    buildMockLinearAction(0),
-    buildMockLinearAction(10),
-    buildMockLinearAction(20),
-    buildMockLinearAction(30),
-    buildMockLinearAction(40),
-    buildMockLinearAction(50),
-  ];
-
-  const blendTree = new LinearBlendTreeProxy(actions);
-  blendTree.invokeSetInfluence(1);
-
-  // Test exact match with middle action in larger set (tests binary search)
-  blendTree.setBlend(30);
-
-  for (let i = 0; i < actions.length; i++) {
-    if (i === 3) {
-      // Action with value 30 should have full weight
-      assertEqualWithTolerance(
-        actions[i].action.weight,
-        1,
-        `Action at index ${i} should have weight 1 when blend matches its value`,
-      );
-    } else {
-      // All other actions should have zero weight
-      assertEqualWithTolerance(
-        actions[i].action.weight,
-        0,
-        `Action at index ${i} should have weight 0 when blend doesn't match its value`,
-      );
-    }
-  }
+test("setBlend: three actions: between center and right: ...", () => {
+  testLinearBlending(0.5, "...", "...", "...");
 });
 
-test("setBlend: should transition from exact match to interpolation correctly", () => {
-  const action1 = buildMockLinearAction(0);
-  const action2 = buildMockLinearAction(1);
-  const action3 = buildMockLinearAction(2);
+test("setBlend: three actions: exact right: ...", () => {
+  testLinearBlending(1, "...", "...", "...");
+});
 
-  const blendTree = new LinearBlendTreeProxy([action1, action2, action3]);
-  blendTree.invokeSetInfluence(1);
-
-  // Start with exact match at middle action
-  blendTree.setBlend(1);
-  assertEqualWithTolerance(
-    action1.action.weight,
-    0,
-    "First action should be 0 at exact match",
-  );
-  assertEqualWithTolerance(
-    action2.action.weight,
-    1,
-    "Middle action should be 1 at exact match",
-  );
-  assertEqualWithTolerance(
-    action3.action.weight,
-    0,
-    "Third action should be 0 at exact match",
-  );
-
-  // Move slightly off exact match - should interpolate between action2 and action3
-  blendTree.setBlend(1.3); // 30% between actions 2 and 3
-  assertEqualWithTolerance(
-    action1.action.weight,
-    0,
-    "First action should remain 0 (outside interpolation range)",
-  );
-  assertEqualWithTolerance(
-    action2.action.weight,
-    0.7,
-    "Second action should interpolate: 1 - 0.3 = 0.7",
-  );
-  assertEqualWithTolerance(
-    action3.action.weight,
-    0.3,
-    "Third action should interpolate: 0.3",
-  );
-
-  // Move back to exact match at last action
-  blendTree.setBlend(2);
-  assertEqualWithTolerance(
-    action1.action.weight,
-    0,
-    "First action should be 0 at exact match",
-  );
-  assertEqualWithTolerance(
-    action2.action.weight,
-    0,
-    "Second action should be 0 at exact match",
-  );
-  assertEqualWithTolerance(
-    action3.action.weight,
-    1,
-    "Third action should be 1 at exact match",
-  );
+test("setBlend: three actions: beyond right: ...", () => {
+  testLinearBlending(2, "...", "...", "...");
 });
 
 test("events: should emit ENTER/EXIT events", () => {

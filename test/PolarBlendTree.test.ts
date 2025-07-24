@@ -12,7 +12,7 @@ import { buildMockPolarAction } from "./mocks/buildMockAction";
 import { buildMockAnimationAction } from "./mocks/buildMockAnimationAction";
 import { PolarBlendTreeProxy } from "./proxies/PolarBlendTreeProxy";
 
-function testOuterRingBlending(
+function testOneRingBlending(
   azimuth: number,
   radius: number,
   lMessage: string,
@@ -39,7 +39,7 @@ function testOuterRingBlending(
   );
 }
 
-function testCentralActionBlending(
+function testOneRingAndCenterBlending(
   azimuth: number,
   radius: number,
   lMessage: string,
@@ -75,7 +75,7 @@ function testCentralActionBlending(
   );
 }
 
-function testBilinearActionBlending(
+function testTwoRingsBlending(
   azimuth: number,
   radius: number,
   tlMessage: string,
@@ -419,7 +419,7 @@ test("setBlend: should skip update when blend value unchanged", () => {
 });
 
 test("setBlend: only one ring: beyond: should blend at center point between two actions", () => {
-  testOuterRingBlending(
+  testOneRingBlending(
     0,
     1.1,
     "action1 should have correct weight for center blend",
@@ -428,7 +428,7 @@ test("setBlend: only one ring: beyond: should blend at center point between two 
 });
 
 test("setBlend: only one ring: beyond: should blend slightly towards second action", () => {
-  testOuterRingBlending(
+  testOneRingBlending(
     0.1,
     1.1,
     "action1 should have reduced weight when blend moves towards action2",
@@ -437,7 +437,7 @@ test("setBlend: only one ring: beyond: should blend slightly towards second acti
 });
 
 test("setBlend: only one ring: beyond: should blend exactly at second action position", () => {
-  testOuterRingBlending(
+  testOneRingBlending(
     Math.PI / 4,
     1.1,
     "action1 should have minimal weight when blend is at action2 position",
@@ -446,7 +446,7 @@ test("setBlend: only one ring: beyond: should blend exactly at second action pos
 });
 
 test("setBlend: only one ring: beyond: should blend past second action position", () => {
-  testOuterRingBlending(
+  testOneRingBlending(
     Math.PI / 4 + 0.1,
     1.1,
     "action1 should have correct weight when blend exceeds action2 position",
@@ -455,7 +455,7 @@ test("setBlend: only one ring: beyond: should blend past second action position"
 });
 
 test("setBlend: only one ring: beyond: should handle opposite direction blend", () => {
-  testOuterRingBlending(
+  testOneRingBlending(
     Math.PI,
     1.1,
     "action1 should have correct weight for opposite direction blend",
@@ -464,7 +464,7 @@ test("setBlend: only one ring: beyond: should handle opposite direction blend", 
 });
 
 test("setBlend: only one ring: beyond: should blend exactly at first action position", () => {
-  testOuterRingBlending(
+  testOneRingBlending(
     -Math.PI / 4,
     1.1,
     "action1 should have maximum weight when blend is at its position",
@@ -473,7 +473,7 @@ test("setBlend: only one ring: beyond: should blend exactly at first action posi
 });
 
 test("setBlend: only one ring: beyond: should blend slightly past first action position", () => {
-  testOuterRingBlending(
+  testOneRingBlending(
     -Math.PI / 4 + 0.1,
     1.1,
     "action1 should have correct weight when blend slightly exceeds its position",
@@ -482,7 +482,7 @@ test("setBlend: only one ring: beyond: should blend slightly past first action p
 });
 
 test("setBlend: only one ring: exact: should blend at center point between two actions", () => {
-  testOuterRingBlending(
+  testOneRingBlending(
     0,
     1,
     "action1 should have correct weight for center blend",
@@ -491,7 +491,7 @@ test("setBlend: only one ring: exact: should blend at center point between two a
 });
 
 test("setBlend: only one ring: exact: should blend slightly towards second action", () => {
-  testOuterRingBlending(
+  testOneRingBlending(
     0.1,
     1,
     "action1 should have reduced weight when blend moves towards action2",
@@ -500,7 +500,7 @@ test("setBlend: only one ring: exact: should blend slightly towards second actio
 });
 
 test("setBlend: only one ring: exact: should blend exactly at second action position", () => {
-  testOuterRingBlending(
+  testOneRingBlending(
     Math.PI / 4,
     1,
     "action1 should have minimal weight when blend is at action2 position",
@@ -509,7 +509,7 @@ test("setBlend: only one ring: exact: should blend exactly at second action posi
 });
 
 test("setBlend: only one ring: exact: should blend past second action position", () => {
-  testOuterRingBlending(
+  testOneRingBlending(
     Math.PI / 4 + 0.1,
     1,
     "action1 should have correct weight when blend exceeds action2 position",
@@ -518,7 +518,7 @@ test("setBlend: only one ring: exact: should blend past second action position",
 });
 
 test("setBlend: only one ring: exact: should handle opposite direction blend", () => {
-  testOuterRingBlending(
+  testOneRingBlending(
     Math.PI,
     1,
     "action1 should have correct weight for opposite direction blend",
@@ -527,7 +527,7 @@ test("setBlend: only one ring: exact: should handle opposite direction blend", (
 });
 
 test("setBlend: only one ring: exact: should blend exactly at first action position", () => {
-  testOuterRingBlending(
+  testOneRingBlending(
     -Math.PI / 4,
     1,
     "action1 should have maximum weight when blend is at its position",
@@ -536,7 +536,7 @@ test("setBlend: only one ring: exact: should blend exactly at first action posit
 });
 
 test("setBlend: only one ring: exact: should blend slightly past first action position", () => {
-  testOuterRingBlending(
+  testOneRingBlending(
     -Math.PI / 4 + 0.1,
     1,
     "action1 should have correct weight when blend slightly exceeds its position",
@@ -546,7 +546,7 @@ test("setBlend: only one ring: exact: should blend slightly past first action po
 
 // Tests with radius 0.9
 test("setBlend: only one ring: within: should blend at center point between two actions", () => {
-  testOuterRingBlending(
+  testOneRingBlending(
     0,
     0.9,
     "action1 should have correct weight for center blend",
@@ -555,7 +555,7 @@ test("setBlend: only one ring: within: should blend at center point between two 
 });
 
 test("setBlend: only one ring: within: should blend slightly towards second action", () => {
-  testOuterRingBlending(
+  testOneRingBlending(
     0.1,
     0.9,
     "action1 should have reduced weight when blend moves towards action2",
@@ -564,7 +564,7 @@ test("setBlend: only one ring: within: should blend slightly towards second acti
 });
 
 test("setBlend: only one ring: within: should blend exactly at second action position", () => {
-  testOuterRingBlending(
+  testOneRingBlending(
     Math.PI / 4,
     0.9,
     "action1 should have minimal weight when blend is at action2 position",
@@ -573,7 +573,7 @@ test("setBlend: only one ring: within: should blend exactly at second action pos
 });
 
 test("setBlend: only one ring: within: should blend past second action position", () => {
-  testOuterRingBlending(
+  testOneRingBlending(
     Math.PI / 4 + 0.1,
     0.9,
     "action1 should have correct weight when blend exceeds action2 position",
@@ -582,7 +582,7 @@ test("setBlend: only one ring: within: should blend past second action position"
 });
 
 test("setBlend: only one ring: within: should handle opposite direction blend", () => {
-  testOuterRingBlending(
+  testOneRingBlending(
     Math.PI,
     0.9,
     "action1 should have correct weight for opposite direction blend",
@@ -591,7 +591,7 @@ test("setBlend: only one ring: within: should handle opposite direction blend", 
 });
 
 test("setBlend: only one ring: within: should blend exactly at first action position", () => {
-  testOuterRingBlending(
+  testOneRingBlending(
     -Math.PI / 4,
     0.9,
     "action1 should have maximum weight when blend is at its position",
@@ -600,7 +600,7 @@ test("setBlend: only one ring: within: should blend exactly at first action posi
 });
 
 test("setBlend: only one ring: within: should blend slightly past first action position", () => {
-  testOuterRingBlending(
+  testOneRingBlending(
     -Math.PI / 4 + 0.1,
     0.9,
     "action1 should have correct weight when blend slightly exceeds its position",
@@ -609,7 +609,7 @@ test("setBlend: only one ring: within: should blend slightly past first action p
 });
 
 test("setBlend: ring and center: beyond: should blend at center point between two actions", () => {
-  testCentralActionBlending(
+  testOneRingAndCenterBlending(
     0,
     1.1,
     "action1 should have correct weight for center blend",
@@ -619,7 +619,7 @@ test("setBlend: ring and center: beyond: should blend at center point between tw
 });
 
 test("setBlend: ring and center: beyond: should blend slightly towards second action", () => {
-  testCentralActionBlending(
+  testOneRingAndCenterBlending(
     0.1,
     1.1,
     "action1 should have reduced weight when blend moves towards action2",
@@ -629,7 +629,7 @@ test("setBlend: ring and center: beyond: should blend slightly towards second ac
 });
 
 test("setBlend: ring and center: beyond: should blend exactly at second action position", () => {
-  testCentralActionBlending(
+  testOneRingAndCenterBlending(
     Math.PI / 4,
     1.1,
     "action1 should have minimal weight when blend is at action2 position",
@@ -639,7 +639,7 @@ test("setBlend: ring and center: beyond: should blend exactly at second action p
 });
 
 test("setBlend: ring and center: beyond: should blend past second action position", () => {
-  testCentralActionBlending(
+  testOneRingAndCenterBlending(
     Math.PI / 4 + 0.1,
     1.1,
     "action1 should have correct weight when blend exceeds action2 position",
@@ -649,7 +649,7 @@ test("setBlend: ring and center: beyond: should blend past second action positio
 });
 
 test("setBlend: ring and center: beyond: should handle opposite direction blend", () => {
-  testCentralActionBlending(
+  testOneRingAndCenterBlending(
     Math.PI,
     1.1,
     "action1 should have correct weight for opposite direction blend",
@@ -659,7 +659,7 @@ test("setBlend: ring and center: beyond: should handle opposite direction blend"
 });
 
 test("setBlend: ring and center: beyond: should blend exactly at first action position", () => {
-  testCentralActionBlending(
+  testOneRingAndCenterBlending(
     -Math.PI / 4,
     1.1,
     "action1 should have maximum weight when blend is at its position",
@@ -669,7 +669,7 @@ test("setBlend: ring and center: beyond: should blend exactly at first action po
 });
 
 test("setBlend: ring and center: beyond: should blend exactly at second action position", () => {
-  testCentralActionBlending(
+  testOneRingAndCenterBlending(
     Math.PI / 4,
     1.1,
     "action1 should have minimal weight when blend is at action2 position",
@@ -679,7 +679,7 @@ test("setBlend: ring and center: beyond: should blend exactly at second action p
 });
 
 test("setBlend: ring and center: beyond: should blend slightly past first action position", () => {
-  testCentralActionBlending(
+  testOneRingAndCenterBlending(
     -Math.PI / 4 + 0.1,
     1.1,
     "action1 should have correct weight when blend slightly exceeds its position",
@@ -689,7 +689,7 @@ test("setBlend: ring and center: beyond: should blend slightly past first action
 });
 
 test("setBlend: ring and center: exact: should blend at center point between two actions", () => {
-  testCentralActionBlending(
+  testOneRingAndCenterBlending(
     0,
     1,
     "action1 should have correct weight for center blend",
@@ -699,7 +699,7 @@ test("setBlend: ring and center: exact: should blend at center point between two
 });
 
 test("setBlend: ring and center: exact: should blend slightly towards second action", () => {
-  testCentralActionBlending(
+  testOneRingAndCenterBlending(
     0.1,
     1,
     "action1 should have reduced weight when blend moves towards action2",
@@ -709,7 +709,7 @@ test("setBlend: ring and center: exact: should blend slightly towards second act
 });
 
 test("setBlend: ring and center: exact: should blend exactly at second action position", () => {
-  testCentralActionBlending(
+  testOneRingAndCenterBlending(
     Math.PI / 4,
     1,
     "action1 should have minimal weight when blend is at action2 position",
@@ -719,7 +719,7 @@ test("setBlend: ring and center: exact: should blend exactly at second action po
 });
 
 test("setBlend: ring and center: exact: should blend past second action position", () => {
-  testCentralActionBlending(
+  testOneRingAndCenterBlending(
     Math.PI / 4 + 0.1,
     1,
     "action1 should have correct weight when blend exceeds action2 position",
@@ -729,7 +729,7 @@ test("setBlend: ring and center: exact: should blend past second action position
 });
 
 test("setBlend: ring and center: exact: should handle opposite direction blend", () => {
-  testCentralActionBlending(
+  testOneRingAndCenterBlending(
     Math.PI,
     1,
     "action1 should have correct weight for opposite direction blend",
@@ -739,7 +739,7 @@ test("setBlend: ring and center: exact: should handle opposite direction blend",
 });
 
 test("setBlend: ring and center: exact: should blend exactly at first action position", () => {
-  testCentralActionBlending(
+  testOneRingAndCenterBlending(
     -Math.PI / 4,
     1,
     "action1 should have maximum weight when blend is at its position",
@@ -749,7 +749,7 @@ test("setBlend: ring and center: exact: should blend exactly at first action pos
 });
 
 test("setBlend: ring and center: exact: should blend slightly past first action position", () => {
-  testCentralActionBlending(
+  testOneRingAndCenterBlending(
     -Math.PI / 4 + 0.1,
     1,
     "action1 should have correct weight when blend slightly exceeds its position",
@@ -759,7 +759,7 @@ test("setBlend: ring and center: exact: should blend slightly past first action 
 });
 
 test("setBlend: ring and center: within: should blend at center point between two actions", () => {
-  testCentralActionBlending(
+  testOneRingAndCenterBlending(
     0,
     0.75,
     "action1 should have correct weight for center blend",
@@ -769,7 +769,7 @@ test("setBlend: ring and center: within: should blend at center point between tw
 });
 
 test("setBlend: ring and center: within: should blend slightly towards second action", () => {
-  testCentralActionBlending(
+  testOneRingAndCenterBlending(
     0.1,
     0.75,
     "action1 should have reduced weight when blend moves towards action2",
@@ -779,7 +779,7 @@ test("setBlend: ring and center: within: should blend slightly towards second ac
 });
 
 test("setBlend: ring and center: within: should blend exactly at second action position", () => {
-  testCentralActionBlending(
+  testOneRingAndCenterBlending(
     Math.PI / 4,
     0.75,
     "action1 should have minimal weight when blend is at action2 position",
@@ -789,7 +789,7 @@ test("setBlend: ring and center: within: should blend exactly at second action p
 });
 
 test("setBlend: ring and center: within: should blend past second action position", () => {
-  testCentralActionBlending(
+  testOneRingAndCenterBlending(
     Math.PI / 4 + 0.1,
     0.75,
     "action1 should have correct weight when blend exceeds action2 position",
@@ -799,7 +799,7 @@ test("setBlend: ring and center: within: should blend past second action positio
 });
 
 test("setBlend: ring and center: within: should handle opposite direction blend", () => {
-  testCentralActionBlending(
+  testOneRingAndCenterBlending(
     Math.PI,
     0.75,
     "action1 should have correct weight for opposite direction blend",
@@ -809,7 +809,7 @@ test("setBlend: ring and center: within: should handle opposite direction blend"
 });
 
 test("setBlend: ring and center: within: should blend exactly at first action position", () => {
-  testCentralActionBlending(
+  testOneRingAndCenterBlending(
     -Math.PI / 4,
     0.75,
     "action1 should have maximum weight when blend is at its position",
@@ -819,7 +819,7 @@ test("setBlend: ring and center: within: should blend exactly at first action po
 });
 
 test("setBlend: ring and center: within: should blend slightly past first action position", () => {
-  testCentralActionBlending(
+  testOneRingAndCenterBlending(
     -Math.PI / 4 + 0.1,
     0.75,
     "action1 should have correct weight when blend slightly exceeds its position",
@@ -829,7 +829,7 @@ test("setBlend: ring and center: within: should blend slightly past first action
 });
 
 test("setBlend: ring and center: center: ...", () => {
-  testCentralActionBlending(
+  testOneRingAndCenterBlending(
     -Math.PI / 4 + 0.1,
     0,
     "action1 should have correct weight when blend slightly exceeds its position",
@@ -839,26 +839,19 @@ test("setBlend: ring and center: center: ...", () => {
 });
 
 test("setBlend: two rings: beyond: should blend at center point between two actions", () => {
-  testBilinearActionBlending(0, 1.1, "...tl", "...tr", "...bl", "...br");
+  testTwoRingsBlending(0, 1.1, "...tl", "...tr", "...bl", "...br");
 });
 
 test("setBlend: two rings: beyond: should blend slightly towards second action", () => {
-  testBilinearActionBlending(0.1, 1.1, "...tl", "...tr", "...bl", "...br");
+  testTwoRingsBlending(0.1, 1.1, "...tl", "...tr", "...bl", "...br");
 });
 
 test("setBlend: two rings: beyond: should blend exactly at second action position", () => {
-  testBilinearActionBlending(
-    Math.PI / 4,
-    1.1,
-    "...tl",
-    "...tr",
-    "...bl",
-    "...br",
-  );
+  testTwoRingsBlending(Math.PI / 4, 1.1, "...tl", "...tr", "...bl", "...br");
 });
 
 test("setBlend: two rings: beyond: should blend past second action position", () => {
-  testBilinearActionBlending(
+  testTwoRingsBlending(
     Math.PI / 4 + 0.1,
     1.1,
     "...tl",
@@ -869,22 +862,15 @@ test("setBlend: two rings: beyond: should blend past second action position", ()
 });
 
 test("setBlend: two rings: beyond: should handle opposite direction blend", () => {
-  testBilinearActionBlending(Math.PI, 1.1, "...tl", "...tr", "...bl", "...br");
+  testTwoRingsBlending(Math.PI, 1.1, "...tl", "...tr", "...bl", "...br");
 });
 
 test("setBlend: two rings: beyond: should blend exactly at first action position", () => {
-  testBilinearActionBlending(
-    -Math.PI / 4,
-    1.1,
-    "...tl",
-    "...tr",
-    "...bl",
-    "...br",
-  );
+  testTwoRingsBlending(-Math.PI / 4, 1.1, "...tl", "...tr", "...bl", "...br");
 });
 
 test("setBlend: two rings: beyond: should blend slightly past first action position", () => {
-  testBilinearActionBlending(
+  testTwoRingsBlending(
     -Math.PI / 4 + 0.1,
     1.1,
     "...tl",
@@ -895,26 +881,19 @@ test("setBlend: two rings: beyond: should blend slightly past first action posit
 });
 
 test("setBlend: two rings: exact outer: should blend at center point between two actions", () => {
-  testBilinearActionBlending(0, 1, "...tl", "...tr", "...bl", "...br");
+  testTwoRingsBlending(0, 1, "...tl", "...tr", "...bl", "...br");
 });
 
 test("setBlend: two rings: exact outer: should blend slightly towards second action", () => {
-  testBilinearActionBlending(0.1, 1, "...tl", "...tr", "...bl", "...br");
+  testTwoRingsBlending(0.1, 1, "...tl", "...tr", "...bl", "...br");
 });
 
 test("setBlend: two rings: exact outer: should blend exactly at second action position", () => {
-  testBilinearActionBlending(
-    Math.PI / 4,
-    1,
-    "...tl",
-    "...tr",
-    "...bl",
-    "...br",
-  );
+  testTwoRingsBlending(Math.PI / 4, 1, "...tl", "...tr", "...bl", "...br");
 });
 
 test("setBlend: two rings: exact outer: should blend past second action position", () => {
-  testBilinearActionBlending(
+  testTwoRingsBlending(
     Math.PI / 4 + 0.1,
     1,
     "...tl",
@@ -925,22 +904,15 @@ test("setBlend: two rings: exact outer: should blend past second action position
 });
 
 test("setBlend: two rings: exact outer: should handle opposite direction blend", () => {
-  testBilinearActionBlending(Math.PI, 1, "...tl", "...tr", "...bl", "...br");
+  testTwoRingsBlending(Math.PI, 1, "...tl", "...tr", "...bl", "...br");
 });
 
 test("setBlend: two rings: exact outer: should blend exactly at first action position", () => {
-  testBilinearActionBlending(
-    -Math.PI / 4,
-    1,
-    "...tl",
-    "...tr",
-    "...bl",
-    "...br",
-  );
+  testTwoRingsBlending(-Math.PI / 4, 1, "...tl", "...tr", "...bl", "...br");
 });
 
 test("setBlend: two rings: exact outer: should blend slightly past first action position", () => {
-  testBilinearActionBlending(
+  testTwoRingsBlending(
     -Math.PI / 4 + 0.1,
     1,
     "...tl",
@@ -951,26 +923,19 @@ test("setBlend: two rings: exact outer: should blend slightly past first action 
 });
 
 test("setBlend: two rings: between: should blend at center point between two actions", () => {
-  testBilinearActionBlending(0, 0.8, "...tl", "...tr", "...bl", "...br");
+  testTwoRingsBlending(0, 0.8, "...tl", "...tr", "...bl", "...br");
 });
 
 test("setBlend: two rings: between: should blend slightly towards second action", () => {
-  testBilinearActionBlending(0.1, 0.8, "...tl", "...tr", "...bl", "...br");
+  testTwoRingsBlending(0.1, 0.8, "...tl", "...tr", "...bl", "...br");
 });
 
 test("setBlend: two rings: between: should blend exactly at second action position", () => {
-  testBilinearActionBlending(
-    Math.PI / 4,
-    0.8,
-    "...tl",
-    "...tr",
-    "...bl",
-    "...br",
-  );
+  testTwoRingsBlending(Math.PI / 4, 0.8, "...tl", "...tr", "...bl", "...br");
 });
 
 test("setBlend: two rings: between: should blend past second action position", () => {
-  testBilinearActionBlending(
+  testTwoRingsBlending(
     Math.PI / 4 + 0.1,
     0.8,
     "...tl",
@@ -981,22 +946,15 @@ test("setBlend: two rings: between: should blend past second action position", (
 });
 
 test("setBlend: two rings: between: should handle opposite direction blend", () => {
-  testBilinearActionBlending(Math.PI, 0.8, "...tl", "...tr", "...bl", "...br");
+  testTwoRingsBlending(Math.PI, 0.8, "...tl", "...tr", "...bl", "...br");
 });
 
 test("setBlend: two rings: between: should blend exactly at first action position", () => {
-  testBilinearActionBlending(
-    -Math.PI / 4,
-    0.8,
-    "...tl",
-    "...tr",
-    "...bl",
-    "...br",
-  );
+  testTwoRingsBlending(-Math.PI / 4, 0.8, "...tl", "...tr", "...bl", "...br");
 });
 
 test("setBlend: two rings: between: should blend slightly past first action position", () => {
-  testBilinearActionBlending(
+  testTwoRingsBlending(
     -Math.PI / 4 + 0.1,
     0.8,
     "...tl",
@@ -1007,26 +965,19 @@ test("setBlend: two rings: between: should blend slightly past first action posi
 });
 
 test("setBlend: two rings: exact inner: should blend at center point between two actions", () => {
-  testBilinearActionBlending(0, 0.5, "...tl", "...tr", "...bl", "...br");
+  testTwoRingsBlending(0, 0.5, "...tl", "...tr", "...bl", "...br");
 });
 
 test("setBlend: two rings: exact inner: should blend slightly towards second action", () => {
-  testBilinearActionBlending(0.1, 0.5, "...tl", "...tr", "...bl", "...br");
+  testTwoRingsBlending(0.1, 0.5, "...tl", "...tr", "...bl", "...br");
 });
 
 test("setBlend: two rings: exact inner: should blend exactly at second action position", () => {
-  testBilinearActionBlending(
-    Math.PI / 4,
-    0.5,
-    "...tl",
-    "...tr",
-    "...bl",
-    "...br",
-  );
+  testTwoRingsBlending(Math.PI / 4, 0.5, "...tl", "...tr", "...bl", "...br");
 });
 
 test("setBlend: two rings: exact inner: should blend past second action position", () => {
-  testBilinearActionBlending(
+  testTwoRingsBlending(
     Math.PI / 4 + 0.1,
     0.5,
     "...tl",
@@ -1037,22 +988,15 @@ test("setBlend: two rings: exact inner: should blend past second action position
 });
 
 test("setBlend: two rings: exact inner: should handle opposite direction blend", () => {
-  testBilinearActionBlending(Math.PI, 0.5, "...tl", "...tr", "...bl", "...br");
+  testTwoRingsBlending(Math.PI, 0.5, "...tl", "...tr", "...bl", "...br");
 });
 
 test("setBlend: two rings: exact inner: should blend exactly at first action position", () => {
-  testBilinearActionBlending(
-    -Math.PI / 4,
-    0.5,
-    "...tl",
-    "...tr",
-    "...bl",
-    "...br",
-  );
+  testTwoRingsBlending(-Math.PI / 4, 0.5, "...tl", "...tr", "...bl", "...br");
 });
 
 test("setBlend: two rings: exact inner: should blend slightly past first action position", () => {
-  testBilinearActionBlending(
+  testTwoRingsBlending(
     -Math.PI / 4 + 0.1,
     0.5,
     "...tl",
@@ -1063,26 +1007,19 @@ test("setBlend: two rings: exact inner: should blend slightly past first action 
 });
 
 test("setBlend: two rings: within: should blend at center point between two actions", () => {
-  testBilinearActionBlending(0, 0.25, "...tl", "...tr", "...bl", "...br");
+  testTwoRingsBlending(0, 0.25, "...tl", "...tr", "...bl", "...br");
 });
 
 test("setBlend: two rings: within: should blend slightly towards second action", () => {
-  testBilinearActionBlending(0.1, 0.25, "...tl", "...tr", "...bl", "...br");
+  testTwoRingsBlending(0.1, 0.25, "...tl", "...tr", "...bl", "...br");
 });
 
 test("setBlend: two rings: within: should blend exactly at second action position", () => {
-  testBilinearActionBlending(
-    Math.PI / 4,
-    0.25,
-    "...tl",
-    "...tr",
-    "...bl",
-    "...br",
-  );
+  testTwoRingsBlending(Math.PI / 4, 0.25, "...tl", "...tr", "...bl", "...br");
 });
 
 test("setBlend: two rings: within: should blend past second action position", () => {
-  testBilinearActionBlending(
+  testTwoRingsBlending(
     Math.PI / 4 + 0.1,
     0.25,
     "...tl",
@@ -1093,22 +1030,15 @@ test("setBlend: two rings: within: should blend past second action position", ()
 });
 
 test("setBlend: two rings: within: should handle opposite direction blend", () => {
-  testBilinearActionBlending(Math.PI, 0.25, "...tl", "...tr", "...bl", "...br");
+  testTwoRingsBlending(Math.PI, 0.25, "...tl", "...tr", "...bl", "...br");
 });
 
 test("setBlend: two rings: within: should blend exactly at first action position", () => {
-  testBilinearActionBlending(
-    -Math.PI / 4,
-    0.25,
-    "...tl",
-    "...tr",
-    "...bl",
-    "...br",
-  );
+  testTwoRingsBlending(-Math.PI / 4, 0.25, "...tl", "...tr", "...bl", "...br");
 });
 
 test("setBlend: two rings: within: should blend slightly past first action position", () => {
-  testBilinearActionBlending(
+  testTwoRingsBlending(
     -Math.PI / 4 + 0.1,
     0.25,
     "...tl",
