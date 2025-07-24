@@ -1,6 +1,7 @@
 import type { AnimationAction } from "three";
 import { LoopOnce } from "three";
 import { StateEvent } from "../mescellaneous/AnimationStateEvent";
+import { assertValidNumber } from "../mescellaneous/assertions";
 import {
   DelaunayTriangulation,
   type Triangle,
@@ -8,6 +9,7 @@ import {
 import {
   calculateDistanceSquared,
   calculateDistanceToEdgeSquared,
+  EPSILON,
   type Anchor,
 } from "../mescellaneous/miscellaneous";
 import { AnimationTree } from "./AnimationTree";
@@ -48,6 +50,33 @@ export class FreeformBlendTree extends AnimationTree {
       );
     }
 
+    for (let i = 0; i < freeformActions.length; i++) {
+      assertValidNumber(
+        freeformActions[i].x,
+        `Freeform action at index ${i} x value`,
+      );
+      assertValidNumber(
+        freeformActions[i].y,
+        `Freeform action at index ${i} y value`,
+      );
+    }
+
+    for (let i = 0; i < freeformActions.length - 1; i++) {
+      const x = freeformActions[i].x;
+      const y = freeformActions[i].y;
+
+      for (let j = i + 1; j < freeformActions.length; j++) {
+        if (
+          Math.abs(x - freeformActions[j].x) < EPSILON &&
+          Math.abs(y - freeformActions[j].y) < EPSILON
+        ) {
+          throw new Error(
+            `Duplicate coordinates found, x: ${x}, y: ${y}. All action values must be unique.`,
+          );
+        }
+      }
+    }
+
     const anchors: FreeformAnchor[] = [];
 
     for (const freeformAction of freeformActions) {
@@ -83,6 +112,9 @@ export class FreeformBlendTree extends AnimationTree {
   }
 
   public setBlend(x: number, y: number): void {
+    assertValidNumber(x, "Blend x");
+    assertValidNumber(y, "Blend y");
+
     if (this.currentX !== x || this.currentY !== y) {
       this.currentX = x;
       this.currentY = y;
@@ -93,22 +125,10 @@ export class FreeformBlendTree extends AnimationTree {
   }
 
   protected ["onTickInternal"](): void {
-    for (const anchor of this.activeAnchors) {
-      const action = anchor.action;
-      const time = action.time;
-      const duration = anchor.duration;
-
-      if (
-        time < anchor.previousTime ||
-        (!anchor.hasFiredIterationEvent && time >= duration)
-      ) {
-        this.emit(anchor.iterationEventType, action, this);
-        anchor.hasFiredIterationEvent = true;
-      } else if (time < duration) {
-        anchor.hasFiredIterationEvent = false;
+    for (const triangle of this.triangles) {
+      for (const anchor of [triangle.a, triangle.b, triangle.c]) {
+        this.updateAnchorTime(anchor);
       }
-
-      anchor.previousTime = time;
     }
   }
 

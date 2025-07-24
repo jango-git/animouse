@@ -31,9 +31,9 @@ export interface Triangle<T extends Vector2Like> {
  */
 export interface TriangulationResult<T extends Vector2Like> {
   /** Array of triangles that form the Delaunay triangulation */
-  readonly triangles: readonly Triangle<T>[];
+  readonly triangles: Triangle<T>[];
   /** Map of outer boundary edges, where each point maps to its two adjacent boundary points */
-  readonly outerEdges: ReadonlyMap<T, readonly [T, T]>;
+  readonly outerEdges: Map<T, [T, T]>;
 }
 
 /**
@@ -374,8 +374,7 @@ export class DelaunayTriangulation {
     let maxX = -Infinity;
     let maxY = -Infinity;
 
-    for (let i = 0; i < points.length; i++) {
-      const point = points[i];
+    for (const point of points) {
       minX = Math.min(minX, point.x);
       minY = Math.min(minY, point.y);
       maxX = Math.max(maxX, point.x);

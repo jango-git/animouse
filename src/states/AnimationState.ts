@@ -1,5 +1,6 @@
 import { Eventail } from "eventail";
 import { StateEvent } from "../mescellaneous/AnimationStateEvent";
+import type { Anchor } from "../mescellaneous/miscellaneous";
 
 /**
  * Abstract base class for animation states in the animation state machine.
@@ -43,6 +44,24 @@ export abstract class AnimationState extends Eventail {
    */
   protected ["onExitInternal"](): void {
     this.emit(StateEvent.EXIT, this);
+  }
+
+  protected updateAnchorTime(anchor: Anchor): void {
+    const action = anchor.action;
+    const time = action.time;
+    const duration = anchor.duration;
+
+    if (
+      time < anchor.previousTime ||
+      (!anchor.hasFiredIterationEvent && time >= duration)
+    ) {
+      this.emit(anchor.iterationEventType, action, this);
+      anchor.hasFiredIterationEvent = true;
+    } else if (time < duration) {
+      anchor.hasFiredIterationEvent = false;
+    }
+
+    anchor.previousTime = time;
   }
 
   /**

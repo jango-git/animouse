@@ -374,21 +374,7 @@ export class PolarBlendTree extends AnimationTree {
   protected ["onTickInternal"](): void {
     for (const ray of this.rays) {
       for (const anchor of ray.anchors) {
-        const action = anchor.action;
-        const time = action.time;
-        const duration = anchor.duration;
-
-        if (
-          time < anchor.previousTime ||
-          (!anchor.hasFiredIterationEvent && time >= duration)
-        ) {
-          this.emit(anchor.iterationEventType, action, this);
-          anchor.hasFiredIterationEvent = true;
-        } else if (time < duration) {
-          anchor.hasFiredIterationEvent = false;
-        }
-
-        anchor.previousTime = time;
+        this.updateAnchorTime(anchor);
       }
     }
   }
