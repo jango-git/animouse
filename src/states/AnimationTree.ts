@@ -40,7 +40,7 @@ export abstract class AnimationTree extends AnimationState {
    * @throws {Error} When weight is not a finite number or is outside the range [0, 1]
    */
   protected updateAnchor(anchor: Anchor, weight: number = anchor.weight): void {
-    assertValidUnitRange(weight, "Invalid anchor weight");
+    assertValidUnitRange(weight, "Anchor weight");
 
     anchor.weight = weight;
 

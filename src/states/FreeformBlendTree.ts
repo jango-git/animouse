@@ -109,6 +109,7 @@ export class FreeformBlendTree extends AnimationTree {
     this.triangles = result.triangles;
     this.outerEdges = result.outerEdges;
     this.sortTriangles();
+    this.updateAnchors();
   }
 
   public setBlend(x: number, y: number): void {
@@ -133,8 +134,10 @@ export class FreeformBlendTree extends AnimationTree {
   }
 
   protected updateAnchorsInfluence(): void {
-    for (const anchor of this.activeAnchors) {
-      this.updateAnchor(anchor);
+    for (const triangle of this.triangles) {
+      for (const anchor of [triangle.a, triangle.b, triangle.c]) {
+        this.updateAnchor(anchor);
+      }
     }
   }
 
