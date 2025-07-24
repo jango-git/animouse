@@ -64,3 +64,21 @@ export function assertValidPositiveNumber(
     throw new Error(`${message}: value must be greater or equal to ${EPSILON}`);
   }
 }
+
+/**
+ * Asserts that a number is non-negative (greater than or equal to 0).
+ *
+ * @param value - The number to validate
+ * @param message - Custom error message for validation failure
+ * @throws {Error} When the value is negative
+ */
+export function assertValidNonNegativeNumber(
+  value: number,
+  message: string,
+): void {
+  assertValidNumber(value, message);
+
+  if (value < 0) {
+    throw new Error(`${message}: value must be greater than or equal to 0`);
+  }
+}

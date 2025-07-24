@@ -2,13 +2,13 @@ import { test } from "uvu";
 import * as assert from "uvu/assert";
 import {
   assertValidAzimuth,
+  assertValidNonNegativeNumber,
   assertValidNumber,
   assertValidPositiveNumber,
   assertValidUnitRange,
 } from "../src/mescellaneous/assertions";
 import { EPSILON } from "../src/mescellaneous/miscellaneous";
 
-// assertValidNumber tests
 test("assertValidNumber: should not throw for valid finite numbers", () => {
   assert.not.throws(() => assertValidNumber(0, "test"));
   assert.not.throws(() => assertValidNumber(123.456, "test"));
@@ -43,7 +43,6 @@ test("assertValidNumber: should throw for values exceeding safe integer range", 
   );
 });
 
-// assertValidAzimuth tests
 test("assertValidAzimuth: should not throw for valid azimuth values", () => {
   assert.not.throws(() => assertValidAzimuth(0, "test"));
   assert.not.throws(() => assertValidAzimuth(Math.PI, "test"));
@@ -86,7 +85,6 @@ test("assertValidAzimuth: should throw for non-finite azimuth values", () => {
   );
 });
 
-// assertValidUnitRange tests
 test("assertValidUnitRange: should not throw for valid unit range values", () => {
   assert.not.throws(() => assertValidUnitRange(0, "test"));
   assert.not.throws(() => assertValidUnitRange(0.5, "test"));
@@ -136,7 +134,6 @@ test("assertValidUnitRange: should throw for values exceeding safe integer range
   );
 });
 
-// assertValidPositiveNumber tests
 test("assertValidPositiveNumber: should not throw for positive values", () => {
   assert.not.throws(() => assertValidPositiveNumber(0.1, "test"));
   assert.not.throws(() => assertValidPositiveNumber(1, "test"));
@@ -189,6 +186,58 @@ test("assertValidPositiveNumber: should throw for values exceeding safe integer 
   );
   assert.throws(
     () => assertValidPositiveNumber(-Number.MAX_SAFE_INTEGER - 1, "test"),
+    /test: value exceeds maximum safe integer range/,
+  );
+});
+
+test("assertValidNonNegativeNumber: should not throw for non-negative values", () => {
+  assert.not.throws(() => assertValidNonNegativeNumber(0, "test"));
+  assert.not.throws(() => assertValidNonNegativeNumber(0.1, "test"));
+  assert.not.throws(() => assertValidNonNegativeNumber(1, "test"));
+  assert.not.throws(() => assertValidNonNegativeNumber(123.456, "test"));
+  assert.not.throws(() => assertValidNonNegativeNumber(1000, "test"));
+  assert.not.throws(() =>
+    assertValidNonNegativeNumber(Number.MAX_SAFE_INTEGER, "test"),
+  );
+});
+
+test("assertValidNonNegativeNumber: should throw for negative values", () => {
+  assert.throws(
+    () => assertValidNonNegativeNumber(-0.1, "test"),
+    /test: value must be greater than or equal to 0/,
+  );
+  assert.throws(
+    () => assertValidNonNegativeNumber(-1, "test"),
+    /test: value must be greater than or equal to 0/,
+  );
+  assert.throws(
+    () => assertValidNonNegativeNumber(-100, "test"),
+    /test: value must be greater than or equal to 0/,
+  );
+});
+
+test("assertValidNonNegativeNumber: should throw for non-finite values with correct message", () => {
+  assert.throws(
+    () => assertValidNonNegativeNumber(NaN, "test"),
+    /test: value must be a finite number/,
+  );
+  assert.throws(
+    () => assertValidNonNegativeNumber(Infinity, "test"),
+    /test: value must be a finite number/,
+  );
+  assert.throws(
+    () => assertValidNonNegativeNumber(-Infinity, "test"),
+    /test: value must be a finite number/,
+  );
+});
+
+test("assertValidNonNegativeNumber: should throw for values exceeding safe integer range", () => {
+  assert.throws(
+    () => assertValidNonNegativeNumber(Number.MAX_SAFE_INTEGER + 1, "test"),
+    /test: value exceeds maximum safe integer range/,
+  );
+  assert.throws(
+    () => assertValidNonNegativeNumber(-Number.MAX_SAFE_INTEGER - 1, "test"),
     /test: value exceeds maximum safe integer range/,
   );
 });

@@ -21,10 +21,10 @@ export function assertEqualWithTolerance(
 
 export function lerpLinear(
   value: number,
-  l: number,
-  r: number,
+  from: number,
+  to: number,
 ): [number, number] {
-  const weight = (value - l) / (r - l);
+  const weight = (value - from) / (to - from);
   const inverseWeight = 1 - weight;
   return [inverseWeight, weight];
 }

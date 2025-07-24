@@ -2,6 +2,7 @@ import type { AnimationAction } from "three";
 import { LoopOnce } from "three";
 import { StateEvent } from "../mescellaneous/AnimationStateEvent";
 import {
+  assertValidNonNegativeNumber,
   assertValidNumber,
   assertValidPositiveNumber,
 } from "../mescellaneous/assertions";
@@ -346,7 +347,7 @@ export class PolarBlendTree extends AnimationTree {
    */
   public setBlend(azimuth: number, radius: number): void {
     assertValidNumber(azimuth, "Blend azimuth");
-    assertValidPositiveNumber(radius, "Blend radius");
+    assertValidNonNegativeNumber(radius, "Blend radius");
 
     const normalizedAzimuth = calculateNormalizedAzimuth(azimuth);
 
@@ -474,8 +475,8 @@ export class PolarBlendTree extends AnimationTree {
           let lWeight = lRayT;
           let rWeight = rRayT;
 
-          weights.set(lRay.anchors[0], lWeight);
-          weights.set(rRay.anchors[0], rWeight);
+          weights.set(lRay.anchors[lRay.anchors.length - 1], lWeight);
+          weights.set(rRay.anchors[rRay.anchors.length - 1], rWeight);
         } else {
           this.calculateBilinearWeights(
             weights,
@@ -540,10 +541,10 @@ export class PolarBlendTree extends AnimationTree {
           (this.currentRadius - innerRadius) / (outerRadius - innerRadius);
         const innerRingT = 1 - outerRingT;
 
-        weights.set(innerRing.anchors[lRayIndex], innerRingT * lRayT);
-        weights.set(outerRing.anchors[lRayIndex], innerRingT * rRayT);
-        weights.set(innerRing.anchors[rRayIndex], outerRingT * lRayT);
+        weights.set(outerRing.anchors[lRayIndex], outerRingT * lRayT);
         weights.set(outerRing.anchors[rRayIndex], outerRingT * rRayT);
+        weights.set(innerRing.anchors[lRayIndex], innerRingT * lRayT);
+        weights.set(innerRing.anchors[rRayIndex], innerRingT * rRayT);
 
         return;
       }
