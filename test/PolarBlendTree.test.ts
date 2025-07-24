@@ -299,7 +299,6 @@ test("constructor: should initialize actions to stopped state", () => {
   action2.action.play();
   central.play();
 
-  // Set initial non-zero values to verify they get reset
   action1.action.time = 0.5;
   action1.action.weight = 0.7;
   action2.action.time = 0.3;
@@ -309,7 +308,6 @@ test("constructor: should initialize actions to stopped state", () => {
 
   new PolarBlendTreeProxy([action1, action2], central);
 
-  // Constructor should reset all actions to stopped state
   assertEqualWithTolerance(
     action1.action.time,
     0,
@@ -397,15 +395,12 @@ test("setBlend: should skip update when blend value unchanged", () => {
 
   const value = 0.5;
 
-  // Set initial blend value
   blendTree.setBlend(value, 1);
   const initialWeight1 = action1.action.weight;
   const initialWeight2 = action2.action.weight;
 
-  // Set same value again - should be optimized to skip update
   blendTree.setBlend(value, 1);
 
-  // Weights should remain unchanged (optimization working)
   assertEqualWithTolerance(
     action1.action.weight,
     initialWeight1,
@@ -544,7 +539,6 @@ test("setBlend: only one ring: exact: should blend slightly past first action po
   );
 });
 
-// Tests with radius 0.9
 test("setBlend: only one ring: within: should blend at center point between two actions", () => {
   testOneRingBlending(
     0,
@@ -614,7 +608,7 @@ test("setBlend: ring and center: beyond: should blend at center point between tw
     1.1,
     "action1 should have correct weight for center blend",
     "action2 should have correct weight for center blend",
-    "...",
+    "center action should have weight 0 when radius exceeds 1",
   );
 });
 
@@ -624,7 +618,7 @@ test("setBlend: ring and center: beyond: should blend slightly towards second ac
     1.1,
     "action1 should have reduced weight when blend moves towards action2",
     "action2 should have increased weight when blend moves towards action2",
-    "...",
+    "center action should have weight 0 when radius exceeds 1",
   );
 });
 
@@ -634,7 +628,7 @@ test("setBlend: ring and center: beyond: should blend exactly at second action p
     1.1,
     "action1 should have minimal weight when blend is at action2 position",
     "action2 should have maximum weight when blend is at its position",
-    "...",
+    "center action should have weight 0 when radius exceeds 1",
   );
 });
 
@@ -644,7 +638,7 @@ test("setBlend: ring and center: beyond: should blend past second action positio
     1.1,
     "action1 should have correct weight when blend exceeds action2 position",
     "action2 should have correct weight when blend exceeds its position",
-    "...",
+    "center action should have weight 0 when radius exceeds 1",
   );
 });
 
@@ -654,7 +648,7 @@ test("setBlend: ring and center: beyond: should handle opposite direction blend"
     1.1,
     "action1 should have correct weight for opposite direction blend",
     "action2 should have correct weight for opposite direction blend",
-    "...",
+    "center action should have weight 0 when radius exceeds 1",
   );
 });
 
@@ -664,7 +658,7 @@ test("setBlend: ring and center: beyond: should blend exactly at first action po
     1.1,
     "action1 should have maximum weight when blend is at its position",
     "action2 should have minimal weight when blend is at action1 position",
-    "...",
+    "center action should have weight 0 when radius exceeds 1",
   );
 });
 
@@ -674,7 +668,7 @@ test("setBlend: ring and center: beyond: should blend exactly at second action p
     1.1,
     "action1 should have minimal weight when blend is at action2 position",
     "action2 should have maximum weight when blend is at its position",
-    "...",
+    "center action should have weight 0 when radius exceeds 1",
   );
 });
 
@@ -684,7 +678,7 @@ test("setBlend: ring and center: beyond: should blend slightly past first action
     1.1,
     "action1 should have correct weight when blend slightly exceeds its position",
     "action2 should have correct weight when blend slightly exceeds action1 position",
-    "...",
+    "center action should have weight 0 when radius exceeds 1",
   );
 });
 
@@ -694,7 +688,7 @@ test("setBlend: ring and center: exact: should blend at center point between two
     1,
     "action1 should have correct weight for center blend",
     "action2 should have correct weight for center blend",
-    "...",
+    "center action should have weight 0 when radius is 1",
   );
 });
 
@@ -704,7 +698,7 @@ test("setBlend: ring and center: exact: should blend slightly towards second act
     1,
     "action1 should have reduced weight when blend moves towards action2",
     "action2 should have increased weight when blend moves towards action2",
-    "...",
+    "center action should have weight 0 when radius is 1",
   );
 });
 
@@ -714,7 +708,7 @@ test("setBlend: ring and center: exact: should blend exactly at second action po
     1,
     "action1 should have minimal weight when blend is at action2 position",
     "action2 should have maximum weight when blend is at its position",
-    "...",
+    "center action should have weight 0 when radius is 1",
   );
 });
 
@@ -724,7 +718,7 @@ test("setBlend: ring and center: exact: should blend past second action position
     1,
     "action1 should have correct weight when blend exceeds action2 position",
     "action2 should have correct weight when blend exceeds its position",
-    "...",
+    "center action should have weight 0 when radius is 1",
   );
 });
 
@@ -734,7 +728,7 @@ test("setBlend: ring and center: exact: should handle opposite direction blend",
     1,
     "action1 should have correct weight for opposite direction blend",
     "action2 should have correct weight for opposite direction blend",
-    "...",
+    "center action should have weight 0 when radius is 1",
   );
 });
 
@@ -744,7 +738,7 @@ test("setBlend: ring and center: exact: should blend exactly at first action pos
     1,
     "action1 should have maximum weight when blend is at its position",
     "action2 should have minimal weight when blend is at action1 position",
-    "...",
+    "center action should have weight 0 when radius is 1",
   );
 });
 
@@ -754,7 +748,7 @@ test("setBlend: ring and center: exact: should blend slightly past first action 
     1,
     "action1 should have correct weight when blend slightly exceeds its position",
     "action2 should have correct weight when blend slightly exceeds action1 position",
-    "...",
+    "center action should have weight 0 when radius is 1",
   );
 });
 
@@ -764,7 +758,7 @@ test("setBlend: ring and center: within: should blend at center point between tw
     0.75,
     "action1 should have correct weight for center blend",
     "action2 should have correct weight for center blend",
-    "...",
+    "center action should have weight 0.25 when radius is 0.75",
   );
 });
 
@@ -774,7 +768,7 @@ test("setBlend: ring and center: within: should blend slightly towards second ac
     0.75,
     "action1 should have reduced weight when blend moves towards action2",
     "action2 should have increased weight when blend moves towards action2",
-    "...",
+    "center action should have weight 0.25 when radius is 0.75",
   );
 });
 
@@ -784,7 +778,7 @@ test("setBlend: ring and center: within: should blend exactly at second action p
     0.75,
     "action1 should have minimal weight when blend is at action2 position",
     "action2 should have maximum weight when blend is at its position",
-    "...",
+    "center action should have weight 0.25 when radius is 0.75",
   );
 });
 
@@ -794,7 +788,7 @@ test("setBlend: ring and center: within: should blend past second action positio
     0.75,
     "action1 should have correct weight when blend exceeds action2 position",
     "action2 should have correct weight when blend exceeds its position",
-    "...",
+    "center action should have weight 0.25 when radius is 0.75",
   );
 });
 
@@ -804,7 +798,7 @@ test("setBlend: ring and center: within: should handle opposite direction blend"
     0.75,
     "action1 should have correct weight for opposite direction blend",
     "action2 should have correct weight for opposite direction blend",
-    "...",
+    "center action should have weight 0.25 when radius is 0.75",
   );
 });
 
@@ -814,7 +808,7 @@ test("setBlend: ring and center: within: should blend exactly at first action po
     0.75,
     "action1 should have maximum weight when blend is at its position",
     "action2 should have minimal weight when blend is at action1 position",
-    "...",
+    "center action should have weight 0.25 when radius is 0.75",
   );
 });
 
@@ -824,227 +818,402 @@ test("setBlend: ring and center: within: should blend slightly past first action
     0.75,
     "action1 should have correct weight when blend slightly exceeds its position",
     "action2 should have correct weight when blend slightly exceeds action1 position",
-    "...",
+    "center action should have weight 0.25 when radius is 0.75",
   );
 });
 
-test("setBlend: ring and center: center: ...", () => {
+test("setBlend: ring and center: center: should blend at center with zero radius", () => {
   testOneRingAndCenterBlending(
     -Math.PI / 4 + 0.1,
     0,
     "action1 should have correct weight when blend slightly exceeds its position",
     "action2 should have correct weight when blend slightly exceeds action1 position",
-    "...",
+    "center action should have weight 1 when radius is 0",
   );
 });
 
 test("setBlend: two rings: beyond: should blend at center point between two actions", () => {
-  testTwoRingsBlending(0, 1.1, "...tl", "...tr", "...bl", "...br");
+  testTwoRingsBlending(
+    0,
+    1.1,
+    "top-left action should have correct weight for center blend",
+    "top-right action should have correct weight for center blend",
+    "bottom-left action should have correct weight for center blend",
+    "bottom-right action should have correct weight for center blend",
+  );
 });
 
 test("setBlend: two rings: beyond: should blend slightly towards second action", () => {
-  testTwoRingsBlending(0.1, 1.1, "...tl", "...tr", "...bl", "...br");
+  testTwoRingsBlending(
+    0.1,
+    1.1,
+    "top-left action should have reduced weight when blend moves towards right",
+    "top-right action should have increased weight when blend moves towards right",
+    "bottom-left action should have reduced weight when blend moves towards right",
+    "bottom-right action should have increased weight when blend moves towards right",
+  );
 });
 
 test("setBlend: two rings: beyond: should blend exactly at second action position", () => {
-  testTwoRingsBlending(Math.PI / 4, 1.1, "...tl", "...tr", "...bl", "...br");
+  testTwoRingsBlending(
+    Math.PI / 4,
+    1.1,
+    "top-left action should have minimal weight when blend is at right position",
+    "top-right action should have maximum weight when blend is at its position",
+    "bottom-left action should have minimal weight when blend is at right position",
+    "bottom-right action should have maximum weight when blend is at its position",
+  );
 });
 
 test("setBlend: two rings: beyond: should blend past second action position", () => {
   testTwoRingsBlending(
     Math.PI / 4 + 0.1,
     1.1,
-    "...tl",
-    "...tr",
-    "...bl",
-    "...br",
+    "top-left action should have correct weight when blend exceeds right position",
+    "top-right action should have correct weight when blend exceeds its position",
+    "bottom-left action should have correct weight when blend exceeds right position",
+    "bottom-right action should have correct weight when blend exceeds its position",
   );
 });
 
 test("setBlend: two rings: beyond: should handle opposite direction blend", () => {
-  testTwoRingsBlending(Math.PI, 1.1, "...tl", "...tr", "...bl", "...br");
+  testTwoRingsBlending(
+    Math.PI,
+    1.1,
+    "top-left action should have correct weight for opposite direction blend",
+    "top-right action should have correct weight for opposite direction blend",
+    "bottom-left action should have correct weight for opposite direction blend",
+    "bottom-right action should have correct weight for opposite direction blend",
+  );
 });
 
 test("setBlend: two rings: beyond: should blend exactly at first action position", () => {
-  testTwoRingsBlending(-Math.PI / 4, 1.1, "...tl", "...tr", "...bl", "...br");
+  testTwoRingsBlending(
+    -Math.PI / 4,
+    1.1,
+    "top-left action should have maximum weight when blend is at its position",
+    "top-right action should have minimal weight when blend is at left position",
+    "bottom-left action should have maximum weight when blend is at its position",
+    "bottom-right action should have minimal weight when blend is at left position",
+  );
 });
 
 test("setBlend: two rings: beyond: should blend slightly past first action position", () => {
   testTwoRingsBlending(
     -Math.PI / 4 + 0.1,
     1.1,
-    "...tl",
-    "...tr",
-    "...bl",
-    "...br",
+    "top-left action should have correct weight when blend slightly exceeds its position",
+    "top-right action should have correct weight when blend slightly exceeds left position",
+    "bottom-left action should have correct weight when blend slightly exceeds its position",
+    "bottom-right action should have correct weight when blend slightly exceeds left position",
   );
 });
 
 test("setBlend: two rings: exact outer: should blend at center point between two actions", () => {
-  testTwoRingsBlending(0, 1, "...tl", "...tr", "...bl", "...br");
+  testTwoRingsBlending(
+    0,
+    1,
+    "top-left action should have correct weight for center blend",
+    "top-right action should have correct weight for center blend",
+    "bottom-left action should have correct weight for center blend",
+    "bottom-right action should have correct weight for center blend",
+  );
 });
 
 test("setBlend: two rings: exact outer: should blend slightly towards second action", () => {
-  testTwoRingsBlending(0.1, 1, "...tl", "...tr", "...bl", "...br");
+  testTwoRingsBlending(
+    0.1,
+    1,
+    "top-left action should have reduced weight when blend moves towards right",
+    "top-right action should have increased weight when blend moves towards right",
+    "bottom-left action should have reduced weight when blend moves towards right",
+    "bottom-right action should have increased weight when blend moves towards right",
+  );
 });
 
 test("setBlend: two rings: exact outer: should blend exactly at second action position", () => {
-  testTwoRingsBlending(Math.PI / 4, 1, "...tl", "...tr", "...bl", "...br");
+  testTwoRingsBlending(
+    Math.PI / 4,
+    1,
+    "top-left action should have minimal weight when blend is at right position",
+    "top-right action should have maximum weight when blend is at its position",
+    "bottom-left action should have minimal weight when blend is at right position",
+    "bottom-right action should have maximum weight when blend is at its position",
+  );
 });
 
 test("setBlend: two rings: exact outer: should blend past second action position", () => {
   testTwoRingsBlending(
     Math.PI / 4 + 0.1,
     1,
-    "...tl",
-    "...tr",
-    "...bl",
-    "...br",
+    "top-left action should have correct weight when blend exceeds right position",
+    "top-right action should have correct weight when blend exceeds its position",
+    "bottom-left action should have correct weight when blend exceeds right position",
+    "bottom-right action should have correct weight when blend exceeds its position",
   );
 });
 
 test("setBlend: two rings: exact outer: should handle opposite direction blend", () => {
-  testTwoRingsBlending(Math.PI, 1, "...tl", "...tr", "...bl", "...br");
+  testTwoRingsBlending(
+    Math.PI,
+    1,
+    "top-left action should have correct weight for opposite direction blend",
+    "top-right action should have correct weight for opposite direction blend",
+    "bottom-left action should have correct weight for opposite direction blend",
+    "bottom-right action should have correct weight for opposite direction blend",
+  );
 });
 
 test("setBlend: two rings: exact outer: should blend exactly at first action position", () => {
-  testTwoRingsBlending(-Math.PI / 4, 1, "...tl", "...tr", "...bl", "...br");
+  testTwoRingsBlending(
+    -Math.PI / 4,
+    1,
+    "top-left action should have maximum weight when blend is at its position",
+    "top-right action should have minimal weight when blend is at left position",
+    "bottom-left action should have maximum weight when blend is at its position",
+    "bottom-right action should have minimal weight when blend is at left position",
+  );
 });
 
 test("setBlend: two rings: exact outer: should blend slightly past first action position", () => {
   testTwoRingsBlending(
     -Math.PI / 4 + 0.1,
     1,
-    "...tl",
-    "...tr",
-    "...bl",
-    "...br",
+    "top-left action should have correct weight when blend slightly exceeds its position",
+    "top-right action should have correct weight when blend slightly exceeds left position",
+    "bottom-left action should have correct weight when blend slightly exceeds its position",
+    "bottom-right action should have correct weight when blend slightly exceeds left position",
   );
 });
 
 test("setBlend: two rings: between: should blend at center point between two actions", () => {
-  testTwoRingsBlending(0, 0.8, "...tl", "...tr", "...bl", "...br");
+  testTwoRingsBlending(
+    0,
+    0.8,
+    "top-left action should have correct weight for center blend",
+    "top-right action should have correct weight for center blend",
+    "bottom-left action should have correct weight for center blend",
+    "bottom-right action should have correct weight for center blend",
+  );
 });
 
 test("setBlend: two rings: between: should blend slightly towards second action", () => {
-  testTwoRingsBlending(0.1, 0.8, "...tl", "...tr", "...bl", "...br");
+  testTwoRingsBlending(
+    0.1,
+    0.8,
+    "top-left action should have reduced weight when blend moves towards right",
+    "top-right action should have increased weight when blend moves towards right",
+    "bottom-left action should have reduced weight when blend moves towards right",
+    "bottom-right action should have increased weight when blend moves towards right",
+  );
 });
 
 test("setBlend: two rings: between: should blend exactly at second action position", () => {
-  testTwoRingsBlending(Math.PI / 4, 0.8, "...tl", "...tr", "...bl", "...br");
+  testTwoRingsBlending(
+    Math.PI / 4,
+    0.8,
+    "top-left action should have minimal weight when blend is at right position",
+    "top-right action should have maximum weight when blend is at its position",
+    "bottom-left action should have minimal weight when blend is at right position",
+    "bottom-right action should have maximum weight when blend is at its position",
+  );
 });
 
 test("setBlend: two rings: between: should blend past second action position", () => {
   testTwoRingsBlending(
     Math.PI / 4 + 0.1,
     0.8,
-    "...tl",
-    "...tr",
-    "...bl",
-    "...br",
+    "top-left action should have correct weight when blend exceeds right position",
+    "top-right action should have correct weight when blend exceeds its position",
+    "bottom-left action should have correct weight when blend exceeds right position",
+    "bottom-right action should have correct weight when blend exceeds its position",
   );
 });
 
 test("setBlend: two rings: between: should handle opposite direction blend", () => {
-  testTwoRingsBlending(Math.PI, 0.8, "...tl", "...tr", "...bl", "...br");
+  testTwoRingsBlending(
+    Math.PI,
+    0.8,
+    "top-left action should have correct weight for opposite direction blend",
+    "top-right action should have correct weight for opposite direction blend",
+    "bottom-left action should have correct weight for opposite direction blend",
+    "bottom-right action should have correct weight for opposite direction blend",
+  );
 });
 
 test("setBlend: two rings: between: should blend exactly at first action position", () => {
-  testTwoRingsBlending(-Math.PI / 4, 0.8, "...tl", "...tr", "...bl", "...br");
+  testTwoRingsBlending(
+    -Math.PI / 4,
+    0.8,
+    "top-left action should have maximum weight when blend is at its position",
+    "top-right action should have minimal weight when blend is at left position",
+    "bottom-left action should have maximum weight when blend is at its position",
+    "bottom-right action should have minimal weight when blend is at left position",
+  );
 });
 
 test("setBlend: two rings: between: should blend slightly past first action position", () => {
   testTwoRingsBlending(
     -Math.PI / 4 + 0.1,
     0.8,
-    "...tl",
-    "...tr",
-    "...bl",
-    "...br",
+    "top-left action should have correct weight when blend slightly exceeds its position",
+    "top-right action should have correct weight when blend slightly exceeds left position",
+    "bottom-left action should have correct weight when blend slightly exceeds its position",
+    "bottom-right action should have correct weight when blend slightly exceeds left position",
   );
 });
 
 test("setBlend: two rings: exact inner: should blend at center point between two actions", () => {
-  testTwoRingsBlending(0, 0.5, "...tl", "...tr", "...bl", "...br");
+  testTwoRingsBlending(
+    0,
+    0.5,
+    "top-left action should have correct weight for center blend",
+    "top-right action should have correct weight for center blend",
+    "bottom-left action should have correct weight for center blend",
+    "bottom-right action should have correct weight for center blend",
+  );
 });
 
 test("setBlend: two rings: exact inner: should blend slightly towards second action", () => {
-  testTwoRingsBlending(0.1, 0.5, "...tl", "...tr", "...bl", "...br");
+  testTwoRingsBlending(
+    0.1,
+    0.5,
+    "top-left action should have reduced weight when blend moves towards right",
+    "top-right action should have increased weight when blend moves towards right",
+    "bottom-left action should have reduced weight when blend moves towards right",
+    "bottom-right action should have increased weight when blend moves towards right",
+  );
 });
 
 test("setBlend: two rings: exact inner: should blend exactly at second action position", () => {
-  testTwoRingsBlending(Math.PI / 4, 0.5, "...tl", "...tr", "...bl", "...br");
+  testTwoRingsBlending(
+    Math.PI / 4,
+    0.5,
+    "top-left action should have minimal weight when blend is at right position",
+    "top-right action should have maximum weight when blend is at its position",
+    "bottom-left action should have minimal weight when blend is at right position",
+    "bottom-right action should have maximum weight when blend is at its position",
+  );
 });
 
 test("setBlend: two rings: exact inner: should blend past second action position", () => {
   testTwoRingsBlending(
     Math.PI / 4 + 0.1,
     0.5,
-    "...tl",
-    "...tr",
-    "...bl",
-    "...br",
+    "top-left action should have correct weight when blend exceeds right position",
+    "top-right action should have correct weight when blend exceeds its position",
+    "bottom-left action should have correct weight when blend exceeds right position",
+    "bottom-right action should have correct weight when blend exceeds its position",
   );
 });
 
 test("setBlend: two rings: exact inner: should handle opposite direction blend", () => {
-  testTwoRingsBlending(Math.PI, 0.5, "...tl", "...tr", "...bl", "...br");
+  testTwoRingsBlending(
+    Math.PI,
+    0.5,
+    "top-left action should have correct weight for opposite direction blend",
+    "top-right action should have correct weight for opposite direction blend",
+    "bottom-left action should have correct weight for opposite direction blend",
+    "bottom-right action should have correct weight for opposite direction blend",
+  );
 });
 
 test("setBlend: two rings: exact inner: should blend exactly at first action position", () => {
-  testTwoRingsBlending(-Math.PI / 4, 0.5, "...tl", "...tr", "...bl", "...br");
+  testTwoRingsBlending(
+    -Math.PI / 4,
+    0.5,
+    "top-left action should have maximum weight when blend is at its position",
+    "top-right action should have minimal weight when blend is at left position",
+    "bottom-left action should have maximum weight when blend is at its position",
+    "bottom-right action should have minimal weight when blend is at left position",
+  );
 });
 
 test("setBlend: two rings: exact inner: should blend slightly past first action position", () => {
   testTwoRingsBlending(
     -Math.PI / 4 + 0.1,
     0.5,
-    "...tl",
-    "...tr",
-    "...bl",
-    "...br",
+    "top-left action should have correct weight when blend slightly exceeds its position",
+    "top-right action should have correct weight when blend slightly exceeds left position",
+    "bottom-left action should have correct weight when blend slightly exceeds its position",
+    "bottom-right action should have correct weight when blend slightly exceeds left position",
   );
 });
 
 test("setBlend: two rings: within: should blend at center point between two actions", () => {
-  testTwoRingsBlending(0, 0.25, "...tl", "...tr", "...bl", "...br");
+  testTwoRingsBlending(
+    0,
+    0.25,
+    "top-left action should have correct weight for center blend",
+    "top-right action should have correct weight for center blend",
+    "bottom-left action should have correct weight for center blend",
+    "bottom-right action should have correct weight for center blend",
+  );
 });
 
 test("setBlend: two rings: within: should blend slightly towards second action", () => {
-  testTwoRingsBlending(0.1, 0.25, "...tl", "...tr", "...bl", "...br");
+  testTwoRingsBlending(
+    0.1,
+    0.25,
+    "top-left action should have reduced weight when blend moves towards right",
+    "top-right action should have increased weight when blend moves towards right",
+    "bottom-left action should have reduced weight when blend moves towards right",
+    "bottom-right action should have increased weight when blend moves towards right",
+  );
 });
 
 test("setBlend: two rings: within: should blend exactly at second action position", () => {
-  testTwoRingsBlending(Math.PI / 4, 0.25, "...tl", "...tr", "...bl", "...br");
+  testTwoRingsBlending(
+    Math.PI / 4,
+    0.25,
+    "top-left action should have minimal weight when blend is at right position",
+    "top-right action should have maximum weight when blend is at its position",
+    "bottom-left action should have minimal weight when blend is at right position",
+    "bottom-right action should have maximum weight when blend is at its position",
+  );
 });
 
 test("setBlend: two rings: within: should blend past second action position", () => {
   testTwoRingsBlending(
     Math.PI / 4 + 0.1,
     0.25,
-    "...tl",
-    "...tr",
-    "...bl",
-    "...br",
+    "top-left action should have correct weight when blend exceeds right position",
+    "top-right action should have correct weight when blend exceeds its position",
+    "bottom-left action should have correct weight when blend exceeds right position",
+    "bottom-right action should have correct weight when blend exceeds its position",
   );
 });
 
 test("setBlend: two rings: within: should handle opposite direction blend", () => {
-  testTwoRingsBlending(Math.PI, 0.25, "...tl", "...tr", "...bl", "...br");
+  testTwoRingsBlending(
+    Math.PI,
+    0.25,
+    "top-left action should have correct weight for opposite direction blend",
+    "top-right action should have correct weight for opposite direction blend",
+    "bottom-left action should have correct weight for opposite direction blend",
+    "bottom-right action should have correct weight for opposite direction blend",
+  );
 });
 
 test("setBlend: two rings: within: should blend exactly at first action position", () => {
-  testTwoRingsBlending(-Math.PI / 4, 0.25, "...tl", "...tr", "...bl", "...br");
+  testTwoRingsBlending(
+    -Math.PI / 4,
+    0.25,
+    "top-left action should have maximum weight when blend is at its position",
+    "top-right action should have minimal weight when blend is at left position",
+    "bottom-left action should have maximum weight when blend is at its position",
+    "bottom-right action should have minimal weight when blend is at left position",
+  );
 });
 
 test("setBlend: two rings: within: should blend slightly past first action position", () => {
   testTwoRingsBlending(
     -Math.PI / 4 + 0.1,
     0.25,
-    "...tl",
-    "...tr",
-    "...bl",
-    "...br",
+    "top-left action should have correct weight when blend slightly exceeds its position",
+    "top-right action should have correct weight when blend slightly exceeds left position",
+    "bottom-left action should have correct weight when blend slightly exceeds its position",
+    "bottom-right action should have correct weight when blend slightly exceeds left position",
   );
 });
 
@@ -1074,7 +1243,7 @@ test("events: should emit ENTER/EXIT events", () => {
   assert.equal(
     enterEventFired,
     true,
-    "ENTER event should be fired after setting influence",
+    "ENTER event should be fired after invoking onEnter",
   );
   assert.equal(enterState, blendTree, "ENTER event should provide the state");
 
@@ -1092,7 +1261,7 @@ test("events: should emit ENTER/EXIT events", () => {
   assert.equal(
     exitEventFired,
     true,
-    "EXIT event should be fired after setting influence",
+    "EXIT event should be fired after invoking onExit",
   );
   assert.equal(exitState, blendTree, "EXIT event should provide the state");
 });
@@ -1108,7 +1277,6 @@ test("events: should emit correct FINISH/ITERATE event based on animation loop m
     loopPingPongAction,
   ]);
 
-  // Track which events fire for each loop mode
   let loopOnceFinishEventFired = false;
   let loopOnceIterateEventFired = false;
 
@@ -1138,19 +1306,16 @@ test("events: should emit correct FINISH/ITERATE event based on animation loop m
     }
   });
 
-  // Simulate LoopOnce action reaching end (time = duration)
   loopOnceAction.action.time = 1;
   loopRepeatAction.action.time = 0;
   loopPingPongAction.action.time = 0;
   blendTree.invokeOnTick();
 
-  // Simulate LoopRepeat action reaching end (time = duration)
   loopOnceAction.action.time = 0;
   loopRepeatAction.action.time = 1;
   loopPingPongAction.action.time = 0;
   blendTree.invokeOnTick();
 
-  // Simulate LoopPingPong action reaching end (time = duration)
   loopOnceAction.action.time = 0;
   loopRepeatAction.action.time = 0;
   loopPingPongAction.action.time = 1;
@@ -1200,7 +1365,11 @@ test("events: should prevent duplicate iteration events", () => {
   blendTree.invokeOnTick();
   blendTree.invokeOnTick();
 
-  assert.equal(eventCount, 1);
+  assert.equal(
+    eventCount,
+    1,
+    "Iteration event should only fire once per animation cycle",
+  );
 });
 
 test("events: should start animation and emit PLAY when influence becomes positive", () => {

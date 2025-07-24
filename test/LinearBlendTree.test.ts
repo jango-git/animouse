@@ -138,7 +138,6 @@ test("constructor: should initialize actions to stopped state", () => {
   action1.action.play();
   action2.action.play();
 
-  // Set initial non-zero values to verify they get reset
   action1.action.time = 0.5;
   action1.action.weight = 0.7;
   action2.action.time = 0.3;
@@ -146,7 +145,6 @@ test("constructor: should initialize actions to stopped state", () => {
 
   new LinearBlendTreeProxy([action1, action2]);
 
-  // Constructor should reset all actions to stopped state
   assertEqualWithTolerance(
     action1.action.time,
     0,
@@ -179,7 +177,7 @@ test("constructor: should initialize actions to stopped state", () => {
   );
 });
 
-test("setInluence: should throw error for invalid influence values", () => {
+test("setInfluence: should throw error for invalid influence values", () => {
   const tree = new LinearBlendTreeProxy([
     buildMockLinearAction(0),
     buildMockLinearAction(1),
@@ -258,32 +256,67 @@ test("setBlend: should skip update when blend value unchanged", () => {
   );
 });
 
-test("setBlend: three actions: beyond left: ...", () => {
-  testLinearBlending(-2, "...l", "...c", "...r");
+test("setBlend: three actions: beyond left: should clamp to leftmost action", () => {
+  testLinearBlending(
+    -2,
+    "left action should have weight 1",
+    "center action should have weight 0",
+    "right action should have weight 0",
+  );
 });
 
-test("setBlend: three actions: exact left: ...", () => {
-  testLinearBlending(-1, "...", "...", "...");
+test("setBlend: three actions: exact left: should give full weight to leftmost action", () => {
+  testLinearBlending(
+    -1,
+    "left action should have weight 1",
+    "center action should have weight 0",
+    "right action should have weight 0",
+  );
 });
 
-test("setBlend: three actions: between left and center: ...", () => {
-  testLinearBlending(-0.5, "...", "...", "...");
+test("setBlend: three actions: between left and center: should interpolate between left and center actions", () => {
+  testLinearBlending(
+    -0.5,
+    "left action should have weight 0.5",
+    "center action should have weight 0.5",
+    "right action should have weight 0",
+  );
 });
 
-test("setBlend: three actions: exact center: ...", () => {
-  testLinearBlending(0, "...", "...", "...");
+test("setBlend: three actions: exact center: should give full weight to center action", () => {
+  testLinearBlending(
+    0,
+    "left action should have weight 0",
+    "center action should have weight 1",
+    "right action should have weight 0",
+  );
 });
 
-test("setBlend: three actions: between center and right: ...", () => {
-  testLinearBlending(0.5, "...", "...", "...");
+test("setBlend: three actions: between center and right: should interpolate between center and right actions", () => {
+  testLinearBlending(
+    0.5,
+    "left action should have weight 0",
+    "center action should have weight 0.5",
+    "right action should have weight 0.5",
+  );
 });
 
-test("setBlend: three actions: exact right: ...", () => {
-  testLinearBlending(1, "...", "...", "...");
+test("setBlend: three actions: exact right: should give full weight to rightmost action", () => {
+  testLinearBlending(
+    1,
+    "left action should have weight 0",
+    "center action should have weight 0",
+    "right action should have weight 1",
+  );
 });
 
-test("setBlend: three actions: beyond right: ...", () => {
-  testLinearBlending(2, "...", "...", "...");
+test("setBlend: three actions: beyond right: should clamp to rightmost action", () => {
+  testLinearBlending(
+    2,
+    "left action should have weight 0",
+    "center action should have weight 0",
+    "right action should have weight 1",
+  );
 });
 
 test("events: should emit ENTER/EXIT events", () => {
@@ -312,7 +345,7 @@ test("events: should emit ENTER/EXIT events", () => {
   assert.equal(
     enterEventFired,
     true,
-    "ENTER event should be fired after setting influence",
+    "ENTER event should be fired after invoking onEnter",
   );
   assert.equal(enterState, blendTree, "ENTER event should provide the state");
 
@@ -330,7 +363,7 @@ test("events: should emit ENTER/EXIT events", () => {
   assert.equal(
     exitEventFired,
     true,
-    "EXIT event should be fired after setting influence",
+    "EXIT event should be fired after invoking onExit",
   );
   assert.equal(exitState, blendTree, "EXIT event should provide the state");
 });
@@ -346,7 +379,6 @@ test("events: should emit correct FINISH/ITERATE event based on animation loop m
     loopPingPongAction,
   ]);
 
-  // Track which events fire for each loop mode
   let loopOnceFinishEventFired = false;
   let loopOnceIterateEventFired = false;
 
@@ -376,19 +408,16 @@ test("events: should emit correct FINISH/ITERATE event based on animation loop m
     }
   });
 
-  // Simulate LoopOnce action reaching end (time = duration)
   loopOnceAction.action.time = 1;
   loopRepeatAction.action.time = 0;
   loopPingPongAction.action.time = 0;
   blendTree.invokeOnTick();
 
-  // Simulate LoopRepeat action reaching end (time = duration)
   loopOnceAction.action.time = 0;
   loopRepeatAction.action.time = 1;
   loopPingPongAction.action.time = 0;
   blendTree.invokeOnTick();
 
-  // Simulate LoopPingPong action reaching end (time = duration)
   loopOnceAction.action.time = 0;
   loopRepeatAction.action.time = 0;
   loopPingPongAction.action.time = 1;
@@ -438,7 +467,11 @@ test("events: should prevent duplicate iteration events", () => {
   blendTree.invokeOnTick();
   blendTree.invokeOnTick();
 
-  assert.equal(eventCount, 1);
+  assert.equal(
+    eventCount,
+    1,
+    "Iteration event should only fire once per animation cycle",
+  );
 });
 
 test("events: should start animation and emit PLAY when influence becomes positive", () => {

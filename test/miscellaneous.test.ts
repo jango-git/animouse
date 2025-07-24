@@ -86,7 +86,6 @@ test("calculateAngularDistanceForward: should throw for invalid azimuth values",
 });
 
 test("calculateAngularDistanceForward: should calculate forward distance wrapping around", () => {
-  // Going forward from near 2π to near 0
   const result = calculateAngularDistanceForward(2 * Math.PI - 0.1, 0.1);
   assert.ok(Math.abs(0.2 - result) < EPSILON);
 });
@@ -109,12 +108,10 @@ test("calculateAngularDistanceForward: should calculate quarter circle distances
 });
 
 test("calculateAngularDistanceForward: should always go forward even if shorter backward", () => {
-  // Going forward from 0 to 3π/2 is 3π/2, not π/2 backward
   assert.equal(
     calculateAngularDistanceForward(0, (3 * Math.PI) / 2),
     (3 * Math.PI) / 2,
   );
-  // Going forward from π to π/2 wraps around (3π/2 forward distance)
   assert.equal(
     calculateAngularDistanceForward(Math.PI, Math.PI / 2),
     (3 * Math.PI) / 2,
@@ -160,7 +157,6 @@ test("isAzimuthBetween: should throw for invalid azimuth values", () => {
 });
 
 test("isAzimuthBetween: should detect azimuth within wrapped range around 0", () => {
-  // Range wraps around 0
   assert.ok(isAzimuthBetween(0, (3 * Math.PI) / 2, Math.PI / 2));
   assert.ok(isAzimuthBetween(Math.PI / 4, (3 * Math.PI) / 2, Math.PI / 2));
   assert.ok(
@@ -214,13 +210,8 @@ test("calculateDistanceToEdgeSquared: should return zero distance for point on e
     { x: 10, y: 0 },
   ];
 
-  // Point on the edge
   assert.equal(calculateDistanceToEdgeSquared(edge, 5, 0), 0);
-
-  // Point at start of edge
   assert.equal(calculateDistanceToEdgeSquared(edge, 0, 0), 0);
-
-  // Point at end of edge
   assert.equal(calculateDistanceToEdgeSquared(edge, 10, 0), 0);
 });
 
@@ -258,10 +249,7 @@ test("calculateDistanceToEdgeSquared: should calculate distance for point perpen
     { x: 10, y: 0 },
   ];
 
-  // Point directly above middle of edge
   assert.equal(calculateDistanceToEdgeSquared(edge, 5, 3), 9);
-
-  // Point directly below middle of edge
   assert.equal(calculateDistanceToEdgeSquared(edge, 5, -4), 16);
 });
 
@@ -271,13 +259,8 @@ test("calculateDistanceToEdgeSquared: should calculate distance to nearest endpo
     { x: 10, y: 0 },
   ];
 
-  // Point beyond start of edge
   assert.equal(calculateDistanceToEdgeSquared(edge, -5, 0), 25);
-
-  // Point beyond end of edge
   assert.equal(calculateDistanceToEdgeSquared(edge, 15, 0), 25);
-
-  // Point diagonally beyond start
   assert.equal(calculateDistanceToEdgeSquared(edge, -3, 4), 25);
 });
 
@@ -287,7 +270,6 @@ test("calculateDistanceToEdgeSquared: should calculate distance for diagonal edg
     { x: 3, y: 4 },
   ];
 
-  // Point at midpoint of diagonal edge
   const midX = 1.5;
   const midY = 2;
   assert.equal(calculateDistanceToEdgeSquared(edge, midX, midY), 0);

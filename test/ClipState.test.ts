@@ -198,7 +198,6 @@ test("events: should prevent duplicate iteration events", () => {
     eventCount += 1;
   });
 
-  // Simulate animation completion
   mockAction.time = 1.0;
   clipState.invokeOnTick();
   clipState.invokeOnTick();
@@ -297,14 +296,12 @@ test("events: should update internal tracking state on each tick", () => {
 
   clipState.invokeSetInfluence(1.0);
 
-  // Simulate animation progress
   mockAction.time = 0.3;
   clipState.invokeOnTick();
 
   mockAction.time = 0.6;
   clipState.invokeOnTick();
 
-  // Verify that animation can complete after partial progress
   let eventFired = false;
   clipState.once(StateEvent.ITERATE, () => {
     eventFired = true;
@@ -318,17 +315,14 @@ test("events: should update internal tracking state on each tick", () => {
     "Should properly track state and fire events after partial progress",
   );
 
-  // Reset flag test - go back below duration
   mockAction.time = 0.5;
   clipState.invokeOnTick();
 
-  // Set up new event listener for second completion
   let secondEventFired = false;
   clipState.once(StateEvent.ITERATE, () => {
     secondEventFired = true;
   });
 
-  // Now complete the animation again
   mockAction.time = 1.0;
   clipState.invokeOnTick();
 
