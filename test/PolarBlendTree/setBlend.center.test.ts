@@ -2,10 +2,10 @@ import { test } from "uvu";
 import {
   assertEqualWithTolerance,
   lerpAngular,
-} from "./miscellaneous/miscellaneous";
-import { buildMockPolarAction } from "./mocks/buildMockAction";
-import { buildMockAnimationAction } from "./mocks/buildMockAnimationAction";
-import { PolarBlendTreeProxy } from "./proxies/PolarBlendTreeProxy";
+} from "../miscellaneous/miscellaneous";
+import { buildMockPolarAction } from "../mocks/buildMockAction";
+import { buildMockAnimationAction } from "../mocks/buildMockAnimationAction";
+import { PolarBlendTreeProxy } from "../proxies/PolarBlendTreeProxy";
 
 function testOneRingAndCenterBlending(
   azimuth: number,
