@@ -6,8 +6,8 @@ import { buildMockAnimationAction } from "../mocks/buildMockAnimationAction";
 import { ClipStateProxy } from "../proxies/ClipStateProxy";
 
 test("events: should emit ENTER/EXIT events", () => {
-  const mockAction = buildMockAnimationAction(1, LoopRepeat, 2.5);
-  const blendTree = new ClipStateProxy(mockAction);
+  const action = buildMockAnimationAction(1, LoopRepeat, 2.5);
+  const tree = new ClipStateProxy(action);
 
   let enterEventFired = false;
   let enterState: any = null;
@@ -15,7 +15,7 @@ test("events: should emit ENTER/EXIT events", () => {
   let exitEventFired = false;
   let exitState: any = null;
 
-  blendTree.on(StateEvent.ENTER, (state) => {
+  tree.on(StateEvent.ENTER, (state) => {
     enterEventFired = true;
     enterState = state;
   });
@@ -25,15 +25,15 @@ test("events: should emit ENTER/EXIT events", () => {
     false,
     "ENTER event should not be fired initially",
   );
-  blendTree.invokeOnEnter();
+  tree.invokeOnEnter();
   assert.equal(
     enterEventFired,
     true,
     "ENTER event should be fired after setting influence",
   );
-  assert.equal(enterState, blendTree, "ENTER event should provide the state");
+  assert.equal(enterState, tree, "ENTER event should provide the state");
 
-  blendTree.on(StateEvent.EXIT, (state) => {
+  tree.on(StateEvent.EXIT, (state) => {
     exitEventFired = true;
     exitState = state;
   });
@@ -43,13 +43,13 @@ test("events: should emit ENTER/EXIT events", () => {
     false,
     "EXIT event should not be fired initially",
   );
-  blendTree.invokeOnExit();
+  tree.invokeOnExit();
   assert.equal(
     exitEventFired,
     true,
     "EXIT event should be fired after setting influence",
   );
-  assert.equal(exitState, blendTree, "EXIT event should provide the state");
+  assert.equal(exitState, tree, "EXIT event should provide the state");
 });
 
 test("events: should emit correct FINISH/ITERATE event based on animation loop mode", () => {
@@ -135,8 +135,8 @@ test("events: should emit correct FINISH/ITERATE event based on animation loop m
 });
 
 test("events: should prevent duplicate iteration events", () => {
-  const mockAction = buildMockAnimationAction(1);
-  const clipState = new ClipStateProxy(mockAction);
+  const action = buildMockAnimationAction(1);
+  const clipState = new ClipStateProxy(action);
 
   clipState.invokeSetInfluence(1.0);
 
@@ -145,7 +145,7 @@ test("events: should prevent duplicate iteration events", () => {
     eventCount += 1;
   });
 
-  mockAction.time = 1.0;
+  action.time = 1.0;
   clipState.invokeOnTick();
   clipState.invokeOnTick();
 
@@ -157,8 +157,8 @@ test("events: should prevent duplicate iteration events", () => {
 });
 
 test("events: should start animation and emit PLAY when influence becomes positive", () => {
-  const mockAction = buildMockAnimationAction(1);
-  const clipState = new ClipStateProxy(mockAction);
+  const action = buildMockAnimationAction(1);
+  const clipState = new ClipStateProxy(action);
 
   let playEventFired = false;
   let eventAction: any = null;
@@ -175,20 +175,20 @@ test("events: should start animation and emit PLAY when influence becomes positi
   assert.ok(playEventFired, "PLAY event should be emitted");
   assert.equal(
     eventAction,
-    mockAction,
+    action,
     "Event should include the animation action",
   );
   assert.equal(eventState, clipState, "Event should include the clip state");
-  assert.equal(mockAction.weight, 0.5);
-  assert.ok(mockAction.isRunning(), "Animation should be playing");
+  assert.equal(action.weight, 0.5);
+  assert.ok(action.isRunning(), "Animation should be playing");
 });
 
 test("events: should stop animation and emit STOP when influence becomes zero", () => {
-  const mockAction = buildMockAnimationAction(1);
-  const clipState = new ClipStateProxy(mockAction);
+  const action = buildMockAnimationAction(1);
+  const clipState = new ClipStateProxy(action);
 
   clipState.invokeSetInfluence(0.8);
-  mockAction.time = 0.3;
+  action.time = 0.3;
 
   let stopEventFired = false;
   let eventAction: any = null;
@@ -205,22 +205,22 @@ test("events: should stop animation and emit STOP when influence becomes zero", 
   assert.ok(stopEventFired, "STOP event should be emitted");
   assert.equal(
     eventAction,
-    mockAction,
+    action,
     "Event should include the animation action",
   );
   assert.equal(eventState, clipState, "Event should include the clip state");
-  assert.equal(mockAction.weight, 0);
-  assert.equal(mockAction.time, 0);
-  assert.not.ok(mockAction.isRunning(), "Animation should be stopped");
+  assert.equal(action.weight, 0);
+  assert.equal(action.time, 0);
+  assert.not.ok(action.isRunning(), "Animation should be stopped");
 });
 
 test("events: should detect animation restart and emit iteration event", () => {
-  const mockAction = buildMockAnimationAction(1);
-  const clipState = new ClipStateProxy(mockAction);
+  const action = buildMockAnimationAction(1);
+  const clipState = new ClipStateProxy(action);
 
   clipState.invokeSetInfluence(1.0);
 
-  mockAction.time = 0.8;
+  action.time = 0.8;
   clipState.invokeOnTick();
 
   let eventFired = false;
@@ -228,7 +228,7 @@ test("events: should detect animation restart and emit iteration event", () => {
     eventFired = true;
   });
 
-  mockAction.time = 0.1;
+  action.time = 0.1;
   clipState.invokeOnTick();
 
   assert.ok(
@@ -238,15 +238,15 @@ test("events: should detect animation restart and emit iteration event", () => {
 });
 
 test("events: should update internal tracking state on each tick", () => {
-  const mockAction = buildMockAnimationAction(1);
-  const clipState = new ClipStateProxy(mockAction);
+  const action = buildMockAnimationAction(1);
+  const clipState = new ClipStateProxy(action);
 
   clipState.invokeSetInfluence(1.0);
 
-  mockAction.time = 0.3;
+  action.time = 0.3;
   clipState.invokeOnTick();
 
-  mockAction.time = 0.6;
+  action.time = 0.6;
   clipState.invokeOnTick();
 
   let eventFired = false;
@@ -254,7 +254,7 @@ test("events: should update internal tracking state on each tick", () => {
     eventFired = true;
   });
 
-  mockAction.time = 1.0;
+  action.time = 1.0;
   clipState.invokeOnTick();
 
   assert.ok(
@@ -262,7 +262,7 @@ test("events: should update internal tracking state on each tick", () => {
     "Should properly track state and fire events after partial progress",
   );
 
-  mockAction.time = 0.5;
+  action.time = 0.5;
   clipState.invokeOnTick();
 
   let secondEventFired = false;
@@ -270,7 +270,7 @@ test("events: should update internal tracking state on each tick", () => {
     secondEventFired = true;
   });
 
-  mockAction.time = 1.0;
+  action.time = 1.0;
   clipState.invokeOnTick();
 
   assert.ok(
@@ -280,16 +280,16 @@ test("events: should update internal tracking state on each tick", () => {
 });
 
 test("events: should update animation weight for positive influence changes", () => {
-  const mockAction = buildMockAnimationAction(1);
-  const clipState = new ClipStateProxy(mockAction);
+  const action = buildMockAnimationAction(1);
+  const clipState = new ClipStateProxy(action);
 
   clipState.invokeSetInfluence(0.3);
-  assert.equal(mockAction.weight, 0.3);
+  assert.equal(action.weight, 0.3);
 
   clipState.invokeSetInfluence(0.7);
-  assert.equal(mockAction.weight, 0.7);
+  assert.equal(action.weight, 0.7);
 
-  assert.ok(mockAction.isRunning(), "Animation should remain playing");
+  assert.ok(action.isRunning(), "Animation should remain playing");
 });
 
 test.run();

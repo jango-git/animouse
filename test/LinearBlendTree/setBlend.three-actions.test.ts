@@ -6,12 +6,12 @@ import {
 import { buildMockLinearAction } from "../mocks/buildMockAction";
 import { LinearBlendTreeProxy } from "../proxies/LinearBlendTreeProxy";
 
-function testLinearBlending(
-  value: number,
-  lMessage: string,
-  cMessage: string,
-  rMessage: string,
-): void {
+function testLinearBlending(value: number): void {
+  /*
+    Linear values:
+    ---(-1)---(0)---(1)---
+  */
+
   const lValue = -1;
   const cValue = 0;
   const rValue = 1;
@@ -20,9 +20,9 @@ function testLinearBlending(
   const cAction = buildMockLinearAction(cValue);
   const rAction = buildMockLinearAction(rValue);
 
-  const blendTree = new LinearBlendTreeProxy([lAction, cAction, rAction]);
-  blendTree.invokeSetInfluence(1);
-  blendTree.setBlend(value);
+  const tree = new LinearBlendTreeProxy([lAction, cAction, rAction]);
+  tree.invokeSetInfluence(1);
+  tree.setBlend(value);
 
   const clampedValue = Math.min(Math.max(value, lValue), rValue);
 
@@ -42,77 +42,54 @@ function testLinearBlending(
     rWeight = twoWeight;
   }
 
-  assertEqualWithTolerance(lAction.action.weight, lWeight, lMessage);
-  assertEqualWithTolerance(cAction.action.weight, cWeight, cMessage);
-  assertEqualWithTolerance(rAction.action.weight, rWeight, rMessage);
   assertEqualWithTolerance(
-    lAction.action.weight + rAction.action.weight + cAction.action.weight,
+    lAction.action.weight,
+    lWeight,
+    `Weight L: expected ${lWeight.toFixed(2)}, got ${lAction.action.weight.toFixed(2)}`,
+  );
+  assertEqualWithTolerance(
+    cAction.action.weight,
+    cWeight,
+    `Weight C: expected ${cWeight.toFixed(2)}, got ${cAction.action.weight.toFixed(2)}`,
+  );
+  assertEqualWithTolerance(
+    rAction.action.weight,
+    rWeight,
+    `Weight R: expected ${rWeight.toFixed(2)}, got ${rAction.action.weight.toFixed(2)}`,
+  );
+  assertEqualWithTolerance(
+    lAction.action.weight + cAction.action.weight + rAction.action.weight,
     1,
-    "Sum of weights should equal 1",
+    `Sum of weights should equal 1, got ${lAction.action.weight + cAction.action.weight + rAction.action.weight.toFixed(2)}`,
   );
 }
 
 test("setBlend: three actions: beyond left: should clamp to leftmost action", () => {
-  testLinearBlending(
-    -2,
-    "left action should have weight 1",
-    "center action should have weight 0",
-    "right action should have weight 0",
-  );
+  testLinearBlending(-2);
 });
 
 test("setBlend: three actions: exact left: should give full weight to leftmost action", () => {
-  testLinearBlending(
-    -1,
-    "left action should have weight 1",
-    "center action should have weight 0",
-    "right action should have weight 0",
-  );
+  testLinearBlending(-1);
 });
 
 test("setBlend: three actions: between left and center: should interpolate between left and center actions", () => {
-  testLinearBlending(
-    -0.5,
-    "left action should have weight 0.5",
-    "center action should have weight 0.5",
-    "right action should have weight 0",
-  );
+  testLinearBlending(-0.5);
 });
 
 test("setBlend: three actions: exact center: should give full weight to center action", () => {
-  testLinearBlending(
-    0,
-    "left action should have weight 0",
-    "center action should have weight 1",
-    "right action should have weight 0",
-  );
+  testLinearBlending(0);
 });
 
 test("setBlend: three actions: between center and right: should interpolate between center and right actions", () => {
-  testLinearBlending(
-    0.5,
-    "left action should have weight 0",
-    "center action should have weight 0.5",
-    "right action should have weight 0.5",
-  );
+  testLinearBlending(0.5);
 });
 
 test("setBlend: three actions: exact right: should give full weight to rightmost action", () => {
-  testLinearBlending(
-    1,
-    "left action should have weight 0",
-    "center action should have weight 0",
-    "right action should have weight 1",
-  );
+  testLinearBlending(1);
 });
 
 test("setBlend: three actions: beyond right: should clamp to rightmost action", () => {
-  testLinearBlending(
-    2,
-    "left action should have weight 0",
-    "center action should have weight 0",
-    "right action should have weight 1",
-  );
+  testLinearBlending(2);
 });
 
 test.run();

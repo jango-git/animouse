@@ -5,21 +5,21 @@ import { buildMockAnimationAction } from "../mocks/buildMockAnimationAction";
 import { ClipStateProxy } from "../proxies/ClipStateProxy";
 
 test("constructor: should throw error when action duration is less than or equal to zero", () => {
-  const mockAction = buildMockAnimationAction(1, LoopRepeat, 0);
+  const action = buildMockAnimationAction(1, LoopRepeat, 0);
 
   assert.throws(() => {
-    new ClipStateProxy(mockAction);
+    new ClipStateProxy(action);
   }, "Action duration must be greater than zero");
 });
 
 test("constructor: should initialize ClipState to stopped state", () => {
-  const mockAction = buildMockAnimationAction(1, LoopRepeat, 2.5);
-  mockAction.time = 0.15;
-  const clipState = new ClipStateProxy(mockAction);
+  const action = buildMockAnimationAction(1, LoopRepeat, 2.5);
+  action.time = 0.15;
+  const clipState = new ClipStateProxy(action);
 
-  assert.equal(mockAction.time, 0);
-  assert.equal(mockAction.weight, 0);
-  assert.equal(mockAction.isRunning(), false);
+  assert.equal(action.time, 0);
+  assert.equal(action.weight, 0);
+  assert.equal(action.isRunning(), false);
   assert.equal(clipState.influence, 0);
 });
 

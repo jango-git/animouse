@@ -11,7 +11,7 @@ test("events: should emit ENTER/EXIT events", () => {
   const action2 = buildMockFreeformAction(1, 0);
   const action3 = buildMockFreeformAction(0, 0);
 
-  const blendTree = new FreeformBlendTreeProxy([action1, action2, action3]);
+  const tree = new FreeformBlendTreeProxy([action1, action2, action3]);
 
   let enterEventFired = false;
   let enterState: any = null;
@@ -19,7 +19,7 @@ test("events: should emit ENTER/EXIT events", () => {
   let exitEventFired = false;
   let exitState: any = null;
 
-  blendTree.on(StateEvent.ENTER, (state) => {
+  tree.on(StateEvent.ENTER, (state) => {
     enterEventFired = true;
     enterState = state;
   });
@@ -29,15 +29,15 @@ test("events: should emit ENTER/EXIT events", () => {
     false,
     "ENTER event should not be fired initially",
   );
-  blendTree.invokeOnEnter();
+  tree.invokeOnEnter();
   assert.equal(
     enterEventFired,
     true,
     "ENTER event should be fired after invoking onEnter",
   );
-  assert.equal(enterState, blendTree, "ENTER event should provide the state");
+  assert.equal(enterState, tree, "ENTER event should provide the state");
 
-  blendTree.on(StateEvent.EXIT, (state) => {
+  tree.on(StateEvent.EXIT, (state) => {
     exitEventFired = true;
     exitState = state;
   });
@@ -47,13 +47,13 @@ test("events: should emit ENTER/EXIT events", () => {
     false,
     "EXIT event should not be fired initially",
   );
-  blendTree.invokeOnExit();
+  tree.invokeOnExit();
   assert.equal(
     exitEventFired,
     true,
     "EXIT event should be fired after invoking onExit",
   );
-  assert.equal(exitState, blendTree, "EXIT event should provide the state");
+  assert.equal(exitState, tree, "EXIT event should provide the state");
 });
 
 test("events: should emit correct FINISH/ITERATE event based on animation loop mode", () => {
@@ -61,7 +61,7 @@ test("events: should emit correct FINISH/ITERATE event based on animation loop m
   const loopRepeatAction = buildMockFreeformAction(0, 1, LoopRepeat);
   const loopPingPongAction = buildMockFreeformAction(1, 0, LoopPingPong);
 
-  const blendTree = new FreeformBlendTreeProxy([
+  const tree = new FreeformBlendTreeProxy([
     loopOnceAction,
     loopRepeatAction,
     loopPingPongAction,
@@ -76,7 +76,7 @@ test("events: should emit correct FINISH/ITERATE event based on animation loop m
   let loopPingPongFinishEventFired = false;
   let loopPingPongIterateEventFired = false;
 
-  blendTree.on(StateEvent.FINISH, (action: AnimationAction) => {
+  tree.on(StateEvent.FINISH, (action: AnimationAction) => {
     if (action.loop === LoopOnce) {
       loopOnceFinishEventFired = true;
     } else if (action.loop === LoopRepeat) {
@@ -86,7 +86,7 @@ test("events: should emit correct FINISH/ITERATE event based on animation loop m
     }
   });
 
-  blendTree.on(StateEvent.ITERATE, (action: AnimationAction) => {
+  tree.on(StateEvent.ITERATE, (action: AnimationAction) => {
     if (action.loop === LoopOnce) {
       loopOnceIterateEventFired = true;
     } else if (action.loop === LoopRepeat) {
@@ -99,17 +99,17 @@ test("events: should emit correct FINISH/ITERATE event based on animation loop m
   loopOnceAction.action.time = 1;
   loopRepeatAction.action.time = 0;
   loopPingPongAction.action.time = 0;
-  blendTree.invokeOnTick();
+  tree.invokeOnTick();
 
   loopOnceAction.action.time = 0;
   loopRepeatAction.action.time = 1;
   loopPingPongAction.action.time = 0;
-  blendTree.invokeOnTick();
+  tree.invokeOnTick();
 
   loopOnceAction.action.time = 0;
   loopRepeatAction.action.time = 0;
   loopPingPongAction.action.time = 1;
-  blendTree.invokeOnTick();
+  tree.invokeOnTick();
 
   assert.ok(
     loopOnceFinishEventFired,
@@ -141,20 +141,20 @@ test("events: should emit correct FINISH/ITERATE event based on animation loop m
 
 test("events: should prevent duplicate iteration events", () => {
   const action = buildMockFreeformAction(0, 0);
-  const blendTree = new FreeformBlendTreeProxy([
+  const tree = new FreeformBlendTreeProxy([
     action,
     buildMockFreeformAction(1, 0),
     buildMockFreeformAction(0, 1),
   ]);
 
   let eventCount = 0;
-  blendTree.on(StateEvent.ITERATE, () => {
+  tree.on(StateEvent.ITERATE, () => {
     eventCount += 1;
   });
 
   action.action.time = 1.0;
-  blendTree.invokeOnTick();
-  blendTree.invokeOnTick();
+  tree.invokeOnTick();
+  tree.invokeOnTick();
 
   assert.equal(
     eventCount,
@@ -164,9 +164,9 @@ test("events: should prevent duplicate iteration events", () => {
 });
 
 test("events: should start animation and emit PLAY when influence becomes positive", () => {
-  const mockAction = buildMockFreeformAction(0, 0);
-  const blendTree = new FreeformBlendTreeProxy([
-    mockAction,
+  const action = buildMockFreeformAction(0, 0);
+  const tree = new FreeformBlendTreeProxy([
+    action,
     buildMockFreeformAction(1, 0),
     buildMockFreeformAction(0, 1),
   ]);
@@ -175,57 +175,57 @@ test("events: should start animation and emit PLAY when influence becomes positi
   let eventAction: any = null;
   let eventState: any = null;
 
-  blendTree.on(StateEvent.PLAY, (action, state) => {
+  tree.on(StateEvent.PLAY, (action, state) => {
     playEventFired = true;
     eventAction = action;
     eventState = state;
   });
 
-  blendTree.invokeSetInfluence(0.5);
+  tree.invokeSetInfluence(0.5);
 
   assert.ok(playEventFired, "PLAY event should be emitted");
   assert.equal(
     eventAction,
-    mockAction.action,
+    action.action,
     "Event should include the animation action",
   );
-  assert.equal(eventState, blendTree, "Event should include the clip state");
-  assert.equal(mockAction.action.weight, 0.5);
-  assert.ok(mockAction.action.isRunning(), "Animation should be playing");
+  assert.equal(eventState, tree, "Event should include the clip state");
+  assert.equal(action.action.weight, 0.5);
+  assert.ok(action.action.isRunning(), "Animation should be playing");
 });
 
 test("events: should stop animation and emit STOP when influence becomes zero", () => {
-  const mockAction = buildMockFreeformAction(0, 0);
-  const blendTree = new FreeformBlendTreeProxy([
-    mockAction,
+  const action = buildMockFreeformAction(0, 0);
+  const tree = new FreeformBlendTreeProxy([
+    action,
     buildMockFreeformAction(1, 0),
     buildMockFreeformAction(0, 1),
   ]);
 
-  blendTree.invokeSetInfluence(0.8);
-  mockAction.action.time = 0.3;
+  tree.invokeSetInfluence(0.8);
+  action.action.time = 0.3;
 
   let stopEventFired = false;
   let eventAction: any = null;
   let eventState: any = null;
 
-  blendTree.on(StateEvent.STOP, (action, state) => {
+  tree.on(StateEvent.STOP, (action, state) => {
     stopEventFired = true;
     eventAction = action;
     eventState = state;
   });
 
-  blendTree.invokeSetInfluence(0);
+  tree.invokeSetInfluence(0);
 
   assert.ok(stopEventFired, "STOP event should be emitted");
   assert.equal(
     eventAction,
-    mockAction.action,
+    action.action,
     "Event should include the animation action",
   );
-  assert.equal(eventState, blendTree, "Event should include the clip state");
-  assert.equal(mockAction.action.weight, 0);
-  assert.not.ok(mockAction.action.isRunning(), "Animation should be stopped");
+  assert.equal(eventState, tree, "Event should include the clip state");
+  assert.equal(action.action.weight, 0);
+  assert.not.ok(action.action.isRunning(), "Animation should be stopped");
 });
 
 test.run();
