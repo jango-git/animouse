@@ -49,87 +49,87 @@ function testOneRingBlending(azimuth: number, radius: number): void {
   );
 }
 
-test("setBlend: only one ring: beyond: should blend at center point between two actions", () => {
+test("setBlend: only one ring: beyond", () => {
   testOneRingBlending(0, 1.1);
 });
 
-test("setBlend: only one ring: beyond: should blend slightly towards second action", () => {
+test("setBlend: only one ring: beyond", () => {
   testOneRingBlending(0.1, 1.1);
 });
 
-test("setBlend: only one ring: beyond: should blend exactly at second action position", () => {
+test("setBlend: only one ring: beyond", () => {
   testOneRingBlending(Math.PI / 4, 1.1);
 });
 
-test("setBlend: only one ring: beyond: should blend past second action position", () => {
+test("setBlend: only one ring: beyond", () => {
   testOneRingBlending(Math.PI / 4 + 0.1, 1.1);
 });
 
-test("setBlend: only one ring: beyond: should handle opposite direction blend", () => {
+test("setBlend: only one ring: beyond", () => {
   testOneRingBlending(Math.PI, 1.1);
 });
 
-test("setBlend: only one ring: beyond: should blend exactly at first action position", () => {
+test("setBlend: only one ring: beyond", () => {
   testOneRingBlending(-Math.PI / 4, 1.1);
 });
 
-test("setBlend: only one ring: beyond: should blend slightly past first action position", () => {
+test("setBlend: only one ring: beyond", () => {
   testOneRingBlending(-Math.PI / 4 + 0.1, 1.1);
 });
 
-test("setBlend: only one ring: exact: should blend at center point between two actions", () => {
+test("setBlend: only one ring: exact", () => {
   testOneRingBlending(0, 1);
 });
 
-test("setBlend: only one ring: exact: should blend slightly towards second action", () => {
+test("setBlend: only one ring: exact", () => {
   testOneRingBlending(0.1, 1);
 });
 
-test("setBlend: only one ring: exact: should blend exactly at second action position", () => {
+test("setBlend: only one ring: exact", () => {
   testOneRingBlending(Math.PI / 4, 1);
 });
 
-test("setBlend: only one ring: exact: should blend past second action position", () => {
+test("setBlend: only one ring: exact", () => {
   testOneRingBlending(Math.PI / 4 + 0.1, 1);
 });
 
-test("setBlend: only one ring: exact: should handle opposite direction blend", () => {
+test("setBlend: only one ring: exact", () => {
   testOneRingBlending(Math.PI, 1);
 });
 
-test("setBlend: only one ring: exact: should blend exactly at first action position", () => {
+test("setBlend: only one ring: exact", () => {
   testOneRingBlending(-Math.PI / 4, 1);
 });
 
-test("setBlend: only one ring: exact: should blend slightly past first action position", () => {
+test("setBlend: only one ring: exact", () => {
   testOneRingBlending(-Math.PI / 4 + 0.1, 1);
 });
 
-test("setBlend: only one ring: within: should blend at center point between two actions", () => {
+test("setBlend: only one ring: within", () => {
   testOneRingBlending(0, 0.9);
 });
 
-test("setBlend: only one ring: within: should blend slightly towards second action", () => {
+test("setBlend: only one ring: within", () => {
   testOneRingBlending(0.1, 0.9);
 });
 
-test("setBlend: only one ring: within: should blend exactly at second action position", () => {
+test("setBlend: only one ring: within", () => {
   testOneRingBlending(Math.PI / 4, 0.9);
 });
 
-test("setBlend: only one ring: within: should blend past second action position", () => {
+test("setBlend: only one ring: within", () => {
   testOneRingBlending(Math.PI / 4 + 0.1, 0.9);
 });
 
-test("setBlend: only one ring: within: should handle opposite direction blend", () => {
+test("setBlend: only one ring: within", () => {
   testOneRingBlending(Math.PI, 0.9);
 });
 
-test("setBlend: only one ring: within: should blend exactly at first action position", () => {
+test("setBlend: only one ring: within", () => {
   testOneRingBlending(-Math.PI / 4, 0.9);
 });
 
-test("setBlend: only one ring: within: should blend slightly past first action position", () => {
+test("setBlend: only one ring: within", () => {
   testOneRingBlending(-Math.PI / 4 + 0.1, 0.9);
 });
 

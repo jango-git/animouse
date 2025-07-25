@@ -233,7 +233,10 @@ export class FreeformBlendTree extends AnimationTree {
       closestAnchor,
       edgeData[0],
     ];
-    const edge1: [FreeformAnchor, FreeformAnchor] = [edgeData[0], edgeData[1]];
+    const edge1: [FreeformAnchor, FreeformAnchor] = [
+      closestAnchor,
+      edgeData[1],
+    ];
     const closestEdge =
       calculateDistanceToEdgeSquared(edge0, this.currentX, this.currentY) <
       calculateDistanceToEdgeSquared(edge1, this.currentX, this.currentY)

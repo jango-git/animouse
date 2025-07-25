@@ -64,31 +64,31 @@ function testLinearBlending(value: number): void {
   );
 }
 
-test("setBlend: three actions: beyond left: should clamp to leftmost action", () => {
+test("setBlend: three actions: beyond left", () => {
   testLinearBlending(-2);
 });
 
-test("setBlend: three actions: exact left: should give full weight to leftmost action", () => {
+test("setBlend: three actions: exact left", () => {
   testLinearBlending(-1);
 });
 
-test("setBlend: three actions: between left and center: should interpolate between left and center actions", () => {
+test("setBlend: three actions: between left and center", () => {
   testLinearBlending(-0.5);
 });
 
-test("setBlend: three actions: exact center: should give full weight to center action", () => {
+test("setBlend: three actions: exact center", () => {
   testLinearBlending(0);
 });
 
-test("setBlend: three actions: between center and right: should interpolate between center and right actions", () => {
+test("setBlend: three actions: between center and right", () => {
   testLinearBlending(0.5);
 });
 
-test("setBlend: three actions: exact right: should give full weight to rightmost action", () => {
+test("setBlend: three actions: exact right", () => {
   testLinearBlending(1);
 });
 
-test("setBlend: three actions: beyond right: should clamp to rightmost action", () => {
+test("setBlend: three actions: beyond right", () => {
   testLinearBlending(2);
 });
 

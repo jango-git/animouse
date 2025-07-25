@@ -57,51 +57,51 @@ function testOneTriangleBlending(x: number, y: number): void {
   );
 }
 
-test("setBlend: one triangle: beyond, next to A: ...", () => {
+test("setBlend: one triangle: beyond, next to A", () => {
   testOneTriangleBlending(-0.1, -0.1);
 });
 
-test("setBlend: one triangle: beyond, next to B: ...", () => {
+test("setBlend: one triangle: beyond, next to B", () => {
   testOneTriangleBlending(-0.1, 1.1);
 });
 
-test("setBlend: one triangle: beyond, next to C: ...", () => {
+test("setBlend: one triangle: beyond, next to C", () => {
   testOneTriangleBlending(1.1, -0.1);
 });
 
-test("setBlend: one triangle: exact A: ...", () => {
+test("setBlend: one triangle: exact A", () => {
   testOneTriangleBlending(0, 0);
 });
 
-test("setBlend: one triangle: exact B: ...", () => {
+test("setBlend: one triangle: exact B", () => {
   testOneTriangleBlending(0, 1);
 });
 
-test("setBlend: one triangle: exact C: ...", () => {
+test("setBlend: one triangle: exact C", () => {
   testOneTriangleBlending(1, 0);
 });
 
-test("setBlend: one triangle: within, next to A: ...", () => {
+test("setBlend: one triangle: within, next to A", () => {
   testOneTriangleBlending(0.1, 0.1);
 });
 
-test("setBlend: one triangle: within, next to B: ...", () => {
+test("setBlend: one triangle: within, next to B", () => {
   testOneTriangleBlending(0.1, 0.8);
 });
 
-test("setBlend: one triangle: within, next to C: ...", () => {
+test("setBlend: one triangle: within, next to C", () => {
   testOneTriangleBlending(0.8, 0.1);
 });
 
-test("setBlend: one triangle: edge between A and B: ...", () => {
+test("setBlend: one triangle: edge between A and B", () => {
   testOneTriangleBlending(0, 0.4);
 });
 
-test("setBlend: one triangle: edge between A and C: ...", () => {
+test("setBlend: one triangle: edge between A and C", () => {
   testOneTriangleBlending(0.4, 0);
 });
 
-test("setBlend: one triangle: edge between B and C: ...", () => {
+test("setBlend: one triangle: edge between B and C", () => {
   testOneTriangleBlending(0.4, 0.6);
 });
 

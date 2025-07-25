@@ -61,119 +61,119 @@ function testOneRingAndCenterBlending(azimuth: number, radius: number): void {
   );
 }
 
-test("setBlend: ring and center: beyond: should blend at center point between two actions", () => {
+test("setBlend: ring and center: beyond", () => {
   testOneRingAndCenterBlending(0, 1.1);
 });
 
-test("setBlend: ring and center: beyond: should blend slightly towards second action", () => {
+test("setBlend: ring and center: beyond", () => {
   testOneRingAndCenterBlending(0.1, 1.1);
 });
 
-test("setBlend: ring and center: beyond: should blend exactly at second action position", () => {
+test("setBlend: ring and center: beyond", () => {
   testOneRingAndCenterBlending(Math.PI / 4, 1.1);
 });
 
-test("setBlend: ring and center: beyond: should blend past second action position", () => {
+test("setBlend: ring and center: beyond", () => {
   testOneRingAndCenterBlending(Math.PI / 4 + 0.1, 1.1);
 });
 
-test("setBlend: ring and center: beyond: should handle opposite direction blend", () => {
+test("setBlend: ring and center: beyond", () => {
   testOneRingAndCenterBlending(Math.PI, 1.1);
 });
 
-test("setBlend: ring and center: beyond: should blend exactly at first action position", () => {
+test("setBlend: ring and center: beyond", () => {
   testOneRingAndCenterBlending(-Math.PI / 4, 1.1);
 });
 
-test("setBlend: ring and center: beyond: should blend exactly at second action position", () => {
+test("setBlend: ring and center: beyond", () => {
   testOneRingAndCenterBlending(Math.PI / 4, 1.1);
 });
 
-test("setBlend: ring and center: beyond: should blend slightly past first action position", () => {
+test("setBlend: ring and center: beyond", () => {
   testOneRingAndCenterBlending(-Math.PI / 4 + 0.1, 1.1);
 });
 
-test("setBlend: ring and center: exact: should blend at center point between two actions", () => {
+test("setBlend: ring and center: exact", () => {
   testOneRingAndCenterBlending(0, 1);
 });
 
-test("setBlend: ring and center: exact: should blend slightly towards second action", () => {
+test("setBlend: ring and center: exact", () => {
   testOneRingAndCenterBlending(0.1, 1);
 });
 
-test("setBlend: ring and center: exact: should blend exactly at second action position", () => {
+test("setBlend: ring and center: exact", () => {
   testOneRingAndCenterBlending(Math.PI / 4, 1);
 });
 
-test("setBlend: ring and center: exact: should blend past second action position", () => {
+test("setBlend: ring and center: exact", () => {
   testOneRingAndCenterBlending(Math.PI / 4 + 0.1, 1);
 });
 
-test("setBlend: ring and center: exact: should handle opposite direction blend", () => {
+test("setBlend: ring and center: exact", () => {
   testOneRingAndCenterBlending(Math.PI, 1);
 });
 
-test("setBlend: ring and center: exact: should blend exactly at first action position", () => {
+test("setBlend: ring and center: exact", () => {
   testOneRingAndCenterBlending(-Math.PI / 4, 1);
 });
 
-test("setBlend: ring and center: exact: should blend slightly past first action position", () => {
+test("setBlend: ring and center: exact", () => {
   testOneRingAndCenterBlending(-Math.PI / 4 + 0.1, 1);
 });
 
-test("setBlend: ring and center: within: should blend at center point between two actions", () => {
+test("setBlend: ring and center: within", () => {
   testOneRingAndCenterBlending(0, 0.75);
 });
 
-test("setBlend: ring and center: within: should blend slightly towards second action", () => {
+test("setBlend: ring and center: within", () => {
   testOneRingAndCenterBlending(0.1, 0.75);
 });
 
-test("setBlend: ring and center: within: should blend exactly at second action position", () => {
+test("setBlend: ring and center: within", () => {
   testOneRingAndCenterBlending(Math.PI / 4, 0.75);
 });
 
-test("setBlend: ring and center: within: should blend past second action position", () => {
+test("setBlend: ring and center: within", () => {
   testOneRingAndCenterBlending(Math.PI / 4 + 0.1, 0.75);
 });
 
-test("setBlend: ring and center: within: should handle opposite direction blend", () => {
+test("setBlend: ring and center: within", () => {
   testOneRingAndCenterBlending(Math.PI, 0.75);
 });
 
-test("setBlend: ring and center: within: should blend exactly at first action position", () => {
+test("setBlend: ring and center: within", () => {
   testOneRingAndCenterBlending(-Math.PI / 4, 0.75);
 });
 
-test("setBlend: ring and center: within: should blend slightly past first action position", () => {
+test("setBlend: ring and center: within", () => {
   testOneRingAndCenterBlending(-Math.PI / 4 + 0.1, 0.75);
 });
 
-test("setBlend: ring and center: center: should blend at center point between two actions", () => {
+test("setBlend: ring and center: center", () => {
   testOneRingAndCenterBlending(0, 0);
 });
 
-test("setBlend: ring and center: center: should blend slightly towards second action", () => {
+test("setBlend: ring and center: center", () => {
   testOneRingAndCenterBlending(0.1, 0);
 });
 
-test("setBlend: ring and center: center: should blend exactly at second action position", () => {
+test("setBlend: ring and center: center", () => {
   testOneRingAndCenterBlending(Math.PI / 4, 0);
 });
 
-test("setBlend: ring and center: center: should blend past second action position", () => {
+test("setBlend: ring and center: center", () => {
   testOneRingAndCenterBlending(Math.PI / 4 + 0.1, 0);
 });
 
-test("setBlend: ring and center: center: should handle opposite direction blend", () => {
+test("setBlend: ring and center: center", () => {
   testOneRingAndCenterBlending(Math.PI, 0);
 });
 
-test("setBlend: ring and center: center: should blend exactly at first action position", () => {
+test("setBlend: ring and center: center", () => {
   testOneRingAndCenterBlending(-Math.PI / 4, 0);
 });
 
-test("setBlend: ring and center: center: should blend slightly past first action position", () => {
+test("setBlend: ring and center: center", () => {
   testOneRingAndCenterBlending(-Math.PI / 4 + 0.1, 0);
 });
 

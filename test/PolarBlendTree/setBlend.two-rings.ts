@@ -88,143 +88,143 @@ function testTwoRingsBlending(azimuth: number, radius: number): void {
   );
 }
 
-test("setBlend: two rings: beyond: should blend at center point between two actions", () => {
+test("setBlend: two rings: beyond", () => {
   testTwoRingsBlending(0, 1.1);
 });
 
-test("setBlend: two rings: beyond: should blend slightly towards second action", () => {
+test("setBlend: two rings: beyond", () => {
   testTwoRingsBlending(0.1, 1.1);
 });
 
-test("setBlend: two rings: beyond: should blend exactly at second action position", () => {
+test("setBlend: two rings: beyond", () => {
   testTwoRingsBlending(Math.PI / 4, 1.1);
 });
 
-test("setBlend: two rings: beyond: should blend past second action position", () => {
+test("setBlend: two rings: beyond", () => {
   testTwoRingsBlending(Math.PI / 4 + 0.1, 1.1);
 });
 
-test("setBlend: two rings: beyond: should handle opposite direction blend", () => {
+test("setBlend: two rings: beyond", () => {
   testTwoRingsBlending(Math.PI, 1.1);
 });
 
-test("setBlend: two rings: beyond: should blend exactly at first action position", () => {
+test("setBlend: two rings: beyond", () => {
   testTwoRingsBlending(-Math.PI / 4, 1.1);
 });
 
-test("setBlend: two rings: beyond: should blend slightly past first action position", () => {
+test("setBlend: two rings: beyond", () => {
   testTwoRingsBlending(-Math.PI / 4 + 0.1, 1.1);
 });
 
-test("setBlend: two rings: exact outer: should blend at center point between two actions", () => {
+test("setBlend: two rings: exact outer", () => {
   testTwoRingsBlending(0, 1);
 });
 
-test("setBlend: two rings: exact outer: should blend slightly towards second action", () => {
+test("setBlend: two rings: exact outer", () => {
   testTwoRingsBlending(0.1, 1);
 });
 
-test("setBlend: two rings: exact outer: should blend exactly at second action position", () => {
+test("setBlend: two rings: exact outer", () => {
   testTwoRingsBlending(Math.PI / 4, 1);
 });
 
-test("setBlend: two rings: exact outer: should blend past second action position", () => {
+test("setBlend: two rings: exact outer", () => {
   testTwoRingsBlending(Math.PI / 4 + 0.1, 1);
 });
 
-test("setBlend: two rings: exact outer: should handle opposite direction blend", () => {
+test("setBlend: two rings: exact outer", () => {
   testTwoRingsBlending(Math.PI, 1);
 });
 
-test("setBlend: two rings: exact outer: should blend exactly at first action position", () => {
+test("setBlend: two rings: exact outer", () => {
   testTwoRingsBlending(-Math.PI / 4, 1);
 });
 
-test("setBlend: two rings: exact outer: should blend slightly past first action position", () => {
+test("setBlend: two rings: exact outer", () => {
   testTwoRingsBlending(-Math.PI / 4 + 0.1, 1);
 });
 
-test("setBlend: two rings: between: should blend at center point between two actions", () => {
+test("setBlend: two rings: between", () => {
   testTwoRingsBlending(0, 0.8);
 });
 
-test("setBlend: two rings: between: should blend slightly towards second action", () => {
+test("setBlend: two rings: between", () => {
   testTwoRingsBlending(0.1, 0.8);
 });
 
-test("setBlend: two rings: between: should blend exactly at second action position", () => {
+test("setBlend: two rings: between", () => {
   testTwoRingsBlending(Math.PI / 4, 0.8);
 });
 
-test("setBlend: two rings: between: should blend past second action position", () => {
+test("setBlend: two rings: between", () => {
   testTwoRingsBlending(Math.PI / 4 + 0.1, 0.8);
 });
 
-test("setBlend: two rings: between: should handle opposite direction blend", () => {
+test("setBlend: two rings: between", () => {
   testTwoRingsBlending(Math.PI, 0.8);
 });
 
-test("setBlend: two rings: between: should blend exactly at first action position", () => {
+test("setBlend: two rings: between", () => {
   testTwoRingsBlending(-Math.PI / 4, 0.8);
 });
 
-test("setBlend: two rings: between: should blend slightly past first action position", () => {
+test("setBlend: two rings: between", () => {
   testTwoRingsBlending(-Math.PI / 4 + 0.1, 0.8);
 });
 
-test("setBlend: two rings: exact inner: should blend at center point between two actions", () => {
+test("setBlend: two rings: exact inner", () => {
   testTwoRingsBlending(0, 0.5);
 });
 
-test("setBlend: two rings: exact inner: should blend slightly towards second action", () => {
+test("setBlend: two rings: exact inner", () => {
   testTwoRingsBlending(0.1, 0.5);
 });
 
-test("setBlend: two rings: exact inner: should blend exactly at second action position", () => {
+test("setBlend: two rings: exact inner", () => {
   testTwoRingsBlending(Math.PI / 4, 0.5);
 });
 
-test("setBlend: two rings: exact inner: should blend past second action position", () => {
+test("setBlend: two rings: exact inner", () => {
   testTwoRingsBlending(Math.PI / 4 + 0.1, 0.5);
 });
 
-test("setBlend: two rings: exact inner: should handle opposite direction blend", () => {
+test("setBlend: two rings: exact inner", () => {
   testTwoRingsBlending(Math.PI, 0.5);
 });
 
-test("setBlend: two rings: exact inner: should blend exactly at first action position", () => {
+test("setBlend: two rings: exact inner", () => {
   testTwoRingsBlending(-Math.PI / 4, 0.5);
 });
 
-test("setBlend: two rings: exact inner: should blend slightly past first action position", () => {
+test("setBlend: two rings: exact inner", () => {
   testTwoRingsBlending(-Math.PI / 4 + 0.1, 0.5);
 });
 
-test("setBlend: two rings: within: should blend at center point between two actions", () => {
+test("setBlend: two rings: within", () => {
   testTwoRingsBlending(0, 0.25);
 });
 
-test("setBlend: two rings: within: should blend slightly towards second action", () => {
+test("setBlend: two rings: within", () => {
   testTwoRingsBlending(0.1, 0.25);
 });
 
-test("setBlend: two rings: within: should blend exactly at second action position", () => {
+test("setBlend: two rings: within", () => {
   testTwoRingsBlending(Math.PI / 4, 0.25);
 });
 
-test("setBlend: two rings: within: should blend past second action position", () => {
+test("setBlend: two rings: within", () => {
   testTwoRingsBlending(Math.PI / 4 + 0.1, 0.25);
 });
 
-test("setBlend: two rings: within: should handle opposite direction blend", () => {
+test("setBlend: two rings: within", () => {
   testTwoRingsBlending(Math.PI, 0.25);
 });
 
-test("setBlend: two rings: within: should blend exactly at first action position", () => {
+test("setBlend: two rings: within", () => {
   testTwoRingsBlending(-Math.PI / 4, 0.25);
 });
 
-test("setBlend: two rings: within: should blend slightly past first action position", () => {
+test("setBlend: two rings: within", () => {
   testTwoRingsBlending(-Math.PI / 4 + 0.1, 0.25);
 });
 
