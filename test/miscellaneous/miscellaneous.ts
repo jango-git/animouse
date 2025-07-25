@@ -56,6 +56,26 @@ export function lerpAngular(
   }
 }
 
+export function isPointInTriangle(
+  point: Vector2Like,
+  a: Vector2Like,
+  b: Vector2Like,
+  c: Vector2Like,
+): boolean {
+  const signedArea = (
+    v0: Vector2Like,
+    v1: Vector2Like,
+    v2: Vector2Like,
+  ): number => (v1.x - v0.x) * (v2.y - v0.y) - (v2.x - v0.x) * (v1.y - v0.y);
+
+  const areaABC = signedArea(a, b, c);
+  const w1 = signedArea(point, b, c) / areaABC;
+  const w2 = signedArea(point, c, a) / areaABC;
+  const w3 = signedArea(point, a, b) / areaABC;
+
+  return w1 >= 0 && w2 >= 0 && w3 >= 0;
+}
+
 export function lerpBarycentric(
   point: Vector2Like,
   a: Vector2Like,
@@ -85,7 +105,7 @@ export function lerpBarycentric(
   const w2 = signedArea(point, c, a) / areaABC;
   const w3 = signedArea(point, a, b) / areaABC;
 
-  const inside = w1 >= 0 && w2 >= 0 && w3 >= 0;
+  const inside = isPointInTriangle(point, a, b, c);
 
   if (inside) {
     return [w1, w2, w3];

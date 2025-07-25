@@ -105,4 +105,16 @@ test("setBlend: one triangle: edge between B and C: ...", () => {
   testOneTriangleBlending(0.4, 0.6);
 });
 
+test("setBlend: one triangle: beyond edge between A and B", () => {
+  testOneTriangleBlending(-0.1, 0.4);
+});
+
+test("setBlend: one triangle: beyond edge between A and C", () => {
+  testOneTriangleBlending(0.4, -0.1);
+});
+
+test("setBlend: one triangle: beyond edge between B and C", () => {
+  testOneTriangleBlending(0.8, 0.3);
+});
+
 test.run();
