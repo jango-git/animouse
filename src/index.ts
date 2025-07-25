@@ -1,4 +1,4 @@
-export * from "./AnimationStateMachine";
+export * from "./AnimationMachine";
 export * from "./mescellaneous/AnimationStateEvent";
 export * from "./mescellaneous/miscellaneous";
 export * from "./states/AnimationState";

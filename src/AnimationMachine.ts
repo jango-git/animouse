@@ -57,7 +57,7 @@ export interface AnimationDataTransition {
  *
  * @class AnimationStateMachine
  */
-export class AnimationStateMachine {
+export class AnimationMachine {
   /** Internal storage for the currently active animation state */
   private currentStateInternal: AnimationState;
 
@@ -68,7 +68,7 @@ export class AnimationStateMachine {
   private readonly mixer: AnimationMixer;
 
   /** Map of event names to their possible transitions */
-  private readonly eventTransitions: Map<string, AnimationEventTransition[]> =
+  private readonly transitions: Map<string, AnimationEventTransition[]> =
     new Map();
 
   /** Map of states to their automatic transitions that occur at animation end */
@@ -84,7 +84,7 @@ export class AnimationStateMachine {
   > = new Map();
 
   /** Time remaining in the current transition */
-  private elapsedTime: number;
+  private transitionElapsedTime: number;
 
   /**
    * Creates an instance of AnimationStateMachine.
@@ -99,8 +99,8 @@ export class AnimationStateMachine {
     this.currentStateInternal["setInfluenceInternal"](1);
 
     this.mixer = mixer;
-    this.eventTransitions = new Map();
-    this.elapsedTime = 0;
+    this.transitions = new Map();
+    this.transitionElapsedTime = 0;
   }
 
   /**
@@ -122,8 +122,8 @@ export class AnimationStateMachine {
     event: string,
     transition: AnimationEventTransition,
   ): void {
-    const transitions = this.eventTransitions.get(event) ?? [];
-    this.eventTransitions.set(event, transitions);
+    const transitions = this.transitions.get(event) ?? [];
+    this.transitions.set(event, transitions);
     transitions.push(transition);
   }
 
@@ -173,8 +173,8 @@ export class AnimationStateMachine {
    */
   public handleEvent(eventName: string, ...args: unknown[]): boolean {
     const transitions = [
-      ...(this.eventTransitions.get(eventName) ?? []),
-      ...(this.eventTransitions.get("*") ?? []),
+      ...(this.transitions.get(eventName) ?? []),
+      ...(this.transitions.get("*") ?? []),
     ];
 
     for (const { from, to, duration, condition } of transitions) {
@@ -213,8 +213,8 @@ export class AnimationStateMachine {
       this.transitionTo(transition.to, transition.duration);
     }
 
-    if (this.elapsedTime > 0) {
-      const t = Math.min(1, deltaTime / this.elapsedTime);
+    if (this.transitionElapsedTime > 0) {
+      const t = Math.min(1, deltaTime / this.transitionElapsedTime);
 
       for (const state of this.fadingStates) {
         state["setInfluenceInternal"](MathUtils.lerp(state.influence, 0, t));
@@ -223,9 +223,12 @@ export class AnimationStateMachine {
       this.currentStateInternal["setInfluenceInternal"](
         MathUtils.lerp(this.currentStateInternal.influence, 1, t),
       );
-      this.elapsedTime = Math.max(0, this.elapsedTime - deltaTime);
+      this.transitionElapsedTime = Math.max(
+        0,
+        this.transitionElapsedTime - deltaTime,
+      );
 
-      if (this.elapsedTime === 0) {
+      if (this.transitionElapsedTime === 0) {
         for (const state of this.fadingStates) {
           state["setInfluenceInternal"](0);
         }
@@ -256,7 +259,7 @@ export class AnimationStateMachine {
     this.currentStateInternal = state;
     this.currentStateInternal["onEnterInternal"]();
 
-    this.elapsedTime = duration;
+    this.transitionElapsedTime = duration;
   }
 
   /**
