@@ -125,6 +125,12 @@ export class AnimationMachine {
       "Event transition duration",
     );
 
+    if (transition.from === transition.to) {
+      throw new Error(
+        "Event animation transition can't create a recursive loop to itself",
+      );
+    }
+
     const transitions = this.transitions.get(event) ?? [];
 
     for (const someTransition of transitions) {
@@ -154,6 +160,12 @@ export class AnimationMachine {
       "Automatic transition duration",
     );
 
+    if (from === transition.to) {
+      throw new Error(
+        "Automatic animation transition can't create a recursive loop to itself",
+      );
+    }
+
     if (this.automaticTransitions.has(from)) {
       throw new Error("Automatic transition already exists");
     }
@@ -178,6 +190,12 @@ export class AnimationMachine {
       transition.duration,
       "Data transition duration",
     );
+
+    if (from === transition.to) {
+      throw new Error(
+        "Automatic animation transition can't create a recursive loop to itself",
+      );
+    }
 
     const transitions = this.dataTransitions.get(from) ?? [];
 

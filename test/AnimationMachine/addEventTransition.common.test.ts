@@ -4,7 +4,7 @@ import { MIXER } from "../mocks/buildMockAnimationAction";
 import { AnimationMachineProxy } from "../proxies/AnimationMachineProxy";
 import { AnimationTreeProxy } from "../proxies/AnimationTreeProxy";
 
-test("addEventTransition: should throw error for invalid duration values", () => {
+test("addEventTransition: common: should throw error for invalid duration values", () => {
   const from = new AnimationTreeProxy();
   const to = new AnimationTreeProxy();
   const machine = new AnimationMachineProxy(from, MIXER);
@@ -41,7 +41,7 @@ test("addEventTransition: should throw error for invalid duration values", () =>
   );
 });
 
-test("addEventTransition: ...", () => {
+test("addEventTransition: common: should throw error when adding duplicate transition without from state", () => {
   const from = new AnimationTreeProxy();
   const to = new AnimationTreeProxy();
   const machine = new AnimationMachineProxy(from, MIXER);
@@ -57,7 +57,7 @@ test("addEventTransition: ...", () => {
   );
 });
 
-test("addEventTransition: ...", () => {
+test("addEventTransition: common: should throw error when adding duplicate transition with from state", () => {
   const from = new AnimationTreeProxy();
   const to = new AnimationTreeProxy();
   const machine = new AnimationMachineProxy(from, MIXER);
@@ -70,6 +70,17 @@ test("addEventTransition: ...", () => {
   assert.throws(
     () => machine.addEventTransition(event, transition),
     /already exists/,
+  );
+});
+
+test("addEventTransition: common: should throw error when creating self-loop transition", () => {
+  const from = new AnimationTreeProxy();
+  const machine = new AnimationMachineProxy(from, MIXER);
+
+  assert.throws(
+    () =>
+      machine.addEventTransition("test", { from, to: from, duration: 0.25 }),
+    /loop/,
   );
 });
 

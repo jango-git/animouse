@@ -5,7 +5,7 @@ import { MIXER } from "../mocks/buildMockAnimationAction";
 import { AnimationMachineProxy } from "../proxies/AnimationMachineProxy";
 import { AnimationTreeProxy } from "../proxies/AnimationTreeProxy";
 
-test("addEventTransition: ...", () => {
+test("addEventTransition: without condition: should transition immediately with zero duration", () => {
   const from = new AnimationTreeProxy();
   const to = new AnimationTreeProxy();
   const machine = new AnimationMachineProxy(from, MIXER);
@@ -16,15 +16,27 @@ test("addEventTransition: ...", () => {
   machine.addEventTransition(event, { to, duration });
 
   machine.handleEvent(event);
-  assert.equal(machine.currentState, to, "...a");
+  assert.equal(
+    machine.currentState,
+    to,
+    "current state should be 'to' after event",
+  );
 
   machine.update(duration);
 
-  assertEqualWithTolerance(from.influence, 0, "...b");
-  assertEqualWithTolerance(to.influence, 1, "...c");
+  assertEqualWithTolerance(
+    from.influence,
+    0,
+    "from state should have no influence",
+  );
+  assertEqualWithTolerance(
+    to.influence,
+    1,
+    "to state should have full influence",
+  );
 });
 
-test("addEventTransition: ...", () => {
+test("addEventTransition: without condition: should transition completely after full duration", () => {
   const from = new AnimationTreeProxy();
   const to = new AnimationTreeProxy();
   const machine = new AnimationMachineProxy(from, MIXER);
@@ -35,15 +47,27 @@ test("addEventTransition: ...", () => {
   machine.addEventTransition(event, { to, duration });
 
   machine.handleEvent(event);
-  assert.equal(machine.currentState, to, "...a");
+  assert.equal(
+    machine.currentState,
+    to,
+    "current state should be 'to' after event",
+  );
 
   machine.update(duration);
 
-  assertEqualWithTolerance(from.influence, 0, "...b");
-  assertEqualWithTolerance(to.influence, 1, "...c");
+  assertEqualWithTolerance(
+    from.influence,
+    0,
+    "from state should have no influence",
+  );
+  assertEqualWithTolerance(
+    to.influence,
+    1,
+    "to state should have full influence",
+  );
 });
 
-test("addEventTransition: ...", () => {
+test("addEventTransition: without condition: should transition immediately with zero duration and explicit from state", () => {
   const from = new AnimationTreeProxy();
   const to = new AnimationTreeProxy();
   const machine = new AnimationMachineProxy(from, MIXER);
@@ -54,15 +78,27 @@ test("addEventTransition: ...", () => {
   machine.addEventTransition(event, { from, to, duration });
 
   machine.handleEvent(event);
-  assert.equal(machine.currentState, to, "...a");
+  assert.equal(
+    machine.currentState,
+    to,
+    "current state should be 'to' after event",
+  );
 
   machine.update(duration);
 
-  assertEqualWithTolerance(from.influence, 0, "...b");
-  assertEqualWithTolerance(to.influence, 1, "...c");
+  assertEqualWithTolerance(
+    from.influence,
+    0,
+    "from state should have no influence",
+  );
+  assertEqualWithTolerance(
+    to.influence,
+    1,
+    "to state should have full influence",
+  );
 });
 
-test("addEventTransition: ...", () => {
+test("addEventTransition: without condition: should transition completely after full duration with explicit from state", () => {
   const from = new AnimationTreeProxy();
   const to = new AnimationTreeProxy();
   const machine = new AnimationMachineProxy(from, MIXER);
@@ -73,12 +109,55 @@ test("addEventTransition: ...", () => {
   machine.addEventTransition(event, { from, to, duration });
 
   machine.handleEvent(event);
-  assert.equal(machine.currentState, to, "...a");
+  assert.equal(
+    machine.currentState,
+    to,
+    "current state should be 'to' after event",
+  );
 
   machine.update(duration);
 
-  assertEqualWithTolerance(from.influence, 0, "...b");
-  assertEqualWithTolerance(to.influence, 1, "...c");
+  assertEqualWithTolerance(
+    from.influence,
+    0,
+    "from state should have no influence",
+  );
+  assertEqualWithTolerance(
+    to.influence,
+    1,
+    "to state should have full influence",
+  );
+});
+
+test("addEventTransition: without condition: should have equal influence at half duration", () => {
+  const from = new AnimationTreeProxy();
+  const to = new AnimationTreeProxy();
+  const machine = new AnimationMachineProxy(from, MIXER);
+
+  const event = "test";
+  const duration = 0.25;
+
+  machine.addEventTransition(event, { from, to, duration });
+
+  machine.handleEvent(event);
+  assert.equal(
+    machine.currentState,
+    to,
+    "current state should be 'to' after event",
+  );
+
+  machine.update(duration / 2);
+
+  assertEqualWithTolerance(
+    from.influence,
+    0.5,
+    "from state should have half influence",
+  );
+  assertEqualWithTolerance(
+    to.influence,
+    0.5,
+    "to state should have half influence",
+  );
 });
 
 test.run();
