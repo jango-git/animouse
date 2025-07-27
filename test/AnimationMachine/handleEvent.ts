@@ -4,7 +4,7 @@ import { MIXER } from "../mocks/buildMockAnimationAction";
 import { AnimationMachineProxy } from "../proxies/AnimationMachineProxy";
 import { AnimationTreeProxy } from "../proxies/AnimationTreeProxy";
 
-test("handleEvent: ...", () => {
+test("handleEvent: should pass multiple user data parameters to condition function", () => {
   const from = new AnimationTreeProxy();
   const to = new AnimationTreeProxy();
   const machine = new AnimationMachineProxy(from, MIXER);

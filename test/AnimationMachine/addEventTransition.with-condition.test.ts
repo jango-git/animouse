@@ -26,7 +26,11 @@ test("addEventTransition: with condition: should transition when condition retur
 
   assertEqualWithTolerance(from.influence, 0, "from state influence");
   assertEqualWithTolerance(to.influence, 1, "to state influence");
-  assert.equal(machine.currentState, to, "...");
+  assert.equal(
+    machine.currentState,
+    to,
+    "current state should be 'to' after transition",
+  );
 });
 
 test("addEventTransition: with condition: should transition when condition returns true after full duration", () => {
@@ -50,7 +54,11 @@ test("addEventTransition: with condition: should transition when condition retur
 
   assertEqualWithTolerance(from.influence, 0, "from state influence");
   assertEqualWithTolerance(to.influence, 1, "to state influence");
-  assert.equal(machine.currentState, to, "...");
+  assert.equal(
+    machine.currentState,
+    to,
+    "current state should be 'to' after transition",
+  );
 });
 
 test("addEventTransition: with condition: should transition when condition returns true with zero duration and explicit from state", () => {
@@ -79,7 +87,11 @@ test("addEventTransition: with condition: should transition when condition retur
 
   assertEqualWithTolerance(from.influence, 0, "from state influence");
   assertEqualWithTolerance(to.influence, 1, "to state influence");
-  assert.equal(machine.currentState, to, "...");
+  assert.equal(
+    machine.currentState,
+    to,
+    "current state should be 'to' after transition",
+  );
 });
 
 test("addEventTransition: with condition: should transition when condition returns true after full duration with explicit from state", () => {
@@ -108,7 +120,11 @@ test("addEventTransition: with condition: should transition when condition retur
 
   assertEqualWithTolerance(from.influence, 0, "from state influence");
   assertEqualWithTolerance(to.influence, 1, "to state influence");
-  assert.equal(machine.currentState, to, "...");
+  assert.equal(
+    machine.currentState,
+    to,
+    "current state should be 'to' after transition",
+  );
 });
 
 test("addEventTransition: with condition: should have equal influence at half duration when condition returns true", () => {
@@ -137,7 +153,11 @@ test("addEventTransition: with condition: should have equal influence at half du
 
   assertEqualWithTolerance(from.influence, 0.5, "from state influence");
   assertEqualWithTolerance(to.influence, 0.5, "to state influence");
-  assert.equal(machine.currentState, to, "...");
+  assert.equal(
+    machine.currentState,
+    to,
+    "current state should be 'to' after transition",
+  );
 });
 
 test("addEventTransition: with condition: should not transition when condition returns false", () => {
@@ -166,7 +186,11 @@ test("addEventTransition: with condition: should not transition when condition r
 
   assertEqualWithTolerance(from.influence, 1, "from state influence");
   assertEqualWithTolerance(to.influence, 0, "to state influence");
-  assert.equal(machine.currentState, from, "...");
+  assert.equal(
+    machine.currentState,
+    from,
+    "current state should remain 'from' when condition is false",
+  );
 });
 
 test("addEventTransition: with condition: should pass correct parameters to condition function", () => {
