@@ -1,6 +1,5 @@
 import { test } from "uvu";
 import * as assert from "uvu/assert";
-import { assertEqualWithTolerance } from "../miscellaneous/miscellaneous";
 import { MIXER } from "../mocks/buildMockAnimationAction";
 import { AnimationMachineProxy } from "../proxies/AnimationMachineProxy";
 import { AnimationTreeProxy } from "../proxies/AnimationTreeProxy";
@@ -10,6 +9,7 @@ test("handleEvent: ...", () => {
   const to = new AnimationTreeProxy();
   const machine = new AnimationMachineProxy(from, MIXER);
 
+  const event = "test";
   const duration = 0.25;
   const userData0 = 24;
   const userData1 = NaN;
@@ -22,6 +22,7 @@ test("handleEvent: ...", () => {
   let conditionCalled = false;
   let receivedFromState: any = null;
   let receivedToState: any = null;
+  let receivedEvent: any = null;
   let receivedUserData0: any = null;
   let receivedUserData1: any = null;
   let receivedUserData2: any = null;
@@ -30,21 +31,14 @@ test("handleEvent: ...", () => {
   let receivedUserData5: any = null;
   let receivedUserData6: any = null;
 
-  machine.addDataTransition(from, {
+  machine.addEventTransition(event, {
+    from,
     to,
     duration,
-    data: [
-      userData0,
-      userData1,
-      userData2,
-      userData3,
-      userData4,
-      userData5,
-      userData6,
-    ],
     condition: (
       from,
       to,
+      event,
       userData0,
       userData1,
       userData2,
@@ -56,6 +50,7 @@ test("handleEvent: ...", () => {
       conditionCalled = true;
       receivedFromState = from;
       receivedToState = to;
+      receivedEvent = event;
       receivedUserData0 = userData0;
       receivedUserData1 = userData1;
       receivedUserData2 = userData2;
@@ -66,11 +61,17 @@ test("handleEvent: ...", () => {
       return true;
     },
   });
-  machine.update(duration);
+  machine.handleEvent(
+    event,
+    userData0,
+    userData1,
+    userData2,
+    userData3,
+    userData4,
+    userData5,
+    userData6,
+  );
 
-  assertEqualWithTolerance(from.influence, 0, "from state influence");
-  assertEqualWithTolerance(to.influence, 1, "to state influence");
-  assert.equal(machine.currentState, to, "...");
   assert.ok(conditionCalled, "condition function should be called");
   assert.equal(
     receivedFromState,
@@ -81,6 +82,11 @@ test("handleEvent: ...", () => {
     receivedToState,
     to,
     "condition should receive correct to state",
+  );
+  assert.equal(
+    receivedEvent,
+    event,
+    "condition should receive correct event name",
   );
   assert.equal(
     receivedUserData0,
