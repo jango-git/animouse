@@ -1,5 +1,5 @@
 import { LoopOnce, LoopRepeat, type AnimationAction } from "three";
-import { StateEvent } from "../../src/mescellaneous/AnimationStateEvent";
+import { AnimationStateEvent } from "../../src/mescellaneous/AnimationStateEvent";
 import type { Anchor } from "../../src/mescellaneous/miscellaneous";
 import { AnimationTree } from "../../src/states/AnimationTree";
 import { buildMockAnimationAction } from "../mocks/buildMockAnimationAction";
@@ -22,13 +22,13 @@ export class AnimationTreeProxy extends AnimationTree {
   public invokeIterateEvent(
     aciton: AnimationAction = buildMockAnimationAction(1, LoopRepeat),
   ): void {
-    this.emit(StateEvent.ITERATE, aciton, this);
+    this.emit(AnimationStateEvent.ITERATE, aciton, this);
   }
 
   public invokeFinishEvent(
     aciton: AnimationAction = buildMockAnimationAction(1, LoopOnce),
   ): void {
-    this.emit(StateEvent.FINISH, aciton, this);
+    this.emit(AnimationStateEvent.FINISH, aciton, this);
   }
 
   protected updateAnchorsInfluence(): void {

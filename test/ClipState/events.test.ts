@@ -1,7 +1,7 @@
 import { LoopOnce, LoopPingPong, LoopRepeat } from "three";
 import { test } from "uvu";
 import * as assert from "uvu/assert";
-import { StateEvent } from "../../src/mescellaneous/AnimationStateEvent";
+import { AnimationStateEvent } from "../../src/mescellaneous/AnimationStateEvent";
 import { buildMockAnimationAction } from "../mocks/buildMockAnimationAction";
 import { ClipStateProxy } from "../proxies/ClipStateProxy";
 
@@ -15,7 +15,7 @@ test("events: should emit ENTER/EXIT events", () => {
   let exitEventFired = false;
   let exitState: any = null;
 
-  tree.on(StateEvent.ENTER, (state) => {
+  tree.on(AnimationStateEvent.ENTER, (state) => {
     enterEventFired = true;
     enterState = state;
   });
@@ -33,7 +33,7 @@ test("events: should emit ENTER/EXIT events", () => {
   );
   assert.equal(enterState, tree, "ENTER event should provide the state");
 
-  tree.on(StateEvent.EXIT, (state) => {
+  tree.on(AnimationStateEvent.EXIT, (state) => {
     exitEventFired = true;
     exitState = state;
   });
@@ -70,27 +70,27 @@ test("events: should emit correct FINISH/ITERATE event based on animation loop m
   let loopPingPongFinishEventFired = false;
   let loopPingPongIterateEventFired = false;
 
-  loopOnceState.on(StateEvent.FINISH, () => {
+  loopOnceState.on(AnimationStateEvent.FINISH, () => {
     loopOnceFinishEventFired = true;
   });
 
-  loopOnceState.on(StateEvent.ITERATE, () => {
+  loopOnceState.on(AnimationStateEvent.ITERATE, () => {
     loopOnceIterateEventFired = true;
   });
 
-  loopRepeatState.on(StateEvent.FINISH, () => {
+  loopRepeatState.on(AnimationStateEvent.FINISH, () => {
     loopRepeatFinishEventFired = true;
   });
 
-  loopRepeatState.on(StateEvent.ITERATE, () => {
+  loopRepeatState.on(AnimationStateEvent.ITERATE, () => {
     loopRepeatIterateEventFired = true;
   });
 
-  loopPingPongState.on(StateEvent.FINISH, () => {
+  loopPingPongState.on(AnimationStateEvent.FINISH, () => {
     loopPingPongFinishEventFired = true;
   });
 
-  loopPingPongState.on(StateEvent.ITERATE, () => {
+  loopPingPongState.on(AnimationStateEvent.ITERATE, () => {
     loopPingPongIterateEventFired = true;
   });
 
@@ -141,7 +141,7 @@ test("events: should prevent duplicate iteration events", () => {
   clipState.invokeSetInfluence(1.0);
 
   let eventCount = 0;
-  clipState.on(StateEvent.ITERATE, () => {
+  clipState.on(AnimationStateEvent.ITERATE, () => {
     eventCount += 1;
   });
 
@@ -164,7 +164,7 @@ test("events: should start animation and emit PLAY when influence becomes positi
   let eventAction: any = null;
   let eventState: any = null;
 
-  clipState.on(StateEvent.PLAY, (action, state) => {
+  clipState.on(AnimationStateEvent.PLAY, (action, state) => {
     playEventFired = true;
     eventAction = action;
     eventState = state;
@@ -194,7 +194,7 @@ test("events: should stop animation and emit STOP when influence becomes zero", 
   let eventAction: any = null;
   let eventState: any = null;
 
-  clipState.on(StateEvent.STOP, (action, state) => {
+  clipState.on(AnimationStateEvent.STOP, (action, state) => {
     stopEventFired = true;
     eventAction = action;
     eventState = state;
@@ -224,7 +224,7 @@ test("events: should detect animation restart and emit iteration event", () => {
   clipState.invokeOnTick();
 
   let eventFired = false;
-  clipState.on(StateEvent.ITERATE, () => {
+  clipState.on(AnimationStateEvent.ITERATE, () => {
     eventFired = true;
   });
 
@@ -250,7 +250,7 @@ test("events: should update internal tracking state on each tick", () => {
   clipState.invokeOnTick();
 
   let eventFired = false;
-  clipState.once(StateEvent.ITERATE, () => {
+  clipState.once(AnimationStateEvent.ITERATE, () => {
     eventFired = true;
   });
 
@@ -266,7 +266,7 @@ test("events: should update internal tracking state on each tick", () => {
   clipState.invokeOnTick();
 
   let secondEventFired = false;
-  clipState.once(StateEvent.ITERATE, () => {
+  clipState.once(AnimationStateEvent.ITERATE, () => {
     secondEventFired = true;
   });
 

@@ -1,6 +1,6 @@
 import { test } from "uvu";
 import * as assert from "uvu/assert";
-import { StateEvent } from "../../src/mescellaneous/AnimationStateEvent";
+import { AnimationStateEvent } from "../../src/mescellaneous/AnimationStateEvent";
 import { assertEqualWithTolerance } from "../miscellaneous/miscellaneous";
 import { MIXER } from "../mocks/buildMockAnimationAction";
 import { AnimationMachineProxy } from "../proxies/AnimationMachineProxy";
@@ -17,7 +17,7 @@ test("constructor: should fire ENTER event on initial state", () => {
   const tree = new AnimationTreeProxy();
 
   let isEventFired = false;
-  tree.on(StateEvent.ENTER, () => {
+  tree.on(AnimationStateEvent.ENTER, () => {
     isEventFired = true;
   });
 

@@ -1,6 +1,6 @@
 import type { AnimationAction } from "three";
 import { LoopOnce } from "three";
-import { StateEvent } from "../mescellaneous/AnimationStateEvent";
+import { AnimationStateEvent } from "../mescellaneous/AnimationStateEvent";
 import { assertValidNumber, EPSILON } from "../mescellaneous/assertions";
 import {
   DelaunayTriangulation,
@@ -97,8 +97,8 @@ export class FreeformBlendTree extends AnimationTree {
         hasFiredIterationEvent: false,
         iterationEventType:
           animationAction.loop === LoopOnce
-            ? StateEvent.FINISH
-            : StateEvent.ITERATE,
+            ? AnimationStateEvent.FINISH
+            : AnimationStateEvent.ITERATE,
         x: freeformAction.x,
         y: freeformAction.y,
       });

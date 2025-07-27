@@ -1,6 +1,6 @@
 import { test } from "uvu";
 import * as assert from "uvu/assert";
-import { StateEvent } from "../../src/mescellaneous/AnimationStateEvent";
+import { AnimationStateEvent } from "../../src/mescellaneous/AnimationStateEvent";
 import { buildMockAnchor } from "../mocks/buildMockAnchor";
 import { AnimationTreeProxy } from "../proxies/AnimationTreeProxy";
 
@@ -67,10 +67,10 @@ test("updateAnchor: should update weight without play/stop when animation is alr
   const initialPlayingState = anchor.action.isRunning();
 
   let anyEventFired = false;
-  tree.on(StateEvent.PLAY, () => {
+  tree.on(AnimationStateEvent.PLAY, () => {
     anyEventFired = true;
   });
-  tree.on(StateEvent.STOP, () => {
+  tree.on(AnimationStateEvent.STOP, () => {
     anyEventFired = true;
   });
 

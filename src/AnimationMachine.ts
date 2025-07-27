@@ -1,6 +1,6 @@
 import type { AnimationAction, AnimationMixer } from "three";
 import { MathUtils } from "three";
-import { StateEvent } from "./mescellaneous/AnimationStateEvent";
+import { AnimationStateEvent } from "./mescellaneous/AnimationStateEvent";
 import { assertValidNonNegativeNumber } from "./mescellaneous/assertions";
 import type { AnimationState } from "./states/AnimationState";
 
@@ -183,8 +183,8 @@ export class AnimationMachine {
     }
 
     this.automaticTransitions.set(from, transition);
-    from.on(StateEvent.ITERATE, this.onStateIteration, this);
-    from.on(StateEvent.FINISH, this.onStateIteration, this);
+    from.on(AnimationStateEvent.ITERATE, this.onStateIteration, this);
+    from.on(AnimationStateEvent.FINISH, this.onStateIteration, this);
   }
 
   /**

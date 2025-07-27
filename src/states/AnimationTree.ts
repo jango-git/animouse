@@ -1,4 +1,4 @@
-import { StateEvent } from "../mescellaneous/AnimationStateEvent";
+import { AnimationStateEvent } from "../mescellaneous/AnimationStateEvent";
 import { assertValidUnitRange } from "../mescellaneous/assertions";
 import type { Anchor } from "../mescellaneous/miscellaneous";
 import { AnimationState } from "./AnimationState";
@@ -57,7 +57,7 @@ export abstract class AnimationTree extends AnimationState {
       animationAction.play();
       anchor.previousTime = 0;
       anchor.hasFiredIterationEvent = false;
-      this.emit(StateEvent.PLAY, animationAction, this);
+      this.emit(AnimationStateEvent.PLAY, animationAction, this);
       return;
     }
 
@@ -67,7 +67,7 @@ export abstract class AnimationTree extends AnimationState {
       animationAction.weight = 0;
       anchor.previousTime = 0;
       anchor.hasFiredIterationEvent = false;
-      this.emit(StateEvent.STOP, animationAction, this);
+      this.emit(AnimationStateEvent.STOP, animationAction, this);
       return;
     }
 

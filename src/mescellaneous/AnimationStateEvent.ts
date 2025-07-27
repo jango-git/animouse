@@ -4,7 +4,7 @@
  * - ENTER and EXIT describe when the blend state itself becomes active or inactive in the state machine.
  * - PLAY, STOP, ITERATE, and FINISH describe the lifecycle of individual AnimationActions inside this blend state.
  */
-export enum StateEvent {
+export enum AnimationStateEvent {
   /**
    * Fired when the blend state itself becomes active.
    * Indicates that a transition into this state has started.
@@ -19,19 +19,19 @@ export enum StateEvent {
 
   /**
    * Fired when an individual AnimationAction inside this blend state starts playing.
-   * For example, when a walk or run action becomes active due to blend weights.
+   * For example, when a walk or run action becomes active due to weights.
    */
   PLAY = "play",
 
   /**
    * Fired when an individual AnimationAction inside this blend state stops playing.
-   * For example, when blend weights for that action reach zero.
+   * For example, when a walk or run action stops as its weights reach zero.
    */
   STOP = "stop",
 
   /**
    * Fired when an individual AnimationAction inside this blend state completes one full loop.
-   * Fires every cycle for looping actions.
+   * Fires every cycle for looping actions (LoopRepeat, LoopPingPong).
    */
   ITERATE = "iterate",
 

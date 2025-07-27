@@ -1,5 +1,6 @@
 export * from "./AnimationMachine";
 export * from "./mescellaneous/AnimationStateEvent";
+export * from "./mescellaneous/assertions";
 export * from "./mescellaneous/miscellaneous";
 export * from "./states/AnimationState";
 export * from "./states/FreeformBlendTree";

@@ -1,5 +1,5 @@
 import type { AnimationAction, Vector2Like } from "three";
-import type { StateEvent } from "./AnimationStateEvent";
+import type { AnimationStateEvent } from "./AnimationStateEvent";
 import { assertValidAzimuth, assertValidNumber, PI2 } from "./assertions";
 
 /**
@@ -17,7 +17,7 @@ export interface Anchor {
   /** Whether an iteration event has been fired for this anchor */
   hasFiredIterationEvent: boolean;
   /** The type of iteration event associated with this anchor */
-  iterationEventType: StateEvent;
+  iterationEventType: AnimationStateEvent;
 }
 
 /**
@@ -37,7 +37,7 @@ export function calculateNormalizedAzimuth(azimuth: number): number {
 
 /**
  * Calculates the forward angular distance between two azimuth angles.
- * Always measures distance in the positive direction, even if shorter path exists backward.
+ * Always measures distance in the positive direction, even if a shorter path exists in the backward direction.
  *
  * @param from - The starting azimuth angle in radians
  * @param to - The target azimuth angle in radians

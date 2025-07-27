@@ -2,7 +2,7 @@ import type { AnimationAction } from "three";
 import { LoopOnce, LoopPingPong, LoopRepeat } from "three";
 import { test } from "uvu";
 import * as assert from "uvu/assert";
-import { StateEvent } from "../../src/mescellaneous/AnimationStateEvent";
+import { AnimationStateEvent } from "../../src/mescellaneous/AnimationStateEvent";
 import { buildMockFreeformAction } from "../mocks/buildMockAction";
 import { FreeformBlendTreeProxy } from "../proxies/FreeformBlendTreeProxy";
 
@@ -19,7 +19,7 @@ test("events: should emit ENTER/EXIT events", () => {
   let exitEventFired = false;
   let exitState: any = null;
 
-  tree.on(StateEvent.ENTER, (state) => {
+  tree.on(AnimationStateEvent.ENTER, (state) => {
     enterEventFired = true;
     enterState = state;
   });
@@ -37,7 +37,7 @@ test("events: should emit ENTER/EXIT events", () => {
   );
   assert.equal(enterState, tree, "ENTER event should provide the state");
 
-  tree.on(StateEvent.EXIT, (state) => {
+  tree.on(AnimationStateEvent.EXIT, (state) => {
     exitEventFired = true;
     exitState = state;
   });
@@ -76,7 +76,7 @@ test("events: should emit correct FINISH/ITERATE event based on animation loop m
   let loopPingPongFinishEventFired = false;
   let loopPingPongIterateEventFired = false;
 
-  tree.on(StateEvent.FINISH, (action: AnimationAction) => {
+  tree.on(AnimationStateEvent.FINISH, (action: AnimationAction) => {
     if (action.loop === LoopOnce) {
       loopOnceFinishEventFired = true;
     } else if (action.loop === LoopRepeat) {
@@ -86,7 +86,7 @@ test("events: should emit correct FINISH/ITERATE event based on animation loop m
     }
   });
 
-  tree.on(StateEvent.ITERATE, (action: AnimationAction) => {
+  tree.on(AnimationStateEvent.ITERATE, (action: AnimationAction) => {
     if (action.loop === LoopOnce) {
       loopOnceIterateEventFired = true;
     } else if (action.loop === LoopRepeat) {
@@ -148,7 +148,7 @@ test("events: should prevent duplicate iteration events", () => {
   ]);
 
   let eventCount = 0;
-  tree.on(StateEvent.ITERATE, () => {
+  tree.on(AnimationStateEvent.ITERATE, () => {
     eventCount += 1;
   });
 
@@ -175,7 +175,7 @@ test("events: should start animation and emit PLAY when influence becomes positi
   let eventAction: any = null;
   let eventState: any = null;
 
-  tree.on(StateEvent.PLAY, (action, state) => {
+  tree.on(AnimationStateEvent.PLAY, (action, state) => {
     playEventFired = true;
     eventAction = action;
     eventState = state;
@@ -209,7 +209,7 @@ test("events: should stop animation and emit STOP when influence becomes zero", 
   let eventAction: any = null;
   let eventState: any = null;
 
-  tree.on(StateEvent.STOP, (action, state) => {
+  tree.on(AnimationStateEvent.STOP, (action, state) => {
     stopEventFired = true;
     eventAction = action;
     eventState = state;

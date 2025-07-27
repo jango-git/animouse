@@ -1,6 +1,6 @@
 import type { AnimationAction } from "three";
 import { LoopOnce } from "three";
-import { StateEvent } from "../mescellaneous/AnimationStateEvent";
+import { AnimationStateEvent } from "../mescellaneous/AnimationStateEvent";
 import {
   assertValidNonNegativeNumber,
   assertValidNumber,
@@ -251,8 +251,8 @@ export class PolarBlendTree extends AnimationTree {
         hasFiredIterationEvent: false,
         iterationEventType:
           animationAction.loop === LoopOnce
-            ? StateEvent.FINISH
-            : StateEvent.ITERATE,
+            ? AnimationStateEvent.FINISH
+            : AnimationStateEvent.ITERATE,
         radius: polarAction.radius,
         azimuth: polarAction.azimuth,
       };
@@ -309,8 +309,8 @@ export class PolarBlendTree extends AnimationTree {
         hasFiredIterationEvent: false,
         iterationEventType:
           centerAction.loop === LoopOnce
-            ? StateEvent.FINISH
-            : StateEvent.ITERATE,
+            ? AnimationStateEvent.FINISH
+            : AnimationStateEvent.ITERATE,
         radius: 0,
         azimuth: 0,
       };

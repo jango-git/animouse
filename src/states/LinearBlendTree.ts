@@ -1,6 +1,6 @@
 import type { AnimationAction } from "three";
 import { LoopOnce } from "three";
-import { StateEvent } from "../mescellaneous/AnimationStateEvent";
+import { AnimationStateEvent } from "../mescellaneous/AnimationStateEvent";
 import {
   assertValidNumber,
   assertValidPositiveNumber,
@@ -124,8 +124,8 @@ export class LinearBlendTree extends AnimationTree {
         hasFiredIterationEvent: false,
         iterationEventType:
           animationAction.loop === LoopOnce
-            ? StateEvent.FINISH
-            : StateEvent.ITERATE,
+            ? AnimationStateEvent.FINISH
+            : AnimationStateEvent.ITERATE,
         value: linearAction.value,
       });
     }

@@ -1,6 +1,6 @@
 import { test } from "uvu";
 import * as assert from "uvu/assert";
-import { StateEvent } from "../../src/mescellaneous/AnimationStateEvent";
+import { AnimationStateEvent } from "../../src/mescellaneous/AnimationStateEvent";
 import { buildMockAnchor } from "../mocks/buildMockAnchor";
 import { AnimationTreeProxy } from "../proxies/AnimationTreeProxy";
 
@@ -12,7 +12,7 @@ test("events: should emit PLAY event when combined weight becomes positive", () 
   let eventFired = false;
   let eventAction: any = null;
   let eventState: any = null;
-  tree.on(StateEvent.PLAY, (action, state) => {
+  tree.on(AnimationStateEvent.PLAY, (action, state) => {
     eventFired = true;
     eventAction = action;
     eventState = state;
@@ -32,7 +32,7 @@ test("events: should emit STOP event when combined weight becomes zero", () => {
   let eventFired = false;
   let eventAction: any = null;
   let eventState: any = null;
-  tree.on(StateEvent.STOP, (action, state) => {
+  tree.on(AnimationStateEvent.STOP, (action, state) => {
     eventFired = true;
     eventAction = action;
     eventState = state;

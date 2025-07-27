@@ -1,5 +1,5 @@
 import { LoopOnce, type AnimationAction } from "three";
-import { StateEvent } from "../mescellaneous/AnimationStateEvent";
+import { AnimationStateEvent } from "../mescellaneous/AnimationStateEvent";
 import {
   assertValidPositiveNumber,
   assertValidUnitRange,
@@ -45,8 +45,8 @@ export class ClipState extends AnimationState {
       hasFiredIterationEvent: false,
       iterationEventType:
         animationAction.loop === LoopOnce
-          ? StateEvent.FINISH
-          : StateEvent.ITERATE,
+          ? AnimationStateEvent.FINISH
+          : AnimationStateEvent.ITERATE,
     };
   }
 
@@ -70,7 +70,7 @@ export class ClipState extends AnimationState {
       animationAction.time = 0;
       animationAction.weight = 0;
       anchor.hasFiredIterationEvent = false;
-      this.emit(StateEvent.STOP, animationAction, this);
+      this.emit(AnimationStateEvent.STOP, animationAction, this);
       return;
     }
 
@@ -79,7 +79,7 @@ export class ClipState extends AnimationState {
       animationAction.time = 0;
       animationAction.weight = influence;
       anchor.hasFiredIterationEvent = false;
-      this.emit(StateEvent.PLAY, animationAction, this);
+      this.emit(AnimationStateEvent.PLAY, animationAction, this);
       return;
     }
 

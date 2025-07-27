@@ -1,6 +1,6 @@
 import { test } from "uvu";
 import * as assert from "uvu/assert";
-import { StateEvent } from "../src/mescellaneous/AnimationStateEvent";
+import { AnimationStateEvent } from "../src/mescellaneous/AnimationStateEvent";
 import { AnimationStateProxy } from "./proxies/AnimationStateProxy";
 
 test("events: should emit ENTER event when onEnterInternal is called", () => {
@@ -8,7 +8,7 @@ test("events: should emit ENTER event when onEnterInternal is called", () => {
   let eventFired = false;
   let eventData: any = null;
 
-  state.on(StateEvent.ENTER, (data) => {
+  state.on(AnimationStateEvent.ENTER, (data) => {
     eventFired = true;
     eventData = data;
   });
@@ -24,7 +24,7 @@ test("events: should emit EXIT event when onExitInternal is called", () => {
   let eventFired = false;
   let eventData: any = null;
 
-  state.on(StateEvent.EXIT, (data) => {
+  state.on(AnimationStateEvent.EXIT, (data) => {
     eventFired = true;
     eventData = data;
   });
@@ -39,11 +39,11 @@ test("events: should emit multiple events correctly", () => {
   const state = new AnimationStateProxy();
   const events: string[] = [];
 
-  state.on(StateEvent.ENTER, () => {
+  state.on(AnimationStateEvent.ENTER, () => {
     events.push("enter");
   });
 
-  state.on(StateEvent.EXIT, () => {
+  state.on(AnimationStateEvent.EXIT, () => {
     events.push("exit");
   });
 
@@ -73,11 +73,11 @@ test("events: should pass correct state instance data to both ENTER and EXIT eve
   let enterEventData: any = null;
   let exitEventData: any = null;
 
-  state.on(StateEvent.ENTER, (data) => {
+  state.on(AnimationStateEvent.ENTER, (data) => {
     enterEventData = data;
   });
 
-  state.on(StateEvent.EXIT, (data) => {
+  state.on(AnimationStateEvent.EXIT, (data) => {
     exitEventData = data;
   });
 

@@ -1,6 +1,6 @@
 import type { AnimationActionLoopStyles } from "three";
 import { LoopOnce, LoopRepeat } from "three";
-import { StateEvent } from "../../src/mescellaneous/AnimationStateEvent";
+import { AnimationStateEvent } from "../../src/mescellaneous/AnimationStateEvent";
 import type { Anchor } from "../../src/mescellaneous/miscellaneous";
 import type { FreeformAnchor } from "../../src/states/FreeformBlendTree";
 import type { LinearAnchor } from "../../src/states/LinearBlendTree";
@@ -21,7 +21,9 @@ export function buildMockAnchor(
     duration: action.getClip().duration,
     hasFiredIterationEvent: false,
     iterationEventType:
-      action.loop === LoopOnce ? StateEvent.FINISH : StateEvent.ITERATE,
+      action.loop === LoopOnce
+        ? AnimationStateEvent.FINISH
+        : AnimationStateEvent.ITERATE,
   };
 }
 
@@ -39,7 +41,9 @@ export function buildMockLinearAnchor(
     duration: action.getClip().duration,
     hasFiredIterationEvent: false,
     iterationEventType:
-      action.loop === LoopOnce ? StateEvent.FINISH : StateEvent.ITERATE,
+      action.loop === LoopOnce
+        ? AnimationStateEvent.FINISH
+        : AnimationStateEvent.ITERATE,
     value: 0,
   };
 }
@@ -58,7 +62,9 @@ export function buildMockRadialAnchor(
     duration: action.getClip().duration,
     hasFiredIterationEvent: false,
     iterationEventType:
-      action.loop === LoopOnce ? StateEvent.FINISH : StateEvent.ITERATE,
+      action.loop === LoopOnce
+        ? AnimationStateEvent.FINISH
+        : AnimationStateEvent.ITERATE,
     radius: 0,
     azimuth: 0,
   };
@@ -78,7 +84,9 @@ export function buildMockFreeformAnchor(
     duration: action.getClip().duration,
     hasFiredIterationEvent: false,
     iterationEventType:
-      action.loop === LoopOnce ? StateEvent.FINISH : StateEvent.ITERATE,
+      action.loop === LoopOnce
+        ? AnimationStateEvent.FINISH
+        : AnimationStateEvent.ITERATE,
     x: 0,
     y: 0,
   };

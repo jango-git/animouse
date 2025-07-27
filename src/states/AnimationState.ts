@@ -1,5 +1,5 @@
 import { Eventail } from "eventail";
-import { StateEvent } from "../mescellaneous/AnimationStateEvent";
+import { AnimationStateEvent } from "../mescellaneous/AnimationStateEvent";
 import type { Anchor } from "../mescellaneous/miscellaneous";
 
 /**
@@ -33,7 +33,7 @@ export abstract class AnimationState extends Eventail {
    * @internal This method is intended to be called only by the animation state machine
    */
   protected ["onEnterInternal"](): void {
-    this.emit(StateEvent.ENTER, this);
+    this.emit(AnimationStateEvent.ENTER, this);
   }
 
   /**
@@ -43,7 +43,7 @@ export abstract class AnimationState extends Eventail {
    * @internal This method is intended to be called only by the animation state machine
    */
   protected ["onExitInternal"](): void {
-    this.emit(StateEvent.EXIT, this);
+    this.emit(AnimationStateEvent.EXIT, this);
   }
 
   protected updateAnchorTime(anchor: Anchor): void {
