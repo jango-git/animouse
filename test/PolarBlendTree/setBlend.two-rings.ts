@@ -58,33 +58,17 @@ function testTwoRingsBlending(azimuth: number, radius: number): void {
   const blWeight = bWeight * lWeight;
   const brWeight = bWeight * rWeight;
 
-  assertEqualWithTolerance(
-    tlAction.action.weight,
-    tlWeight,
-    `Weight TL: expected ${tlWeight.toFixed(2)}, got ${tlAction.action.weight.toFixed(2)}`,
-  );
-  assertEqualWithTolerance(
-    trAction.action.weight,
-    trWeight,
-    `Weight TR: expected ${trWeight.toFixed(2)}, got ${trAction.action.weight.toFixed(2)}`,
-  );
-  assertEqualWithTolerance(
-    blAction.action.weight,
-    blWeight,
-    `Weight BL: expected ${blWeight.toFixed(2)}, got ${blAction.action.weight.toFixed(2)}`,
-  );
-  assertEqualWithTolerance(
-    brAction.action.weight,
-    brWeight,
-    `Weight BR: expected ${brWeight.toFixed(2)}, got ${brAction.action.weight.toFixed(2)}`,
-  );
+  assertEqualWithTolerance(tlAction.action.weight, tlWeight, "tlAction weight");
+  assertEqualWithTolerance(trAction.action.weight, trWeight, "trAction weight");
+  assertEqualWithTolerance(blAction.action.weight, blWeight, "blAction weight");
+  assertEqualWithTolerance(brAction.action.weight, brWeight, "brAction weight");
   assertEqualWithTolerance(
     tlAction.action.weight +
       trAction.action.weight +
       blAction.action.weight +
       brAction.action.weight,
     1,
-    `Sum of weights should equal 1, got ${tlAction.action.weight + trAction.action.weight + blAction.action.weight + brAction.action.weight}`,
+    "sum of weights",
   );
 }
 

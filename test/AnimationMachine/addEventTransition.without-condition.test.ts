@@ -5,7 +5,7 @@ import { MIXER } from "../mocks/buildMockAnimationAction";
 import { AnimationMachineProxy } from "../proxies/AnimationMachineProxy";
 import { AnimationTreeProxy } from "../proxies/AnimationTreeProxy";
 
-test("addEventTransition: without condition: should transition immediately with zero duration", () => {
+test("addEventTransition: without condition: should transition with zero duration", () => {
   const from = new AnimationTreeProxy();
   const to = new AnimationTreeProxy();
   const machine = new AnimationMachineProxy(from, MIXER);
@@ -14,8 +14,8 @@ test("addEventTransition: without condition: should transition immediately with 
   const duration = 0;
 
   machine.addEventTransition(event, { to, duration });
-
   machine.handleEvent(event);
+
   assert.equal(
     machine.currentState,
     to,
@@ -24,16 +24,8 @@ test("addEventTransition: without condition: should transition immediately with 
 
   machine.update(duration);
 
-  assertEqualWithTolerance(
-    from.influence,
-    0,
-    "from state should have no influence",
-  );
-  assertEqualWithTolerance(
-    to.influence,
-    1,
-    "to state should have full influence",
-  );
+  assertEqualWithTolerance(from.influence, 0, "from state influence");
+  assertEqualWithTolerance(to.influence, 1, "to state influence");
 });
 
 test("addEventTransition: without condition: should transition completely after full duration", () => {
@@ -45,8 +37,8 @@ test("addEventTransition: without condition: should transition completely after 
   const duration = 0.25;
 
   machine.addEventTransition(event, { to, duration });
-
   machine.handleEvent(event);
+
   assert.equal(
     machine.currentState,
     to,
@@ -55,16 +47,8 @@ test("addEventTransition: without condition: should transition completely after 
 
   machine.update(duration);
 
-  assertEqualWithTolerance(
-    from.influence,
-    0,
-    "from state should have no influence",
-  );
-  assertEqualWithTolerance(
-    to.influence,
-    1,
-    "to state should have full influence",
-  );
+  assertEqualWithTolerance(from.influence, 0, "from state influence");
+  assertEqualWithTolerance(to.influence, 1, "to state influence");
 });
 
 test("addEventTransition: without condition: should transition immediately with zero duration and explicit from state", () => {
@@ -76,8 +60,8 @@ test("addEventTransition: without condition: should transition immediately with 
   const duration = 0;
 
   machine.addEventTransition(event, { from, to, duration });
-
   machine.handleEvent(event);
+
   assert.equal(
     machine.currentState,
     to,
@@ -86,16 +70,8 @@ test("addEventTransition: without condition: should transition immediately with 
 
   machine.update(duration);
 
-  assertEqualWithTolerance(
-    from.influence,
-    0,
-    "from state should have no influence",
-  );
-  assertEqualWithTolerance(
-    to.influence,
-    1,
-    "to state should have full influence",
-  );
+  assertEqualWithTolerance(from.influence, 0, "from state influence");
+  assertEqualWithTolerance(to.influence, 1, "to state influence");
 });
 
 test("addEventTransition: without condition: should transition completely after full duration with explicit from state", () => {
@@ -107,8 +83,8 @@ test("addEventTransition: without condition: should transition completely after 
   const duration = 0.25;
 
   machine.addEventTransition(event, { from, to, duration });
-
   machine.handleEvent(event);
+
   assert.equal(
     machine.currentState,
     to,
@@ -117,16 +93,8 @@ test("addEventTransition: without condition: should transition completely after 
 
   machine.update(duration);
 
-  assertEqualWithTolerance(
-    from.influence,
-    0,
-    "from state should have no influence",
-  );
-  assertEqualWithTolerance(
-    to.influence,
-    1,
-    "to state should have full influence",
-  );
+  assertEqualWithTolerance(from.influence, 0, "from state influence");
+  assertEqualWithTolerance(to.influence, 1, "to state influence");
 });
 
 test("addEventTransition: without condition: should have equal influence at half duration", () => {
@@ -138,8 +106,8 @@ test("addEventTransition: without condition: should have equal influence at half
   const duration = 0.25;
 
   machine.addEventTransition(event, { from, to, duration });
-
   machine.handleEvent(event);
+
   assert.equal(
     machine.currentState,
     to,
@@ -148,16 +116,8 @@ test("addEventTransition: without condition: should have equal influence at half
 
   machine.update(duration / 2);
 
-  assertEqualWithTolerance(
-    from.influence,
-    0.5,
-    "from state should have half influence",
-  );
-  assertEqualWithTolerance(
-    to.influence,
-    0.5,
-    "to state should have half influence",
-  );
+  assertEqualWithTolerance(from.influence, 0.5, "from state influence");
+  assertEqualWithTolerance(to.influence, 0.5, "to state influence");
 });
 
 test.run();

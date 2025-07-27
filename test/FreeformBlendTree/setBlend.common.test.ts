@@ -65,17 +65,17 @@ test("setBlend: should skip update when blend value unchanged", () => {
   assertEqualWithTolerance(
     aAction.action.weight,
     initialWeight1,
-    "aAction weight should remain unchanged",
+    "aAction weight",
   );
   assertEqualWithTolerance(
     bAction.action.weight,
     initialWeight2,
-    "bAction weight should remain unchanged",
+    "bAction weight",
   );
   assertEqualWithTolerance(
     cAction.action.weight,
     initialWeight3,
-    "cAction weight should remain unchanged",
+    "cAction weight",
   );
 });
 

@@ -12,11 +12,11 @@ export const PI2 = Math.PI * 2;
 export function assertEqualWithTolerance(
   actual: number,
   expected: number,
-  message?: string,
+  subject: string,
 ): void {
   assert.ok(
     Math.abs(actual - expected) < EPSILON,
-    message ?? `Expected ${expected}, got ${actual}`,
+    `${subject}: expected ${expected}, got ${actual}`,
   );
 }
 

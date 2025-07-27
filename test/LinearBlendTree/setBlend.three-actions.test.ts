@@ -42,25 +42,13 @@ function testLinearBlending(value: number): void {
     rWeight = twoWeight;
   }
 
-  assertEqualWithTolerance(
-    lAction.action.weight,
-    lWeight,
-    `Weight L: expected ${lWeight.toFixed(2)}, got ${lAction.action.weight.toFixed(2)}`,
-  );
-  assertEqualWithTolerance(
-    cAction.action.weight,
-    cWeight,
-    `Weight C: expected ${cWeight.toFixed(2)}, got ${cAction.action.weight.toFixed(2)}`,
-  );
-  assertEqualWithTolerance(
-    rAction.action.weight,
-    rWeight,
-    `Weight R: expected ${rWeight.toFixed(2)}, got ${rAction.action.weight.toFixed(2)}`,
-  );
+  assertEqualWithTolerance(lAction.action.weight, lWeight, "lAction weight");
+  assertEqualWithTolerance(cAction.action.weight, cWeight, "cAction weight");
+  assertEqualWithTolerance(rAction.action.weight, rWeight, "rAction weight");
   assertEqualWithTolerance(
     lAction.action.weight + cAction.action.weight + rAction.action.weight,
     1,
-    `Sum of weights should equal 1, got ${lAction.action.weight + cAction.action.weight + rAction.action.weight.toFixed(2)}`,
+    "sum of weights",
   );
 }
 

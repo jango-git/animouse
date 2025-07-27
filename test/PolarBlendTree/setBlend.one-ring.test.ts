@@ -32,20 +32,12 @@ function testOneRingBlending(azimuth: number, radius: number): void {
 
   const [rWeight, lWeight] = lerpAngular(azimuth, rValue, lValue);
 
-  assertEqualWithTolerance(
-    lAction.action.weight,
-    lWeight,
-    `Weight L: expected ${lWeight.toFixed(2)}, got ${lAction.action.weight.toFixed(2)}`,
-  );
-  assertEqualWithTolerance(
-    rAction.action.weight,
-    rWeight,
-    `Weight R: expected ${rWeight.toFixed(2)}, got ${rAction.action.weight.toFixed(2)}`,
-  );
+  assertEqualWithTolerance(lAction.action.weight, lWeight, "lAction weight");
+  assertEqualWithTolerance(rAction.action.weight, rWeight, "rAction weight");
   assertEqualWithTolerance(
     lAction.action.weight + rAction.action.weight,
     1,
-    `Sum of weights should equal 1, got ${lAction.action.weight + rAction.action.weight}`,
+    "sum of weights",
   );
 }
 

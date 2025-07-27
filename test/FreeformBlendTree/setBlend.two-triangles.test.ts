@@ -68,33 +68,17 @@ function testOneTriangleBlending(x: number, y: number): void {
     throw new Error(`Point (${x}, ${y}) cannot be solved`);
   }
 
-  assertEqualWithTolerance(
-    aAction.action.weight,
-    aWeight,
-    `Weight A: expected ${aWeight.toFixed(2)}, got ${aAction.action.weight.toFixed(2)}`,
-  );
-  assertEqualWithTolerance(
-    bAction.action.weight,
-    bWeight,
-    `Weight B: expected ${bWeight.toFixed(2)}, got ${bAction.action.weight.toFixed(2)}`,
-  );
-  assertEqualWithTolerance(
-    cAction.action.weight,
-    cWeight,
-    `Weight C: expected ${cWeight.toFixed(2)}, got ${cAction.action.weight.toFixed(2)}`,
-  );
-  assertEqualWithTolerance(
-    dAction.action.weight,
-    dWeight,
-    `Weight D: expected ${dWeight.toFixed(2)}, got ${dAction.action.weight.toFixed(2)}`,
-  );
+  assertEqualWithTolerance(aAction.action.weight, aWeight, "aAction weight");
+  assertEqualWithTolerance(bAction.action.weight, bWeight, "bAction weight");
+  assertEqualWithTolerance(cAction.action.weight, cWeight, "cAction weight");
+  assertEqualWithTolerance(dAction.action.weight, dWeight, "dAction weight");
   assertEqualWithTolerance(
     aAction.action.weight +
       bAction.action.weight +
       cAction.action.weight +
       dAction.action.weight,
     1,
-    `Sum of weights should equal 1, got ${aAction.action.weight + bAction.action.weight + cAction.action.weight + dAction.action.weight.toFixed(2)}`,
+    "sum of weights",
   );
 }
 

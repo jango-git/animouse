@@ -10,7 +10,7 @@ test("constructor: should set initial state influence to 1", () => {
   const tree = new AnimationTreeProxy();
   new AnimationMachineProxy(tree, MIXER);
 
-  assertEqualWithTolerance(tree.influence, 1);
+  assertEqualWithTolerance(tree.influence, 1, "tree influence");
 });
 
 test("constructor: should fire ENTER event on initial state", () => {

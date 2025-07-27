@@ -35,25 +35,13 @@ function testOneTriangleBlending(x: number, y: number): void {
 
   const [aWeight, bWeight, cWeight] = lerpBarycentric({ x, y }, a, b, c);
 
-  assertEqualWithTolerance(
-    aAction.action.weight,
-    aWeight,
-    `Weight A: expected ${aWeight.toFixed(2)}, got ${aAction.action.weight.toFixed(2)}`,
-  );
-  assertEqualWithTolerance(
-    bAction.action.weight,
-    bWeight,
-    `Weight B: expected ${bWeight.toFixed(2)}, got ${bAction.action.weight.toFixed(2)}`,
-  );
-  assertEqualWithTolerance(
-    cAction.action.weight,
-    cWeight,
-    `Weight C: expected ${cWeight.toFixed(2)}, got ${cAction.action.weight.toFixed(2)}`,
-  );
+  assertEqualWithTolerance(aAction.action.weight, aWeight, "aAction weight");
+  assertEqualWithTolerance(bAction.action.weight, bWeight, "bAction weight");
+  assertEqualWithTolerance(cAction.action.weight, cWeight, "cAction weight");
   assertEqualWithTolerance(
     aAction.action.weight + bAction.action.weight + cAction.action.weight,
     1,
-    `Sum of weights should equal 1, got ${aAction.action.weight + bAction.action.weight + cAction.action.weight.toFixed(2)}`,
+    "sum of weights",
   );
 }
 

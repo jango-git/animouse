@@ -94,31 +94,15 @@ test("constructor: should initialize actions to stopped state", () => {
 
   new LinearBlendTreeProxy([action1, action2]);
 
-  assertEqualWithTolerance(
-    action1.action.time,
-    0,
-    "action1 should have time 0",
-  );
-  assertEqualWithTolerance(
-    action1.action.weight,
-    0,
-    "action1 should have weight 0",
-  );
+  assertEqualWithTolerance(action1.action.time, 0, "action1 time");
+  assertEqualWithTolerance(action1.action.weight, 0, "action1 weight");
   assert.equal(
     action1.action.isRunning(),
     false,
     "action1 should not be running",
   );
-  assertEqualWithTolerance(
-    action2.action.time,
-    0,
-    "action2 should have time 0",
-  );
-  assertEqualWithTolerance(
-    action2.action.weight,
-    0,
-    "action2 should have weight 0",
-  );
+  assertEqualWithTolerance(action2.action.time, 0, "action2 time");
+  assertEqualWithTolerance(action2.action.weight, 0, "action2 weight");
   assert.equal(
     action2.action.isRunning(),
     false,
