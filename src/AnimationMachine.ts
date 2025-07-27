@@ -5,7 +5,19 @@ import { assertValidNonNegativeNumber } from "./mescellaneous/assertions";
 import type { AnimationState } from "./states/AnimationState";
 
 /* eslint-disable @typescript-eslint/no-explicit-any -- Using any here for generic condition function arguments */
-type Condition = (...args: any[]) => boolean;
+type EventCondition = (
+  from: AnimationState | undefined,
+  to: AnimationState,
+  event: string | number,
+  ...args: any[]
+) => boolean;
+
+/* eslint-disable @typescript-eslint/no-explicit-any -- Using any here for generic condition function arguments */
+type DataCondition = (
+  from: AnimationState,
+  to: AnimationState,
+  ...args: any[]
+) => boolean;
 
 /**
  * Configuration for event-triggered transitions between animation states.
@@ -20,7 +32,7 @@ export interface EventTransition {
   /** Duration of the transition in seconds */
   duration: number;
   /** Optional condition that must be met for the transition to occur */
-  condition?: Condition;
+  condition?: EventCondition;
 }
 
 /**
@@ -48,7 +60,7 @@ export interface DataTransition {
   /** Data to be passed to the condition function */
   data: unknown[];
   /** Condition that determines if the transition should occur */
-  condition: Condition;
+  condition: DataCondition;
 }
 
 /**
@@ -224,7 +236,7 @@ export class AnimationMachine {
 
     for (const { from, to, duration, condition } of transitions) {
       const validFromState = !from || from === this.currentStateInternal;
-      const validCondition = !condition || condition(...args);
+      const validCondition = !condition || condition(from, to, event, ...args);
       if (validFromState && validCondition) {
         this.transitionTo(to, duration);
         return true;
@@ -254,7 +266,13 @@ export class AnimationMachine {
 
     const transition = this.dataTransitions
       .get(this.currentStateInternal)
-      ?.find((transition) => transition.condition(...transition.data));
+      ?.find((transition) =>
+        transition.condition(
+          this.currentStateInternal,
+          transition.to,
+          ...transition.data,
+        ),
+      );
 
     if (transition) {
       this.transitionTo(transition.to, transition.duration);
