@@ -1,4 +1,4 @@
-import type { AnimationMixer } from "three";
+import type { AnimationAction, AnimationMixer } from "three";
 import { MathUtils } from "three";
 import { StateEvent } from "./mescellaneous/AnimationStateEvent";
 import { assertValidNonNegativeNumber } from "./mescellaneous/assertions";
@@ -58,7 +58,7 @@ export interface DataTransition {
   /** Duration of the transition in seconds */
   duration: number;
   /** Data to be passed to the condition function */
-  data: unknown[];
+  data?: any[];
   /** Condition that determines if the transition should occur */
   condition: DataCondition;
 }
@@ -81,7 +81,7 @@ export class AnimationMachine {
   private readonly mixer: AnimationMixer;
 
   /** Map of event names to their possible transitions */
-  private readonly transitions: Map<string | number, EventTransition[]> =
+  private readonly eventTransitions: Map<string | number, EventTransition[]> =
     new Map();
 
   /** Map of states to their automatic transitions that occur at animation end */
@@ -110,7 +110,7 @@ export class AnimationMachine {
     this.currentStateInternal["setInfluenceInternal"](1);
 
     this.mixer = mixer;
-    this.transitions = new Map();
+    this.eventTransitions = new Map();
   }
 
   /**
@@ -143,7 +143,7 @@ export class AnimationMachine {
       );
     }
 
-    const transitions = this.transitions.get(event) ?? [];
+    const transitions = this.eventTransitions.get(event) ?? [];
 
     for (const someTransition of transitions) {
       if (someTransition.from === transition.from) {
@@ -152,7 +152,7 @@ export class AnimationMachine {
     }
 
     transitions.push(transition);
-    this.transitions.set(event, transitions);
+    this.eventTransitions.set(event, transitions);
   }
 
   /**
@@ -229,15 +229,17 @@ export class AnimationMachine {
    * @returns {boolean} True if a transition was executed, false otherwise
    */
   public handleEvent(event: string | number, ...args: unknown[]): boolean {
-    const transitions = this.transitions.get(event);
+    const transitions = this.eventTransitions.get(event);
     if (transitions === undefined) {
-      throw new Error(`No transitions found for event '${event}'`);
+      return false;
     }
 
     for (const { from, to, duration, condition } of transitions) {
-      const validFromState = !from || from === this.currentStateInternal;
-      const validCondition = !condition || condition(from, to, event, ...args);
-      if (validFromState && validCondition) {
+      const isValidFromState = !from || from === this.currentStateInternal;
+      const isValidCondition =
+        !condition || condition(from, to, event, ...args);
+
+      if (isValidFromState && isValidCondition) {
         this.transitionTo(to, duration);
         return true;
       }
@@ -270,7 +272,7 @@ export class AnimationMachine {
         transition.condition(
           this.currentStateInternal,
           transition.to,
-          ...transition.data,
+          ...(transition.data ?? []),
         ),
       );
 
@@ -337,7 +339,10 @@ export class AnimationMachine {
    * @private
    * @param {AnimationState} state - The state that completed an iteration
    */
-  private onStateIteration(state: AnimationState): void {
+  private onStateIteration(
+    action: AnimationAction,
+    state: AnimationState,
+  ): void {
     if (state === this.currentStateInternal) {
       const transition = this.automaticTransitions.get(
         this.currentStateInternal,

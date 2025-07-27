@@ -5,7 +5,7 @@ import { MIXER } from "../mocks/buildMockAnimationAction";
 import { AnimationMachineProxy } from "../proxies/AnimationMachineProxy";
 import { AnimationTreeProxy } from "../proxies/AnimationTreeProxy";
 
-test("addEventTransition: condition: should transition when condition returns true with zero duration", () => {
+test("addEventTransition: with condition: should transition when condition returns true with zero duration", () => {
   const from = new AnimationTreeProxy();
   const to = new AnimationTreeProxy();
   const machine = new AnimationMachineProxy(from, MIXER);
@@ -26,9 +26,10 @@ test("addEventTransition: condition: should transition when condition returns tr
 
   assertEqualWithTolerance(from.influence, 0, "from state influence");
   assertEqualWithTolerance(to.influence, 1, "to state influence");
+  assert.equal(machine.currentState, to, "...");
 });
 
-test("addEventTransition: condition: should transition when condition returns true after full duration", () => {
+test("addEventTransition: with condition: should transition when condition returns true after full duration", () => {
   const from = new AnimationTreeProxy();
   const to = new AnimationTreeProxy();
   const machine = new AnimationMachineProxy(from, MIXER);
@@ -49,9 +50,10 @@ test("addEventTransition: condition: should transition when condition returns tr
 
   assertEqualWithTolerance(from.influence, 0, "from state influence");
   assertEqualWithTolerance(to.influence, 1, "to state influence");
+  assert.equal(machine.currentState, to, "...");
 });
 
-test("addEventTransition: condition: should transition when condition returns true with zero duration and explicit from state", () => {
+test("addEventTransition: with condition: should transition when condition returns true with zero duration and explicit from state", () => {
   const from = new AnimationTreeProxy();
   const to = new AnimationTreeProxy();
   const machine = new AnimationMachineProxy(from, MIXER);
@@ -77,9 +79,10 @@ test("addEventTransition: condition: should transition when condition returns tr
 
   assertEqualWithTolerance(from.influence, 0, "from state influence");
   assertEqualWithTolerance(to.influence, 1, "to state influence");
+  assert.equal(machine.currentState, to, "...");
 });
 
-test("addEventTransition: condition: should transition when condition returns true after full duration with explicit from state", () => {
+test("addEventTransition: with condition: should transition when condition returns true after full duration with explicit from state", () => {
   const from = new AnimationTreeProxy();
   const to = new AnimationTreeProxy();
   const machine = new AnimationMachineProxy(from, MIXER);
@@ -105,9 +108,10 @@ test("addEventTransition: condition: should transition when condition returns tr
 
   assertEqualWithTolerance(from.influence, 0, "from state influence");
   assertEqualWithTolerance(to.influence, 1, "to state influence");
+  assert.equal(machine.currentState, to, "...");
 });
 
-test("addEventTransition: condition: should have equal influence at half duration when condition returns true", () => {
+test("addEventTransition: with condition: should have equal influence at half duration when condition returns true", () => {
   const from = new AnimationTreeProxy();
   const to = new AnimationTreeProxy();
   const machine = new AnimationMachineProxy(from, MIXER);
@@ -133,9 +137,10 @@ test("addEventTransition: condition: should have equal influence at half duratio
 
   assertEqualWithTolerance(from.influence, 0.5, "from state influence");
   assertEqualWithTolerance(to.influence, 0.5, "to state influence");
+  assert.equal(machine.currentState, to, "...");
 });
 
-test("addEventTransition: condition: should not transition when condition returns false", () => {
+test("addEventTransition: with condition: should not transition when condition returns false", () => {
   const from = new AnimationTreeProxy();
   const to = new AnimationTreeProxy();
   const machine = new AnimationMachineProxy(from, MIXER);
@@ -161,9 +166,10 @@ test("addEventTransition: condition: should not transition when condition return
 
   assertEqualWithTolerance(from.influence, 1, "from state influence");
   assertEqualWithTolerance(to.influence, 0, "to state influence");
+  assert.equal(machine.currentState, from, "...");
 });
 
-test("addEventTransition: condition: should pass correct parameters to condition function", () => {
+test("addEventTransition: with condition: should pass correct parameters to condition function", () => {
   const from = new AnimationTreeProxy();
   const to = new AnimationTreeProxy();
   const machine = new AnimationMachineProxy(from, MIXER);
