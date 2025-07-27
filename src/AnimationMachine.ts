@@ -1,6 +1,7 @@
 import type { AnimationMixer } from "three";
 import { MathUtils } from "three";
 import { StateEvent } from "./mescellaneous/AnimationStateEvent";
+import { assertValidNonNegativeNumber } from "./mescellaneous/assertions";
 import type { AnimationState } from "./states/AnimationState";
 
 /* eslint-disable @typescript-eslint/no-explicit-any -- Using any here for generic condition function arguments */
@@ -11,7 +12,7 @@ type Condition = (...args: any[]) => boolean;
  *
  * @interface AnimationEventTransition
  */
-export interface AnimationEventTransition {
+export interface EventTransition {
   /** Optional source state. If not specified, transition can occur from any state */
   from?: AnimationState;
   /** Target state to transition to */
@@ -27,7 +28,7 @@ export interface AnimationEventTransition {
  *
  * @interface AnimationAutomaticTransition
  */
-export interface AnimationAutomaticTransition {
+export interface AutomaticTransition {
   /** Target state to transition to */
   to: AnimationState;
   /** Duration of the transition in seconds */
@@ -39,7 +40,7 @@ export interface AnimationAutomaticTransition {
  *
  * @interface AnimationDataTransition
  */
-export interface AnimationDataTransition {
+export interface DataTransition {
   /** Target state to transition to */
   to: AnimationState;
   /** Duration of the transition in seconds */
@@ -68,23 +69,21 @@ export class AnimationMachine {
   private readonly mixer: AnimationMixer;
 
   /** Map of event names to their possible transitions */
-  private readonly transitions: Map<string, AnimationEventTransition[]> =
+  private readonly transitions: Map<string | number, EventTransition[]> =
     new Map();
 
   /** Map of states to their automatic transitions that occur at animation end */
   private readonly automaticTransitions: Map<
     AnimationState,
-    AnimationAutomaticTransition
+    AutomaticTransition
   > = new Map();
 
   /** Map of states to their data-driven transitions */
-  private readonly dataTransitions: Map<
-    AnimationState,
-    AnimationDataTransition[]
-  > = new Map();
+  private readonly dataTransitions: Map<AnimationState, DataTransition[]> =
+    new Map();
 
   /** Time remaining in the current transition */
-  private transitionElapsedTime: number;
+  private transitionElapsedTime?: number;
 
   /**
    * Creates an instance of AnimationStateMachine.
@@ -100,7 +99,6 @@ export class AnimationMachine {
 
     this.mixer = mixer;
     this.transitions = new Map();
-    this.transitionElapsedTime = 0;
   }
 
   /**
@@ -116,15 +114,27 @@ export class AnimationMachine {
    * These transitions occur when specific events are handled by the state machine.
    *
    * @param {string} event - The event name that triggers this transition
-   * @param {AnimationEventTransition} transition - The transition configuration
+   * @param {EventTransition} transition - The transition configuration
    */
   public addEventTransition(
-    event: string,
-    transition: AnimationEventTransition,
+    event: string | number,
+    transition: EventTransition,
   ): void {
+    assertValidNonNegativeNumber(
+      transition.duration,
+      "Event transition duration",
+    );
+
     const transitions = this.transitions.get(event) ?? [];
-    this.transitions.set(event, transitions);
+
+    for (const someTransition of transitions) {
+      if (someTransition.from === transition.from) {
+        throw new Error("Event animation transition already exists");
+      }
+    }
+
     transitions.push(transition);
+    this.transitions.set(event, transitions);
   }
 
   /**
@@ -132,13 +142,18 @@ export class AnimationMachine {
    * Only one automatic transition can be set per state.
    *
    * @param {AnimationState} from - The source state for the automatic transition
-   * @param {AnimationAutomaticTransition} transition - The transition configuration
+   * @param {AutomaticTransition} transition - The transition configuration
    * @throws {Error} If an automatic transition already exists for the source state
    */
   public addAutomaticTransition(
     from: AnimationState,
-    transition: AnimationAutomaticTransition,
+    transition: AutomaticTransition,
   ): void {
+    assertValidNonNegativeNumber(
+      transition.duration,
+      "Automatic transition duration",
+    );
+
     if (this.automaticTransitions.has(from)) {
       throw new Error("Automatic transition already exists");
     }
@@ -153,29 +168,41 @@ export class AnimationMachine {
    * These transitions occur when their condition functions return true.
    *
    * @param {AnimationState} from - The source state for the data transition
-   * @param {AnimationDataTransition} transition - The transition configuration
+   * @param {DataTransition} transition - The transition configuration
    */
   public addDataTransition(
     from: AnimationState,
-    transition: AnimationDataTransition,
+    transition: DataTransition,
   ): void {
+    assertValidNonNegativeNumber(
+      transition.duration,
+      "Data transition duration",
+    );
+
     const transitions = this.dataTransitions.get(from) ?? [];
-    this.dataTransitions.set(from, transitions);
+
+    for (const someTransition of transitions) {
+      if (someTransition.to === transition.to) {
+        throw new Error("Data animation transition already exists");
+      }
+    }
+
     transitions.push(transition);
+    this.dataTransitions.set(from, transitions);
   }
 
   /**
    * Handles an event by checking and executing any valid transitions.
    *
-   * @param {string} eventName - The name of the event to handle
+   * @param {string | number} event - The name of the event to handle
    * @param {...unknown[]} args - Additional arguments passed to transition conditions
    * @returns {boolean} True if a transition was executed, false otherwise
    */
-  public handleEvent(eventName: string, ...args: unknown[]): boolean {
-    const transitions = [
-      ...(this.transitions.get(eventName) ?? []),
-      ...(this.transitions.get("*") ?? []),
-    ];
+  public handleEvent(event: string | number, ...args: unknown[]): boolean {
+    const transitions = this.transitions.get(event);
+    if (transitions === undefined) {
+      throw new Error(`No transitions found for event '${event}'`);
+    }
 
     for (const { from, to, duration, condition } of transitions) {
       const validFromState = !from || from === this.currentStateInternal;
@@ -197,6 +224,8 @@ export class AnimationMachine {
    * @param {number} deltaTime - Time in seconds since the last update
    */
   public update(deltaTime: number): void {
+    assertValidNonNegativeNumber(deltaTime, "Delta time");
+
     // Update current state
     this.currentStateInternal["onTickInternal"](deltaTime);
 
@@ -213,8 +242,11 @@ export class AnimationMachine {
       this.transitionTo(transition.to, transition.duration);
     }
 
-    if (this.transitionElapsedTime > 0) {
-      const t = Math.min(1, deltaTime / this.transitionElapsedTime);
+    if (this.transitionElapsedTime !== undefined) {
+      const t =
+        this.transitionElapsedTime === 0
+          ? 1
+          : Math.min(1, deltaTime / this.transitionElapsedTime);
 
       for (const state of this.fadingStates) {
         state["setInfluenceInternal"](MathUtils.lerp(state.influence, 0, t));
@@ -234,6 +266,7 @@ export class AnimationMachine {
         }
         this.fadingStates = [];
         this.currentStateInternal["setInfluenceInternal"](1);
+        this.transitionElapsedTime = undefined;
       }
     }
 

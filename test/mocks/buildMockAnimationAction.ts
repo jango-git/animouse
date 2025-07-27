@@ -8,7 +8,7 @@ import {
 } from "three";
 
 const OBJECT = new Object3D();
-const MIXER = new AnimationMixer(OBJECT);
+export const MIXER = new AnimationMixer(OBJECT);
 
 export function buildMockAnimationAction(
   weight: number,
