@@ -160,7 +160,7 @@ test("events: should prevent duplicate iteration events", () => {
 });
 
 test("events: should start animation and emit PLAY when influence becomes positive", () => {
-  const action = buildMockAnimationAction(1);
+  const action = buildMockAnimationAction(1, LoopOnce);
   const tree = new PolarBlendTreeProxy(
     [buildMockPolarAction(1, -1), buildMockPolarAction(1, 1)],
     action,

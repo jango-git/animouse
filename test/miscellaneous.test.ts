@@ -1,13 +1,12 @@
 import { test } from "uvu";
 import * as assert from "uvu/assert";
+import { EPSILON, PI2 } from "../src/mescellaneous/assertions";
 import {
   calculateAngularDistanceForward,
   calculateDistanceSquared,
   calculateDistanceToEdgeSquared,
   calculateNormalizedAzimuth,
-  EPSILON,
   isAzimuthBetween,
-  PI2,
 } from "../src/mescellaneous/miscellaneous";
 
 test("constants: should have PI2 equal to 2π", () => {

@@ -4,6 +4,69 @@ import { MIXER } from "../mocks/buildMockAnimationAction";
 import { AnimationMachineProxy } from "../proxies/AnimationMachineProxy";
 import { AnimationTreeProxy } from "../proxies/AnimationTreeProxy";
 
+test("handleEvent: ...", () => {
+  const from = new AnimationTreeProxy();
+  const to = new AnimationTreeProxy();
+  const machine = new AnimationMachineProxy(from, MIXER);
+
+  const event = "test";
+  const duration = 0.25;
+  machine.addEventTransition(event, {
+    from,
+    to,
+    duration,
+  });
+  const result = machine.handleEvent(event);
+
+  assert.equal(result, true, "...");
+});
+
+test("handleEvent: ...", () => {
+  const from = new AnimationTreeProxy();
+  const to = new AnimationTreeProxy();
+  const machine = new AnimationMachineProxy(from, MIXER);
+
+  const event = "test";
+  const duration = 0.25;
+  machine.addEventTransition(event, {
+    from,
+    to,
+    duration,
+    condition: () => true,
+  });
+  const result = machine.handleEvent(event);
+
+  assert.equal(result, true, "...");
+});
+
+test("handleEvent: ...", () => {
+  const from = new AnimationTreeProxy();
+  const machine = new AnimationMachineProxy(from, MIXER);
+
+  const event = "test";
+  const result = machine.handleEvent(event);
+
+  assert.equal(result, false, "...");
+});
+
+test("handleEvent: ...", () => {
+  const from = new AnimationTreeProxy();
+  const to = new AnimationTreeProxy();
+  const machine = new AnimationMachineProxy(from, MIXER);
+
+  const event = "test";
+  const duration = 0.25;
+  machine.addEventTransition(event, {
+    from,
+    to,
+    duration,
+    condition: () => false,
+  });
+  const result = machine.handleEvent(event);
+
+  assert.equal(result, false, "...");
+});
+
 test("handleEvent: should pass multiple user data parameters to condition function", () => {
   const from = new AnimationTreeProxy();
   const to = new AnimationTreeProxy();

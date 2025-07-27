@@ -6,8 +6,8 @@ import {
   assertValidNumber,
   assertValidPositiveNumber,
   assertValidUnitRange,
+  EPSILON,
 } from "../src/mescellaneous/assertions";
-import { EPSILON } from "../src/mescellaneous/miscellaneous";
 
 test("assertValidNumber: should not throw for valid finite numbers", () => {
   assert.not.throws(() => assertValidNumber(0, "test"));

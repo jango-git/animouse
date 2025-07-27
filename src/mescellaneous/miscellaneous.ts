@@ -1,16 +1,6 @@
 import type { AnimationAction, Vector2Like } from "three";
 import type { StateEvent } from "./AnimationStateEvent";
-import { assertValidAzimuth, assertValidNumber } from "./assertions";
-
-/**
- * Two times PI (2π), commonly used for full circle calculations.
- */
-export const PI2 = Math.PI * 2;
-
-/**
- * Small epsilon value used for floating-point comparisons.
- */
-export const EPSILON = 1e-6;
+import { assertValidAzimuth, assertValidNumber, PI2 } from "./assertions";
 
 /**
  * Represents an animation anchor with timing and state information.

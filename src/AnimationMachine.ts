@@ -319,18 +319,17 @@ export class AnimationMachine {
    * @param {number} duration - The duration of the transition in seconds
    */
   private transitionTo(state: AnimationState, duration: number): void {
-    if (this.currentStateInternal === state) {
-      return;
+    if (this.currentStateInternal !== state) {
+      this.fadingStates = this.fadingStates.filter((s) => s !== state);
+
+      this.fadingStates.push(this.currentStateInternal);
+      this.currentStateInternal["onExitInternal"]();
+
+      this.currentStateInternal = state;
+      this.currentStateInternal["onEnterInternal"]();
+
+      this.transitionElapsedTime = duration;
     }
-    this.fadingStates = this.fadingStates.filter((s) => s !== state);
-
-    this.fadingStates.push(this.currentStateInternal);
-    this.currentStateInternal["onExitInternal"]();
-
-    this.currentStateInternal = state;
-    this.currentStateInternal["onEnterInternal"]();
-
-    this.transitionElapsedTime = duration;
   }
 
   /**

@@ -81,4 +81,19 @@ test("addDataTransition: common: should throw error when adding duplicate transi
   );
 });
 
+test("addEventTransition: common: should throw error when creating self-loop transition", () => {
+  const from = new AnimationTreeProxy();
+  const machine = new AnimationMachineProxy(from, MIXER);
+
+  assert.throws(
+    () =>
+      machine.addDataTransition(from, {
+        to: from,
+        duration: 0.25,
+        condition: () => true,
+      }),
+    /loop/,
+  );
+});
+
 test.run();

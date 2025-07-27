@@ -1,8 +1,7 @@
 import { test } from "uvu";
 import * as assert from "uvu/assert";
-import { DelaunayTriangulation } from "../src/mescellaneous/DelaunayTriangulation";
+import { DelaunayTriangulation } from "../../src/mescellaneous/DelaunayTriangulation";
 
-// triangulate behavioral tests
 test("triangulate: should create single triangle for 3 non-collinear points", () => {
   const points = [
     { x: 0, y: 0 },
@@ -20,7 +19,6 @@ test("triangulate: should create single triangle for 3 non-collinear points", ()
 
   const triangle = result.triangles[0];
 
-  // Check that all vertices are from the original point set
   const vertices = [triangle.a, triangle.b, triangle.c];
   for (const point of points) {
     assert.ok(

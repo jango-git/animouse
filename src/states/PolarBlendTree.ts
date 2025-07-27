@@ -5,12 +5,12 @@ import {
   assertValidNonNegativeNumber,
   assertValidNumber,
   assertValidPositiveNumber,
+  EPSILON,
 } from "../mescellaneous/assertions";
 import type { Anchor } from "../mescellaneous/miscellaneous";
 import {
   calculateAngularDistanceForward,
   calculateNormalizedAzimuth,
-  EPSILON,
   isAzimuthBetween,
 } from "../mescellaneous/miscellaneous";
 import { AnimationTree } from "./AnimationTree";

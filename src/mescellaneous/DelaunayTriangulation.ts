@@ -1,5 +1,5 @@
 import { Vector2, type Vector2Like } from "three";
-import { EPSILON } from "./miscellaneous";
+import { assertValidNumber, EPSILON } from "./assertions";
 
 const MIN_POINTS_COUNT = 3;
 const SUPER_TRIANGLE_SCALE_FACTOR = 100;
@@ -76,36 +76,28 @@ export class DelaunayTriangulation {
     const superTriangle = DelaunayTriangulation.createSuperTriangle(points);
     let triangles: Triangle<T>[] = [superTriangle];
 
-    for (let i = 0; i < points.length; i++) {
-      const point = points[i];
+    for (const point of points) {
+      const badTriangles = DelaunayTriangulation.findBadTriangles(
+        triangles,
+        point,
+      );
+      const polygonEdges =
+        DelaunayTriangulation.buildPolygonEdges(badTriangles);
 
-      try {
-        const badTriangles = DelaunayTriangulation.findBadTriangles(
-          triangles,
-          point,
-        );
-        const polygonEdges =
-          DelaunayTriangulation.buildPolygonEdges(badTriangles);
+      triangles = triangles.filter((t) => !badTriangles.includes(t));
 
-        triangles = triangles.filter((t) => !badTriangles.includes(t));
-
-        for (const edge of polygonEdges) {
-          const newTriangle = {
-            a: edge[0],
-            b: edge[1],
-            c: point,
-            ...DelaunayTriangulation.calculateCircumcenterData(
-              edge[0],
-              edge[1],
-              point,
-            ),
-          };
-          triangles.push(newTriangle);
-        }
-      } catch (error) {
-        throw new Error(
-          `Error processing point ${i} (${point.x}, ${point.y}): ${(error as Error).message}`,
-        );
+      for (const edge of polygonEdges) {
+        const newTriangle = {
+          a: edge[0],
+          b: edge[1],
+          c: point,
+          ...DelaunayTriangulation.calculateCircumcenterData(
+            edge[0],
+            edge[1],
+            point,
+          ),
+        };
+        triangles.push(newTriangle);
       }
     }
 
@@ -140,13 +132,9 @@ export class DelaunayTriangulation {
     }
 
     // Check for invalid coordinates
-    for (let i = 0; i < points.length; i++) {
-      const point = points[i];
-      if (!Number.isFinite(point.x) || !Number.isFinite(point.y)) {
-        throw new Error(
-          `Point ${i} has invalid coordinates: (${point.x}, ${point.y})`,
-        );
-      }
+    for (const point of points) {
+      assertValidNumber(point.x, "x-coordinate");
+      assertValidNumber(point.y, "y-coordinate");
     }
 
     // Check for duplicate points
