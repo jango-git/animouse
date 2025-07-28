@@ -148,19 +148,19 @@ test("assertValidPositiveNumber: should not throw for positive values", () => {
 test("assertValidPositiveNumber: should throw for non-positive values", () => {
   assert.throws(
     () => assertValidPositiveNumber(0, "test"),
-    /test: value must be greater or equal to/,
+    /test: value must be greater than or equal to/,
   );
   assert.throws(
     () => assertValidPositiveNumber(-0.1, "test"),
-    /test: value must be greater or equal to/,
+    /test: value must be greater than or equal to/,
   );
   assert.throws(
     () => assertValidPositiveNumber(-1, "test"),
-    /test: value must be greater or equal to/,
+    /test: value must be greater than or equal to/,
   );
   assert.throws(
     () => assertValidPositiveNumber(-100, "test"),
-    /test: value must be greater or equal to/,
+    /test: value must be greater than or equal to/,
   );
 });
 

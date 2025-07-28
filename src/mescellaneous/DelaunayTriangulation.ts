@@ -1,79 +1,29 @@
 import { Vector2, type Vector2Like } from "three";
 import { assertValidNumber, EPSILON } from "./assertions";
+import type { TriangleCache } from "./math";
+import { isPointInsideCircle, precomputeTriangle } from "./math";
 
 const MIN_POINTS_COUNT = 3;
 const SUPER_TRIANGLE_SCALE_FACTOR = 100;
 
-/**
- * Represents a triangle in a Delaunay triangulation.
- *
- * @template T - The type of vector points that extends Vector2Like
- */
-export interface Triangle<T extends Vector2Like> {
-  /** First vertex of the triangle */
+export interface Triangle<T extends Vector2Like> extends TriangleCache {
   readonly a: T;
-  /** Second vertex of the triangle */
   readonly b: T;
-  /** Third vertex of the triangle */
   readonly c: T;
-  /** Denominator used in circumcenter calculation */
-  readonly denominator: number;
-  /** Center of the circumcircle that passes through all three vertices */
-  readonly circumcenter: Vector2Like;
-  /** Squared radius of the circumcircle */
-  readonly circumRadiusSquared: number;
 }
 
-/**
- * Result of a Delaunay triangulation operation.
- *
- * @template T - The type of vector points that extends Vector2Like
- */
 export interface TriangulationResult<T extends Vector2Like> {
-  /** Array of triangles that form the Delaunay triangulation */
   readonly triangles: Triangle<T>[];
-  /** Map of outer boundary edges, where each point maps to its two adjacent boundary points */
   readonly outerEdges: Map<T, [T, T]>;
 }
 
-/**
- * Implementation of Delaunay triangulation using the Bowyer-Watson algorithm.
- *
- * The Delaunay triangulation maximizes the minimum angle of all triangles,
- * avoiding thin triangles when possible. This implementation ensures that
- * no point lies inside the circumcircle of any triangle.
- */
 export class DelaunayTriangulation {
-  /**
-   * Computes the Delaunay triangulation of a set of points.
-   *
-   * @template T - The type of vector points that extends Vector2Like
-   * @param points - Array of points to triangulate (minimum 3 points required)
-   * @returns Object containing the triangulation result with triangles and outer edges
-   *
-   * @throws {Error} When fewer than 3 points are provided
-   * @throws {Error} When points contain invalid coordinates (NaN or Infinity)
-   * @throws {Error} When duplicate points are found
-   * @throws {Error} When all points are collinear
-   * @throws {Error} When triangulation fails during processing
-   *
-   * @example
-   * ```typescript
-   * const points = [
-   *   { x: 0, y: 0 },
-   *   { x: 1, y: 0 },
-   *   { x: 0, y: 1 }
-   * ];
-   * const result = DelaunayTriangulation.triangulate(points);
-   * console.log(result.triangles.length); // 1
-   * ```
-   */
   public static triangulate<T extends Vector2Like>(
     points: T[],
   ): TriangulationResult<T> {
     DelaunayTriangulation.validatePoints(points);
 
-    const superTriangle = DelaunayTriangulation.createSuperTriangle(points);
+    const superTriangle = DelaunayTriangulation.buildSuperTriangle(points);
     let triangles: Triangle<T>[] = [superTriangle];
 
     for (const point of points) {
@@ -91,11 +41,7 @@ export class DelaunayTriangulation {
           a: edge[0],
           b: edge[1],
           c: point,
-          ...DelaunayTriangulation.calculateCircumcenterData(
-            edge[0],
-            edge[1],
-            point,
-          ),
+          ...precomputeTriangle(edge[0], edge[1], point),
         };
         triangles.push(newTriangle);
       }
@@ -111,19 +57,6 @@ export class DelaunayTriangulation {
     return { triangles: filteredTriangles, outerEdges };
   }
 
-  /**
-   * Validates the input points for triangulation.
-   *
-   * @template T - The type of vector points that extends Vector2Like
-   * @param points - Array of points to validate
-   *
-   * @throws {Error} When fewer than 3 points are provided
-   * @throws {Error} When points contain invalid coordinates
-   * @throws {Error} When duplicate points are found
-   * @throws {Error} When all points are collinear
-   *
-   * @private
-   */
   private static validatePoints<T extends Vector2Like>(points: T[]): void {
     if (points.length < MIN_POINTS_COUNT) {
       throw new Error(
@@ -171,17 +104,6 @@ export class DelaunayTriangulation {
     }
   }
 
-  /**
-   * Finds all triangles whose circumcircle contains the given point.
-   * These triangles violate the Delaunay condition and need to be removed.
-   *
-   * @template T - The type of vector points that extends Vector2Like
-   * @param triangles - Array of existing triangles
-   * @param point - Point to test against
-   * @returns Array of triangles that contain the point in their circumcircle
-   *
-   * @private
-   */
   private static findBadTriangles<T extends Vector2Like>(
     triangles: Triangle<T>[],
     point: T,
@@ -189,7 +111,13 @@ export class DelaunayTriangulation {
     const badTriangles: Triangle<T>[] = [];
 
     for (const triangle of triangles) {
-      if (DelaunayTriangulation.isPointInCircumcircle(triangle, point)) {
+      if (
+        isPointInsideCircle(
+          triangle.circumcenter,
+          triangle.circumradiusSquared,
+          point,
+        )
+      ) {
         badTriangles.push(triangle);
       }
     }
@@ -197,17 +125,6 @@ export class DelaunayTriangulation {
     return badTriangles;
   }
 
-  /**
-   * Builds the polygon edges from the bad triangles by finding edges that are not shared
-   * between triangles. These edges form the boundary of the polygon hole left after
-   * removing the bad triangles.
-   *
-   * @template T - The type of vector points that extends Vector2Like
-   * @param badTriangles - Array of triangles to be removed
-   * @returns Array of edges that form the polygon boundary
-   *
-   * @private
-   */
   private static buildPolygonEdges<T extends Vector2Like>(
     badTriangles: Triangle<T>[],
   ): [T, T][] {
@@ -255,17 +172,6 @@ export class DelaunayTriangulation {
     return polygonEdges;
   }
 
-  /**
-   * Filters out triangles that contain vertices from the super triangle and
-   * builds a map of outer boundary edges.
-   *
-   * @template T - The type of vector points that extends Vector2Like
-   * @param triangles - Array of all triangles including those with super triangle vertices
-   * @param superTriangle - The super triangle used to start the algorithm
-   * @returns Object containing filtered triangles and outer edge map
-   *
-   * @private
-   */
   private static filterSuperTriangleVertices<T extends Vector2Like>(
     triangles: Triangle<T>[],
     superTriangle: Triangle<T>,
@@ -313,18 +219,6 @@ export class DelaunayTriangulation {
     return { filteredTriangles, outerMap };
   }
 
-  /**
-   * Builds the final outer edges map from the temporary outer points map.
-   * Each boundary point should have exactly two adjacent boundary points.
-   *
-   * @template T - The type of vector points that extends Vector2Like
-   * @param outerPointsMap - Map of boundary points to their adjacent points
-   * @returns Map where each boundary point maps to exactly two adjacent points
-   *
-   * @throws {Error} When a boundary point doesn't have exactly 2 connections
-   *
-   * @private
-   */
   private static buildOuterEdges<T extends Vector2Like>(
     outerPointsMap: Map<T, T[]>,
   ): Map<T, [T, T]> {
@@ -343,18 +237,7 @@ export class DelaunayTriangulation {
     return outerEdges;
   }
 
-  /**
-   * Creates a super triangle that encompasses all input points.
-   * The super triangle is used to start the Bowyer-Watson algorithm and
-   * is later removed from the final triangulation.
-   *
-   * @template T - The type of vector points that extends Vector2Like
-   * @param points - Array of points to encompass
-   * @returns Super triangle that contains all input points
-   *
-   * @private
-   */
-  private static createSuperTriangle<T extends Vector2Like>(
+  private static buildSuperTriangle<T extends Vector2Like>(
     points: T[],
   ): Triangle<T> {
     let minX = Infinity;
@@ -381,97 +264,10 @@ export class DelaunayTriangulation {
       a,
       b,
       c,
-      ...DelaunayTriangulation.calculateCircumcenterData(a, b, c),
+      ...precomputeTriangle(a, b, c),
     };
   }
 
-  /**
-   * Calculates the circumcenter and circumradius for a triangle.
-   * The circumcenter is the center of the circle that passes through all three vertices.
-   *
-   * @template T - The type of vector points that extends Vector2Like
-   * @param a - First vertex of the triangle
-   * @param b - Second vertex of the triangle
-   * @param c - Third vertex of the triangle
-   * @returns Object containing denominator, circumcenter, and squared circumradius
-   *
-   * @throws {Error} When the three points are collinear (denominator is zero)
-   *
-   * @private
-   */
-  private static calculateCircumcenterData<T extends Vector2Like>(
-    a: T,
-    b: T,
-    c: T,
-  ): {
-    denominator: number;
-    circumcenter: Vector2Like;
-    circumRadiusSquared: number;
-  } {
-    const aMagnitudeSquared = a.x * a.x + a.y * a.y;
-    const bMagnitudeSquared = b.x * b.x + b.y * b.y;
-    const cMagnitudeSquared = c.x * c.x + c.y * c.y;
-
-    const denominator =
-      2 * (a.x * (c.y - b.y) + b.x * (a.y - c.y) + c.x * (b.y - a.y));
-
-    if (Math.abs(denominator) < EPSILON) {
-      throw new Error(
-        `Cannot calculate circumcenter for triangle vertices: ` +
-          `(${a.x}, ${a.y}), (${b.x}, ${b.y}), (${c.x}, ${c.y}) - points are collinear`,
-      );
-    }
-
-    const circumcenter = {
-      x:
-        (aMagnitudeSquared * (c.y - b.y) +
-          bMagnitudeSquared * (a.y - c.y) +
-          cMagnitudeSquared * (b.y - a.y)) /
-        denominator,
-      y:
-        (aMagnitudeSquared * (b.x - c.x) +
-          bMagnitudeSquared * (c.x - a.x) +
-          cMagnitudeSquared * (a.x - b.x)) /
-        denominator,
-    };
-
-    const circumRadiusSquared =
-      (a.x - circumcenter.x) ** 2 + (a.y - circumcenter.y) ** 2;
-
-    return { denominator, circumcenter, circumRadiusSquared };
-  }
-
-  /**
-   * Tests whether a point lies inside the circumcircle of a triangle.
-   * This is the core test for the Delaunay condition.
-   *
-   * @template T - The type of vector points that extends Vector2Like
-   * @param triangle - Triangle to test against
-   * @param point - Point to test
-   * @returns True if the point is inside the circumcircle, false otherwise
-   *
-   * @private
-   */
-  private static isPointInCircumcircle<T extends Vector2Like>(
-    triangle: Triangle<T>,
-    point: T,
-  ): boolean {
-    const dx = point.x - triangle.circumcenter.x;
-    const dy = point.y - triangle.circumcenter.y;
-    return dx ** 2 + dy ** 2 < triangle.circumRadiusSquared - EPSILON;
-  }
-
-  /**
-   * Checks if a vertex belongs to the super triangle.
-   * Used to filter out super triangle vertices from the final result.
-   *
-   * @template T - The type of vector points that extends Vector2Like
-   * @param vertex - Vertex to check
-   * @param superTriangle - The super triangle to check against
-   * @returns True if the vertex is from the super triangle, false otherwise
-   *
-   * @private
-   */
   private static isVertexFromSuperTriangle<T extends Vector2Like>(
     vertex: T,
     superTriangle: Triangle<T>,
