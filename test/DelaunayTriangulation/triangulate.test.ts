@@ -30,7 +30,7 @@ test("triangulate: should create single triangle for 3 non-collinear points", ()
   // Check that triangle has valid properties
   assert.ok(Number.isFinite(triangle.circumcenter.x));
   assert.ok(Number.isFinite(triangle.circumcenter.y));
-  assert.ok(triangle.circumRadiusSquared >= 0);
+  assert.ok(triangle.circumradiusSquared >= 0);
 });
 
 test("triangulate: should create correct triangulation for 4 points in square", () => {
@@ -53,7 +53,7 @@ test("triangulate: should create correct triangulation for 4 points in square", 
   for (const triangle of result.triangles) {
     assert.ok(Number.isFinite(triangle.circumcenter.x));
     assert.ok(Number.isFinite(triangle.circumcenter.y));
-    assert.ok(triangle.circumRadiusSquared >= 0);
+    assert.ok(triangle.circumradiusSquared >= 0);
   }
 });
 
@@ -116,7 +116,7 @@ test("triangulate: should handle negative coordinates correctly", () => {
   const triangle = result.triangles[0];
   assert.ok(Number.isFinite(triangle.circumcenter.x));
   assert.ok(Number.isFinite(triangle.circumcenter.y));
-  assert.ok(triangle.circumRadiusSquared >= 0);
+  assert.ok(triangle.circumradiusSquared >= 0);
 });
 
 test("triangulate: should handle decimal coordinates", () => {
@@ -133,7 +133,7 @@ test("triangulate: should handle decimal coordinates", () => {
   for (const triangle of result.triangles) {
     assert.ok(Number.isFinite(triangle.circumcenter.x));
     assert.ok(Number.isFinite(triangle.circumcenter.y));
-    assert.ok(triangle.circumRadiusSquared >= 0);
+    assert.ok(triangle.circumradiusSquared >= 0);
   }
 });
 
@@ -264,7 +264,7 @@ test("triangulate: should handle larger point sets", () => {
   for (const triangle of result.triangles) {
     assert.ok(Number.isFinite(triangle.circumcenter.x));
     assert.ok(Number.isFinite(triangle.circumcenter.y));
-    assert.ok(triangle.circumRadiusSquared >= 0);
+    assert.ok(triangle.circumradiusSquared >= 0);
   }
 });
 
