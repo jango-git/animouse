@@ -1,12 +1,4 @@
-/**
- * Small epsilon value used for floating-point comparisons.
- */
-export const EPSILON = 1e-6;
-
-/**
- * Two times PI (2π), commonly used for full circle calculations.
- */
-export const PI2 = Math.PI * 2;
+import { EPSILON, PI2 } from "./miscellaneous";
 
 /**
  * Asserts that a number is valid (finite and does not exceed safe integer range).

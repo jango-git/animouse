@@ -4,9 +4,8 @@ import { AnimationStateEvent } from "../mescellaneous/AnimationStateEvent";
 import {
   assertValidNumber,
   assertValidPositiveNumber,
-  EPSILON,
 } from "../mescellaneous/assertions";
-import type { Anchor } from "../mescellaneous/miscellaneous";
+import { EPSILON, type Anchor } from "../mescellaneous/miscellaneous";
 import { AnimationTree } from "./AnimationTree";
 
 /**

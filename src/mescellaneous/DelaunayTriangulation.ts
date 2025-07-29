@@ -1,7 +1,8 @@
 import { Vector2, type Vector2Like } from "three";
-import { assertValidNumber, EPSILON } from "./assertions";
+import { assertValidNumber } from "./assertions";
 import type { TriangleCache } from "./math";
 import { isPointInsideCircle, precomputeTriangle } from "./math";
+import { EPSILON } from "./miscellaneous";
 
 const MIN_POINTS_COUNT = 3;
 const SUPER_TRIANGLE_SCALE_FACTOR = 100;

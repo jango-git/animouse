@@ -5,14 +5,14 @@ import {
   assertValidNonNegativeNumber,
   assertValidNumber,
   assertValidPositiveNumber,
-  EPSILON,
 } from "../mescellaneous/assertions";
-import type { Anchor } from "../mescellaneous/miscellaneous";
+import { EPSILON, type Anchor } from "../mescellaneous/miscellaneous";
+
 import {
   calculateAngularDistanceForward,
   calculateNormalizedAzimuth,
   isAzimuthBetween,
-} from "../mescellaneous/miscellaneous";
+} from "../mescellaneous/math";
 import { AnimationTree } from "./AnimationTree";
 
 /** Minimum number of actions required for polar blend tree triangulation */

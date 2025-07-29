@@ -1,7 +1,7 @@
 import type { AnimationAction } from "three";
 import { LoopOnce } from "three";
 import { AnimationStateEvent } from "../mescellaneous/AnimationStateEvent";
-import { assertValidNumber, EPSILON } from "../mescellaneous/assertions";
+import { assertValidNumber } from "../mescellaneous/assertions";
 import {
   DelaunayTriangulation,
   type Triangle,
@@ -9,8 +9,8 @@ import {
 import {
   calculateDistanceSquared,
   calculateDistanceToEdgeSquared,
-  type Anchor,
-} from "../mescellaneous/miscellaneous";
+} from "../mescellaneous/math";
+import { EPSILON, type Anchor } from "../mescellaneous/miscellaneous";
 import { AnimationTree } from "./AnimationTree";
 
 const MIN_ACTIONS = 3;

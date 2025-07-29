@@ -7,6 +7,8 @@
     "build": "npm run clean && rollup -c",
     "build:prod": "npm run clean && NODE_ENV=production rollup -c",
     "test": "npx --node-options='--import=tsx/esm' uvu test",
+    "test:math": "npx --node-options='--import=tsx/esm' uvu test/math",
+    "test:delaunay": "npx --node-options='--import=tsx/esm' uvu test/DelaunayTriangulation",
     "coverage": "c8 --include=src --reporter=text npm test",
     "prepublishOnly": "npm run build:prod && npm test"
   },

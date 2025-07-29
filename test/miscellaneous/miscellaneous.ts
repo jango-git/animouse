@@ -4,7 +4,7 @@ import {
   calculateAngularDistanceForward,
   calculateNormalizedAzimuth,
   isAzimuthBetween,
-} from "../../src/mescellaneous/miscellaneous";
+} from "../../src/mescellaneous/math";
 
 export const EPSILON = 1e-6;
 export const PI2 = Math.PI * 2;
