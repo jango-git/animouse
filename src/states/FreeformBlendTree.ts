@@ -3,9 +3,9 @@ import { LoopOnce } from "three";
 import { AnimationStateEvent } from "../mescellaneous/AnimationStateEvent";
 import { assertValidNumber } from "../mescellaneous/assertions";
 import {
-  DelaunayTriangulation,
+  DelaunayTriangulator,
   type Triangle,
-} from "../mescellaneous/DelaunayTriangulation";
+} from "../mescellaneous/DelaunayTriangulator";
 import {
   calculateDistanceSquared,
   calculateDistanceToEdgeSquared,
@@ -13,7 +13,7 @@ import {
 import { EPSILON, type Anchor } from "../mescellaneous/miscellaneous";
 import { AnimationTree } from "./AnimationTree";
 
-const MIN_ACTIONS = 3;
+const MIN_ACTION_COUNT = 3;
 
 export interface FreeformAction {
   action: AnimationAction;
@@ -21,10 +21,10 @@ export interface FreeformAction {
   y: number;
 }
 
-export interface FreeformAnchor extends Anchor {
+interface FreeformAnchor extends Anchor {
+  action: AnimationAction;
   x: number;
   y: number;
-  action: AnimationAction;
 }
 
 type FreeformTriangle = Triangle<FreeformAnchor>;
@@ -32,7 +32,7 @@ type FreeformTriangle = Triangle<FreeformAnchor>;
 export class FreeformBlendTree extends AnimationTree {
   private readonly activeAnchors = new Set<FreeformAnchor>();
   private readonly triangles: FreeformTriangle[] = [];
-  private readonly outerEdges = new Map<
+  private readonly boundaryEdgeMap = new Map<
     FreeformAnchor,
     [FreeformAnchor, FreeformAnchor]
   >();
@@ -43,7 +43,7 @@ export class FreeformBlendTree extends AnimationTree {
   constructor(freeformActions: FreeformAction[]) {
     super();
 
-    if (freeformActions.length < MIN_ACTIONS) {
+    if (freeformActions.length < MIN_ACTION_COUNT) {
       throw new Error(
         "FreeformBlendTree requires at least 3 actions for triangulation",
       );
@@ -104,9 +104,9 @@ export class FreeformBlendTree extends AnimationTree {
       });
     }
 
-    const result = DelaunayTriangulation.triangulate(anchors);
+    const result = DelaunayTriangulator.triangulate(anchors);
     this.triangles = result.triangles;
-    this.outerEdges = result.outerEdges;
+    this.boundaryEdgeMap = result.boundaryEdgeMap;
     this.sortTriangles();
     this.updateAnchors();
   }
@@ -223,7 +223,7 @@ export class FreeformBlendTree extends AnimationTree {
         : b,
     );
 
-    const edgeData = this.outerEdges.get(closestAnchor);
+    const edgeData = this.boundaryEdgeMap.get(closestAnchor);
     if (edgeData === undefined) {
       throw new Error("Edge data not found");
     }

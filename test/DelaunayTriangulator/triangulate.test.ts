@@ -1,6 +1,6 @@
 import { test } from "uvu";
 import * as assert from "uvu/assert";
-import { DelaunayTriangulation } from "../../src/mescellaneous/DelaunayTriangulation";
+import { DelaunayTriangulator } from "../../src/mescellaneous/DelaunayTriangulator";
 
 test("triangulate: should create single triangle for 3 non-collinear points", () => {
   const points = [
@@ -9,7 +9,7 @@ test("triangulate: should create single triangle for 3 non-collinear points", ()
     { x: 0, y: 1 },
   ];
 
-  const result = DelaunayTriangulation.triangulate(points);
+  const result = DelaunayTriangulator.triangulate(points);
 
   assert.equal(
     result.triangles.length,
@@ -41,7 +41,7 @@ test("triangulate: should create correct triangulation for 4 points in square", 
     { x: 0, y: 1 },
   ];
 
-  const result = DelaunayTriangulation.triangulate(points);
+  const result = DelaunayTriangulator.triangulate(points);
 
   assert.equal(
     result.triangles.length,
@@ -64,11 +64,11 @@ test("triangulate: should provide correct outer boundary edges", () => {
     { x: 0, y: 1 },
   ];
 
-  const result = DelaunayTriangulation.triangulate(points);
+  const result = DelaunayTriangulator.triangulate(points);
 
   // Triangle should have 3 boundary edges
   assert.equal(
-    result.outerEdges.size,
+    result.boundaryEdgeMap.size,
     3,
     "Triangle should have 3 boundary edges",
   );
@@ -76,11 +76,11 @@ test("triangulate: should provide correct outer boundary edges", () => {
   // Each point should be in the outer edges
   for (const point of points) {
     assert.ok(
-      result.outerEdges.has(point),
+      result.boundaryEdgeMap.has(point),
       `Point (${point.x}, ${point.y}) should be on boundary`,
     );
 
-    const adjacentPoints = result.outerEdges.get(point);
+    const adjacentPoints = result.boundaryEdgeMap.get(point);
     if (!adjacentPoints) {
       throw new Error(`Point not found in outer edges: ${point.x}, ${point.y}`);
     }
@@ -109,7 +109,7 @@ test("triangulate: should handle negative coordinates correctly", () => {
     { x: 0, y: 1 },
   ];
 
-  const result = DelaunayTriangulation.triangulate(points);
+  const result = DelaunayTriangulator.triangulate(points);
 
   assert.equal(result.triangles.length, 1);
 
@@ -126,7 +126,7 @@ test("triangulate: should handle decimal coordinates", () => {
     { x: 0.3, y: 0.9 },
   ];
 
-  const result = DelaunayTriangulation.triangulate(points);
+  const result = DelaunayTriangulator.triangulate(points);
 
   assert.equal(result.triangles.length, 1);
 
@@ -144,7 +144,7 @@ test("triangulate: should preserve point references in result", () => {
     { x: 0, y: 1, id: "c" },
   ] as { x: number; y: number; id: string }[];
 
-  const result = DelaunayTriangulation.triangulate(points);
+  const result = DelaunayTriangulator.triangulate(points);
   const triangle = result.triangles[0];
 
   // Check that original point objects are preserved
@@ -184,7 +184,7 @@ test("triangulate: should create proper boundary chain", () => {
     { x: 0, y: 2 },
   ];
 
-  const result = DelaunayTriangulation.triangulate(points);
+  const result = DelaunayTriangulator.triangulate(points);
 
   // Verify boundary forms a closed chain
   const visited = new Set<(typeof points)[0]>();
@@ -193,7 +193,7 @@ test("triangulate: should create proper boundary chain", () => {
 
   while (!visited.has(current) && chainLength < points.length + 1) {
     visited.add(current);
-    const adjacent = result.outerEdges.get(current);
+    const adjacent = result.boundaryEdgeMap.get(current);
     if (!adjacent) {
       throw new Error(
         `Point not found in outer edges: ${current.x}, ${current.y}`,
@@ -231,12 +231,12 @@ test("triangulate: should handle points in different orders consistently", () =>
     { x: 0, y: 0 },
   ];
 
-  const result1 = DelaunayTriangulation.triangulate(points1);
-  const result2 = DelaunayTriangulation.triangulate(points2);
+  const result1 = DelaunayTriangulator.triangulate(points1);
+  const result2 = DelaunayTriangulator.triangulate(points2);
 
   // Both should produce valid triangulations
   assert.equal(result1.triangles.length, result2.triangles.length);
-  assert.equal(result1.outerEdges.size, result2.outerEdges.size);
+  assert.equal(result1.boundaryEdgeMap.size, result2.boundaryEdgeMap.size);
 });
 
 test("triangulate: should handle larger point sets", () => {
@@ -251,14 +251,14 @@ test("triangulate: should handle larger point sets", () => {
     { x: 1, y: 2 },
   ];
 
-  const result = DelaunayTriangulation.triangulate(points);
+  const result = DelaunayTriangulator.triangulate(points);
 
   // Should produce valid triangulation
   assert.ok(
     result.triangles.length > 0,
     "Should produce at least one triangle",
   );
-  assert.ok(result.outerEdges.size > 0, "Should have boundary edges");
+  assert.ok(result.boundaryEdgeMap.size > 0, "Should have boundary edges");
 
   // All triangles should have valid properties
   for (const triangle of result.triangles) {
@@ -275,11 +275,11 @@ test("triangulate: should return immutable results", () => {
     { x: 0, y: 1 },
   ];
 
-  const result = DelaunayTriangulation.triangulate(points);
+  const result = DelaunayTriangulator.triangulate(points);
 
   // Try to modify the results - should be readonly
   const trianglesArray = result.triangles;
-  const outerEdgesMap = result.outerEdges;
+  const outerEdgesMap = result.boundaryEdgeMap;
 
   // These should be readonly arrays/maps
   assert.ok(Array.isArray(trianglesArray), "Triangles should be array-like");

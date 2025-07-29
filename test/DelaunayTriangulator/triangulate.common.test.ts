@@ -1,11 +1,11 @@
 import { test } from "uvu";
 import * as assert from "uvu/assert";
-import { DelaunayTriangulation } from "../../src/mescellaneous/DelaunayTriangulation";
+import { DelaunayTriangulator } from "../../src/mescellaneous/DelaunayTriangulator";
 
 test("triangulate: ...", () => {
   assert.throws(
     () =>
-      DelaunayTriangulation.triangulate([
+      DelaunayTriangulator.triangulate([
         { x: 0, y: 0 },
         { x: 0, y: 1 },
       ]),
@@ -16,7 +16,7 @@ test("triangulate: ...", () => {
 test("triangulate: ...", () => {
   assert.throws(
     () =>
-      DelaunayTriangulation.triangulate([
+      DelaunayTriangulator.triangulate([
         { x: 0, y: NaN },
         { x: 1, y: 0 },
         { x: 0, y: 1 },
@@ -25,7 +25,7 @@ test("triangulate: ...", () => {
   );
   assert.throws(
     () =>
-      DelaunayTriangulation.triangulate([
+      DelaunayTriangulator.triangulate([
         { x: 0, y: 0 },
         { x: 1, y: Infinity },
         { x: 0, y: 1 },
@@ -34,7 +34,7 @@ test("triangulate: ...", () => {
   );
   assert.throws(
     () =>
-      DelaunayTriangulation.triangulate([
+      DelaunayTriangulator.triangulate([
         { x: 0, y: 0 },
         { x: 1, y: -Infinity },
         { x: 0, y: 1 },
@@ -43,7 +43,7 @@ test("triangulate: ...", () => {
   );
   assert.throws(
     () =>
-      DelaunayTriangulation.triangulate([
+      DelaunayTriangulator.triangulate([
         { x: 0, y: 0 },
         { x: Number.MAX_SAFE_INTEGER + 1, y: 1 },
         { x: 0, y: 1 },
@@ -52,7 +52,7 @@ test("triangulate: ...", () => {
   );
   assert.throws(
     () =>
-      DelaunayTriangulation.triangulate([
+      DelaunayTriangulator.triangulate([
         { x: 0, y: 0 },
         { x: 0, y: 1 },
         { x: -Number.MAX_SAFE_INTEGER - 1, y: 0 },
@@ -64,7 +64,7 @@ test("triangulate: ...", () => {
 test("triangulate: ...", () => {
   assert.throws(
     () =>
-      DelaunayTriangulation.triangulate([
+      DelaunayTriangulator.triangulate([
         { x: 0, y: 0 },
         { x: 0, y: 1 },
         { x: 0, y: 1 },
@@ -76,7 +76,7 @@ test("triangulate: ...", () => {
 test("triangulate: ...", () => {
   assert.throws(
     () =>
-      DelaunayTriangulation.triangulate([
+      DelaunayTriangulator.triangulate([
         { x: 0, y: 0 },
         { x: 0, y: 1 },
         { x: 0, y: 2 },

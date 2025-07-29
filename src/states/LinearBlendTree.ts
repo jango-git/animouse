@@ -25,7 +25,7 @@ export interface LinearAction {
  *
  * @internal
  */
-export interface LinearAnchor extends Anchor {
+interface LinearAnchor extends Anchor {
   /** Position value on the linear blend axis for this anchor */
   value: number;
 }

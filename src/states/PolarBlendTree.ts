@@ -51,7 +51,7 @@ export interface PolarBlendTreeOptions {
  *
  * @internal
  */
-export interface PolarAnchor extends Anchor {
+interface PolarAnchor extends Anchor {
   /** Radial distance from the origin */
   radius: number;
   /** Angular position in normalized [0, 2π) range */
