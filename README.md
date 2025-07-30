@@ -1,6 +1,6 @@
 # Animouse 🐭
 
-A lightweight animation state machine for Three.js that makes complex animation blending and transitions easy.
+A powerful animation state machine and blending system for Three.js that makes complex animation workflows simple and intuitive.
 
 [![npm version](https://img.shields.io/npm/v/animouse.svg)](https://www.npmjs.com/package/animouse)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
@@ -8,17 +8,13 @@ A lightweight animation state machine for Three.js that makes complex animation 
 
 ## Features
 
-- 🎮 Simple single-state animation control
-- 📊 Linear (1D) animation blending
-- 🎯 Directional (2D) animation blending
-- 🔄 Smooth state transitions
-- 🚦 Event-driven state changes
-- 🎬 Automatic transitions on animation completion
-- 📈 Data-driven transitions
-- 🔄 Animation iteration events
-- 🔒 Strict state encapsulation
-- ⚡ Lightweight and efficient
-- 📦 Full TypeScript support
+- 🎬 **Animation State Machine** - Event-driven, automatic, and data-driven transitions
+- 🎯 **Single Clip States** - Simple animation control with lifecycle events
+- 📊 **Linear Blend Trees** - 1D blending for speed/intensity variations
+- 🧭 **Polar Blend Trees** - 2D blending in polar coordinates (radius/direction)
+- 🎨 **Freeform Blend Trees** - Arbitrary 2D blending using Delaunay triangulation
+- 🔄 **Smooth Transitions** - Configurable blend durations between states
+- 📦 **Full TypeScript Support** - Complete type safety and IntelliSense
 
 ## Installation
 
@@ -28,173 +24,275 @@ npm install animouse
 
 ## Requirements
 
-- Three.js ^0.176.0 (peer dependency)
+- Three.js ^0.175.0 (peer dependency)
+- Modern JavaScript environment with ES2020+ support
 
-## Usage
-
-### Animation State Machine
-
-The AnimationStateMachine is the core controller for all animation states. It manages state transitions, updates, and power levels:
+## Quick Start
 
 ```typescript
-import { AnimationStateMachine } from 'animouse';
+import { LinearBlendTree, AnimationMachine } from 'animouse';
+import { AnimationMixer, Vector2 } from 'three';
 
-// Create state machine with initial state
-const stateMachine = new AnimationStateMachine(idleState, mixer);
+// Setup Three.js animation mixer with your loaded character
+const mixer = new AnimationMixer(character);
 
-// Update in animation loop (required)
-function animate(deltaTime) {
-  stateMachine.update(deltaTime);
+// Create linear blend tree for movement speed
+const movementTree = new LinearBlendTree([
+  { action: mixer.clipAction(idleClip), value: 0 },    // Idle
+  { action: mixer.clipAction(walkClip), value: 0.5 },  // Walk
+  { action: mixer.clipAction(runClip), value: 1 }      // Run
+]);
+
+// Create state machine
+const machine = new AnimationMachine(movementTree, mixer);
+
+// Input handling
+const movementInput = new Vector2(0, 0);
+
+function handleInput() {
+  // Get movement input (WASD, gamepad, etc.)
+  const inputMagnitude = movementInput.length();
+
+  // Blend animations based on movement speed
+  // 0 = idle, 0.5 = walk, 1 = run
+  movementTree.setBlend(inputMagnitude);
+}
+
+// Main update loop
+function animate() {
+  const deltaTime = clock.getDelta();
+
+  handleInput();             // Update input and blend values
+  machine.update(deltaTime); // Update state machine and animations
+
+  renderer.render(scene, camera);
+  requestAnimationFrame(animate);
 }
 ```
 
-### Basic Animation State (0D)
+## Core Concepts
 
-Control a single animation:
+### Animation States
 
-```typescript
-import { AnimationState0D } from 'animouse';
+Animation states are the building blocks of the system. Each state manages one or more Three.js AnimationActions and handles their lifecycle:
 
-// Create animation state
-const state = new AnimationState0D(action);
+- **ClipState** - Wraps a single AnimationAction
+- **LinearBlendTree** - Blends multiple actions along a 1D axis
+- **PolarBlendTree** - Blends actions in 2D polar coordinates
+- **FreeformBlendTree** - Blends actions in arbitrary 2D space
 
-// Get current animation progress
-console.log(state.progress); // Value between 0 and 1
+### Animation Machine
 
-// Get current power level
-console.log(state.power); // Value between 0 and 1
-```
+The AnimationMachine orchestrates state transitions and manages the overall animation flow. It supports three types of transitions:
 
-### Linear Blend Space (1D)
+1. **Event Transitions** - Triggered by specific events
+2. **Automatic Transitions** - Triggered when animations complete
+3. **Data Transitions** - Triggered by condition evaluation
 
-Blend between multiple animations along a single axis:
+## Animation States
 
-```typescript
-import { AnimationState1D } from 'animouse';
+### ClipState - Single Animation Control
 
-// Setup blend space with multiple animations
-const blendSpace = new AnimationState1D([
-  { action: walkAction, value: 0 },    // Start of blend space
-  { action: jogAction, value: 0.5 },   // Middle of blend space
-  { action: runAction, value: 1 }      // End of blend space
-]);
-
-// Track progress of most active animation
-console.log(blendSpace.progress);
-
-// Blend between animations (0 to 1)
-blendSpace.setBlend(0);    // Pure walk
-blendSpace.setBlend(0.5);  // Perfect blend between walk and run
-blendSpace.setBlend(1);    // Pure run
-```
-
-### Directional Blend Space (2D)
-
-Perfect for directional animations like movement or aiming:
+Control individual animation clips with automatic event handling:
 
 ```typescript
-import { AnimationState2D } from 'animouse';
+import { ClipState, AnimationStateEvent } from 'animouse';
 
-// Create 2D blend space with cardinal directions
-const directionalState = new AnimationState2D(
-  rightAction,    // +X
-  leftAction,     // -X
-  forwardAction,  // +Y
-  backAction,     // -Y
-  idleAction      // Center
-);
+const jumpState = new ClipState(jumpAction);
 
-// Track progress of most active animation
-console.log(directionalState.progress);
-
-// Blend based on 2D direction (-1 to 1 for each axis)
-directionalState.setBlend(1, 0);      // Pure right movement
-directionalState.setBlend(-0.7, 0.7); // Diagonal left-forward
-directionalState.setBlend(0, 0);      // Center/idle
-```
-
-### State Transitions
-
-AnimationStateMachine supports three types of transitions:
-
-1. Event-driven transitions:
-```typescript
-// Transition when event occurs
-stateMachine.addEventTransition('JUMP', {
-  from: idleState,       // Optional: specify source state
-  to: jumpState,         // Target state
-  duration: 0.2,         // Transition duration
-  condition: () => true  // Optional condition
+// Listen for animation events
+jumpState.on(AnimationStateEvent.PLAY, (action, state) => {
+  console.log('Jump animation started');
 });
 
-// Trigger the transition
-stateMachine.handleEvent('JUMP');
+jumpState.on(AnimationStateEvent.FINISH, (action, state) => {
+  console.log('Jump animation completed');
+});
 ```
 
-2. Automatic transitions (on animation completion):
+### LinearBlendTree - 1D Animation Blending
+
+Perfect for speed variations, intensity levels, or any linear progression:
+
 ```typescript
-// Transition automatically when jump animation completes
-stateMachine.addAutomaticTransition(jumpState, {
+import { LinearBlendTree } from 'animouse';
+
+// Create speed-based movement blend tree
+const movementTree = new LinearBlendTree([
+  { action: idleAction, value: 0 },     // Stationary
+  { action: walkAction, value: 1 },     // Slow movement
+  { action: jogAction, value: 2 },      // Medium movement
+  { action: runAction, value: 3 },      // Fast movement
+  { action: sprintAction, value: 4 }    // Maximum speed
+]);
+
+// Blend based on movement speed
+movementTree.setBlend(2.5); // Blend between jog and run
+```
+
+### PolarBlendTree - 2D Polar Blending
+
+Ideal for directional movement with varying intensities:
+
+```typescript
+import { PolarBlendTree } from 'animouse';
+import { MathUtils } from 'three';
+
+// Create directional movement system
+const directionTree = new PolarBlendTree([
+  // Walk speed (radius = 1)
+  { action: walkForwardAction, radius: 1, azimuth: MathUtils.degToRad(0) },
+  { action: walkLeftAction, radius: 1, azimuth: MathUtils.degToRad(-90) },
+  { action: walkRightAction, radius: 1, azimuth: MathUtils.degToRad(90) },
+  { action: walkBackAction, radius: 1, azimuth: MathUtils.degToRad(180) },
+
+  // Run speed (radius = 2)
+  { action: runForwardAction, radius: 2, azimuth: MathUtils.degToRad(0) },
+  { action: runLeftAction, radius: 2, azimuth: MathUtils.degToRad(-90) }
+  { action: runRightAction, radius: 2, azimuth: MathUtils.degToRad(90) },
+  { action: runBackAction, radius: 2, azimuth: MathUtils.degToRad(180) },
+], idleAction); // Optional center action
+
+// Blend to northeast at medium speed
+directionTree.setBlend(MathUtils.degToRad(45), 1.5);
+```
+
+### FreeformBlendTree - Arbitrary 2D Blending
+
+For complex animation spaces with irregular layouts:
+
+```typescript
+import { FreeformBlendTree } from 'animouse';
+
+// Create emotion-based facial animation system
+const emotionTree = new FreeformBlendTree([
+  { action: neutralAction, x: 0, y: 0 },       // Center: neutral
+  { action: happyAction, x: 1, y: 1 },         // Happy (positive valence/arousal)
+  { action: sadAction, x: -1, y: -0.5 },       // Sad (negative valence, low arousal)
+  { action: angryAction, x: -0.8, y: 0.9 },    // Angry (negative valence, high arousal)
+  { action: surprisedAction, x: 0.2, y: 1.2 }, // Surprised (slight positive, very high arousal)
+  { action: disgustAction, x: -1.2, y: 0.1 }   // Disgust (very negative, medium arousal)
+]);
+
+// Blend to slightly happy and excited
+emotionTree.setBlend(0.6, 0.8);
+```
+
+## State Machine Transitions
+
+### Event-Driven Transitions
+
+Respond to specific game events or user input:
+
+```typescript
+// Basic transition
+machine.addEventTransition('jump', {
+  from: idleState,
+  to: jumpState,
+  duration: 0.2
+});
+
+// Conditional transition
+machine.addEventTransition('attack', {
+  to: attackState,
+  duration: 0.1,
+  condition: (from, to, event, weaponType) => weaponType === 'sword'
+});
+
+// Trigger transitions
+machine.handleEvent('jump');
+machine.handleEvent('attack', 'sword');
+```
+
+### Automatic Transitions
+
+Automatically transition when animations complete:
+
+```typescript
+// Transition to falling after jump completes
+machine.addAutomaticTransition(jumpState, {
   to: fallState,
+  duration: 0.1
+});
+
+// Chain multiple animations
+machine.addAutomaticTransition(landState, {
+  to: idleState,
   duration: 0.3
 });
 ```
 
-3. Data-driven transitions:
+### Data-Driven Transitions
+
+Continuously evaluate conditions for seamless state changes:
+
 ```typescript
-// Transition based on game state
-stateMachine.addDataTransition(fallState, {
-  to: landState,
-  duration: 0.2,
-  data: [player],
-  condition: (player) => player.isGrounded
+// Transition based on health
+machine.addDataTransition(combatState, {
+  to: deathState,
+  duration: 0.5,
+  condition: (from, to, health) => health <= 0,
+  data: [character.health]
 });
 ```
 
-### Events
+## Animation Events
 
-Animation states emit events for important state changes:
+All animation states emit lifecycle events:
 
 ```typescript
 import { AnimationStateEvent } from 'animouse';
 
+// State lifecycle events
 state.on(AnimationStateEvent.ENTER, (state) => {
-  console.log('Animation started');
+  console.log('State activated');
 });
 
 state.on(AnimationStateEvent.EXIT, (state) => {
+  console.log('State deactivated');
+});
+
+// Animation playback events
+state.on(AnimationStateEvent.PLAY, (action, state) => {
+  console.log('Animation started playing');
+});
+
+state.on(AnimationStateEvent.STOP, (action, state) => {
   console.log('Animation stopped');
 });
 
-state.on(AnimationStateEvent.ITERATION, (state) => {
-  console.log('Animation completed one cycle');
+// Animation completion events
+state.on(AnimationStateEvent.ITERATE, (action, state) => {
+  console.log('Looped animation completed a cycle');
+});
+
+state.on(AnimationStateEvent.FINISH, (action, state) => {
+  console.log('Non-looped animation finished');
 });
 ```
 
-## Important Notes
+## Performance Considerations
 
-1. Animation states are managed exclusively by the AnimationStateMachine:
-   - Power levels are controlled internally
-   - State updates are handled automatically
-   - Never modify state power or call update directly
+- Blend trees automatically optimize by only updating active animations
+- Use data transitions sparingly for frequently evaluated conditions
+- Prefer event transitions for user input and game events
 
-2. All animation states must be updated through the AnimationStateMachine:
-   - Call `stateMachine.update(deltaTime)` every frame
-   - This updates both active and transitioning states
+## Contributing
 
-## API Documentation
+Contributions are welcome! Please feel free to submit issues and pull requests.
 
-For detailed API documentation, please check the TypeScript definitions included with the package.
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes with tests
+4. Submit a pull request
 
 ## License
 
 MIT © [jango](https://github.com/jango-git)
 
-## Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
-
 ## Credits
 
-- Built with [Three.js](https://threejs.org/)
+- Built with [Three.js](https://threejs.org/) for 3D animation support
 - Event system powered by [eventail](https://www.npmjs.com/package/eventail)
+- Mathematical utilities for robust geometric calculations
+- Delaunay triangulation for freeform blend spaces
