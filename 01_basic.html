@@ -98,8 +98,8 @@
                     type="range"
                     id="blend-slider"
                     class="slider"
-                    min="-0.25"
-                    max="1.75"
+                    min="0"
+                    max="1"
                     step="0.01"
                     value="0"
                 />
@@ -165,7 +165,7 @@
                 linearBlendTree = new ANIMOUSE.LinearBlendTree([
                     { action: clipMap.get("A_Idle"), value: 0 },
                     { action: clipMap.get("A_Walk_Forward"), value: 0.5 },
-                    { action: clipMap.get("A_Run_Forward"), value: 1.5 },
+                    { action: clipMap.get("A_Run_Forward"), value: 1 },
                 ]);
 
                 machine = new ANIMOUSE.AnimationMachine(linearBlendTree, mixer);
