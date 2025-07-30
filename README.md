@@ -68,6 +68,7 @@ function animate() {
   renderer.render(scene, camera);
   requestAnimationFrame(animate);
 }
+```
 
 ## Examples
 
@@ -79,7 +80,6 @@ Browse working examples that demonstrate:
 - Real-time animation control
 
 Visit the examples page to see the library in action and get started with your own animations!
-```
 
 ## Core Concepts
 
