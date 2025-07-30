@@ -6,45 +6,47 @@ import {
 } from "./assertions";
 import { EPSILON, PI2 } from "./miscellaneous";
 
+/** The number of vertices in a triangle. */
 export const TRIANGLE_VERTEX_COUNT = 3;
 
 /**
  * Precomputed data for efficient triangle operations.
  */
 export interface TriangleCache {
-  /** A vertex of the triangle */
+  /** A vertex of the triangle. */
   origin: Vector2Like;
-  /** The circumcenter of the triangle */
+  /** The circumcenter of the triangle. */
   circumcenter: Vector2Like;
-  /** The squared circumradius of the triangle */
+  /** The squared circumradius of the triangle. */
   circumradiusSquared: number;
-  /** Vector from vertex A to vertex B */
+  /** Vector from vertex A to vertex B. */
   u: Vector2Like;
-  /** Vector from vertex A to vertex C */
+  /** Vector from vertex A to vertex C. */
   v: Vector2Like;
-  /** Pseudo dot product of u with itself (u·u) */
+  /** Pseudo dot product of u with itself (u·u). */
   d00: number;
-  /** Pseudo dot product of u with v (u·v) */
+  /** Pseudo dot product of u with v (u·v). */
   d01: number;
-  /** Pseudo dot product of v with itself (v·v) */
+  /** Pseudo dot product of v with itself (v·v). */
   d11: number;
-  /** Inverse of the determinant used in barycentric calculations */
+  /** Inverse of the determinant used in barycentric calculations. */
   invDenom: number;
-  /** Minimum bounds of the triangle's axis-aligned bounding box */
+  /** Minimum bounds of the triangle's axis-aligned bounding box. */
   min: Vector2Like;
-  /** Maximum bounds of the triangle's axis-aligned bounding box */
+  /** Maximum bounds of the triangle's axis-aligned bounding box. */
   max: Vector2Like;
 }
 
 /**
  * Precomputes triangle data for efficient subsequent operations.
+ * Calculates circumcenter, bounding box, and barycentric coordinate helpers.
  *
- * @param a - First vertex of the triangle
- * @param b - Second vertex of the triangle
- * @param c - Third vertex of the triangle
- * @returns Precomputed triangle data cache
+ * @param a - First vertex of the triangle (Vector2Like coordinates)
+ * @param b - Second vertex of the triangle (Vector2Like coordinates)
+ * @param c - Third vertex of the triangle (Vector2Like coordinates)
+ * @returns Precomputed triangle data cache for efficient operations
  * @throws {Error} When triangle is degenerate or coordinates are invalid
- * @see {@link assertValidNumber}
+ * @see {@link assertValidNumber} for coordinate validation details
  */
 export function precomputeTriangle(
   a: Vector2Like,
@@ -103,11 +105,13 @@ export function precomputeTriangle(
 
 /**
  * Calculates barycentric coordinates for a point relative to a triangle.
+ * Returns undefined if the point lies outside the triangle boundaries.
  *
- * @param point - The point to calculate barycentric coordinates for
- * @param cache - Precomputed triangle data
- * @returns Barycentric weights {u, v, w} if point is inside triangle, undefined otherwise
- * @see {@link assertValidNumber}
+ * @param point - The point to calculate barycentric coordinates for (Vector2Like coordinates)
+ * @param cache - Precomputed triangle data containing vectors and determinants
+ * @returns Barycentric weights {aW, bW, cW} if point is inside triangle, undefined otherwise
+ * @throws {Error} When point coordinates or cache data are invalid
+ * @see {@link assertValidNumber} for coordinate validation details
  */
 export function calculateBarycentricWeights(
   point: Vector2Like,
@@ -180,11 +184,29 @@ export function calculateBarycentricWeights(
   return { aW, bW, cW };
 }
 
+/**
+ * Calculates the centroid (geometric center) of a triangle.
+ * The centroid is the point where all three medians of the triangle intersect.
+ *
+ * @param a - First vertex of the triangle (Vector2Like coordinates)
+ * @param b - Second vertex of the triangle (Vector2Like coordinates)
+ * @param c - Third vertex of the triangle (Vector2Like coordinates)
+ * @returns The centroid point of the triangle (Vector2Like coordinates)
+ * @throws {Error} When any coordinate value is invalid
+ * @see {@link assertValidNumber} for coordinate validation details
+ */
 export function calculateTriangleCentroid(
   a: Vector2Like,
   b: Vector2Like,
   c: Vector2Like,
 ): Vector2Like {
+  assertValidNumber(a.x, "a.x");
+  assertValidNumber(a.y, "a.y");
+  assertValidNumber(b.x, "b.x");
+  assertValidNumber(b.y, "b.y");
+  assertValidNumber(c.x, "c.x");
+  assertValidNumber(c.y, "c.y");
+
   return {
     x: (a.x + b.x + c.x) / TRIANGLE_VERTEX_COUNT,
     y: (a.y + b.y + c.y) / TRIANGLE_VERTEX_COUNT,
@@ -193,12 +215,15 @@ export function calculateTriangleCentroid(
 
 /**
  * Determines if a point is strictly inside a circle (excluding the boundary).
+ * Uses squared distance comparison to avoid expensive square root operations.
  *
- * @param origin - The center point of the circle
- * @param radiusSquared - The squared radius of the circle
- * @param point - The point to test
- * @returns True if the point is strictly inside the circle
- * @see {@link assertValidNumber}
+ * @param origin - The center point of the circle (Vector2Like coordinates)
+ * @param radiusSquared - The squared radius of the circle (positive number)
+ * @param point - The point to test (Vector2Like coordinates)
+ * @returns True if the point is strictly inside the circle, false otherwise
+ * @throws {Error} When coordinates are invalid or radius is not positive
+ * @see {@link assertValidNumber} for coordinate validation details
+ * @see {@link assertValidPositiveNumber} for radius validation details
  */
 export function isPointInsideCircle(
   origin: Vector2Like,
@@ -219,10 +244,11 @@ export function isPointInsideCircle(
 
 /**
  * Normalizes an azimuth angle to the range [0, 2π).
+ * Handles negative angles by adding 2π to bring them into the valid range.
  *
- * @param azimuth - The azimuth angle in radians
- * @returns The normalized azimuth in the range [0, 2π)
- * @throws {Error} When the value is not a valid number
+ * @param azimuth - The azimuth angle in radians (any finite number)
+ * @returns The normalized azimuth in the range [0, 2π) radians
+ * @throws {Error} When the azimuth value is not a valid number
  * @see {@link assertValidNumber} for validation details
  */
 export function calculateNormalizedAzimuth(azimuth: number): number {
@@ -236,11 +262,11 @@ export function calculateNormalizedAzimuth(azimuth: number): number {
  * Calculates the forward angular distance between two azimuth angles.
  * Always measures distance in the positive direction, even if a shorter path exists in the backward direction.
  *
- * @param from - The starting azimuth angle in radians
- * @param to - The target azimuth angle in radians
- * @returns The forward angular distance in radians
+ * @param from - The starting azimuth angle in radians (normalized to [0, 2π))
+ * @param to - The target azimuth angle in radians (normalized to [0, 2π))
+ * @returns The forward angular distance in radians [0, 2π)
  * @throws {Error} When either azimuth value is invalid
- * @see {@link assertValidAzimuth} for validation details
+ * @see {@link assertValidAzimuth} for azimuth validation details
  */
 export function calculateAngularDistanceForward(
   from: number,
@@ -255,14 +281,14 @@ export function calculateAngularDistanceForward(
 
 /**
  * Determines if an azimuth angle falls within a specified angular range.
- * Handles ranges that wrap around the 0/2π boundary.
+ * Handles ranges that wrap around the 0/2π boundary correctly.
  *
- * @param value - The azimuth angle to test, in radians
- * @param from - The start of the angular range, in radians
- * @param to - The end of the angular range, in radians
- * @returns True if the azimuth is within the range, false otherwise
+ * @param value - The azimuth angle to test in radians (normalized to [0, 2π))
+ * @param from - The start of the angular range in radians (normalized to [0, 2π))
+ * @param to - The end of the angular range in radians (normalized to [0, 2π))
+ * @returns True if the azimuth is within the range (inclusive), false otherwise
  * @throws {Error} When any azimuth value is invalid
- * @see {@link assertValidAzimuth} for validation details
+ * @see {@link assertValidAzimuth} for azimuth validation details
  */
 export function isAzimuthBetween(
   value: number,
@@ -282,13 +308,13 @@ export function isAzimuthBetween(
  * Calculates the squared Euclidean distance between two points.
  * Using squared distance avoids the expensive square root operation.
  *
- * @param x1 - X coordinate of the first point
- * @param y1 - Y coordinate of the first point
- * @param x2 - X coordinate of the second point
- * @param y2 - Y coordinate of the second point
- * @returns The squared distance between the two points
+ * @param x1 - X coordinate of the first point (finite number)
+ * @param y1 - Y coordinate of the first point (finite number)
+ * @param x2 - X coordinate of the second point (finite number)
+ * @param y2 - Y coordinate of the second point (finite number)
+ * @returns The squared distance between the two points (non-negative number)
  * @throws {Error} When any coordinate value is invalid
- * @see {@link assertValidNumber} for validation details
+ * @see {@link assertValidNumber} for coordinate validation details
  */
 export function calculateDistanceSquared(
   x1: number,
@@ -306,14 +332,14 @@ export function calculateDistanceSquared(
 
 /**
  * Calculates the squared distance from a point to a line segment (edge).
- * This function assumes the edge has non-zero length.
+ * Projects the point onto the line segment and clamps to the segment boundaries.
  *
- * @param edge - A tuple containing the two endpoints of the edge
- * @param x - X coordinate of the point
- * @param y - Y coordinate of the point
- * @returns The squared distance from the point to the closest point on the edge
+ * @param edge - A tuple containing the two endpoints of the edge (Vector2Like coordinates)
+ * @param x - X coordinate of the point (finite number)
+ * @param y - Y coordinate of the point (finite number)
+ * @returns The squared distance from the point to the closest point on the edge (non-negative number)
  * @throws {Error} When any coordinate value is invalid
- * @see {@link assertValidNumber} for validation details
+ * @see {@link assertValidNumber} for coordinate validation details
  */
 export function calculateDistanceToEdgeSquared(
   [p1, p2]: [Vector2Like, Vector2Like],
