@@ -36,7 +36,7 @@ Browse working examples that demonstrate:
 - Integration with Three.js scene setup
 - Real-time animation control
 
-Visit the examples page to see the library in action and get started with your own animations!
+Visit the examples page to see the library in action!
 
 ## Quick Start
 
