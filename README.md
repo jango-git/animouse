@@ -27,6 +27,17 @@ npm install animouse
 - Three.js ^0.175.0 (peer dependency)
 - Modern JavaScript environment with ES2020+ support
 
+## Examples
+
+🎮 **[Live Examples](https://jango-git.github.io/animouse/)** - Interactive demos showing Animouse in action
+
+Browse working examples that demonstrate:
+- Basic GLB character animation loading and playback
+- Integration with Three.js scene setup
+- Real-time animation control
+
+Visit the examples page to see the library in action and get started with your own animations!
+
 ## Quick Start
 
 ```typescript
@@ -69,17 +80,6 @@ function animate() {
   requestAnimationFrame(animate);
 }
 ```
-
-## Examples
-
-🎮 **[Live Examples](https://jango-git.github.io/animouse/)** - Interactive demos showing Animouse in action
-
-Browse working examples that demonstrate:
-- Basic GLB character animation loading and playback
-- Integration with Three.js scene setup
-- Real-time animation control
-
-Visit the examples page to see the library in action and get started with your own animations!
 
 ## Core Concepts
 
