@@ -2,93 +2,17 @@
 <html lang="en">
     <head>
         <meta charset="UTF-8" />
-        <title>Animouse GLB Example</title>
+        <title>Animouse Linear Blend Tree</title>
+        <link rel="stylesheet" href="shared-styles.css" />
         <style>
-            body {
-                margin: 0;
-                overflow: hidden;
-                font-family:
-                    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-                    sans-serif;
-            }
-            canvas {
-                display: block;
-            }
             .control-panel {
-                position: absolute;
-                top: 20px;
-                left: 20px;
-                background: rgba(0, 0, 0, 0.75);
-                border-radius: 8px;
-                padding: 16px;
-                color: white;
-                z-index: 100;
-                backdrop-filter: blur(10px);
-                border: 1px solid rgba(255, 255, 255, 0.1);
-                min-width: 200px;
-            }
-            .control-title {
-                margin: 0 0 12px 0;
-                font-size: 14px;
-                font-weight: 600;
-                opacity: 0.9;
-            }
-            .slider-container {
-                margin: 8px 0;
-            }
-            .slider-label {
-                display: flex;
-                justify-content: space-between;
-                font-size: 12px;
-                margin-bottom: 6px;
-                opacity: 0.8;
-            }
-            .slider {
-                width: 100%;
-                height: 4px;
-                border-radius: 2px;
-                background: rgba(255, 255, 255, 0.2);
-                outline: none;
-                -webkit-appearance: none;
-                appearance: none;
-            }
-            .slider::-webkit-slider-thumb {
-                appearance: none;
-                width: 16px;
-                height: 16px;
-                border-radius: 50%;
-                background: #4caf50;
-                cursor: pointer;
-                border: 2px solid white;
-                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-            }
-            .slider::-moz-range-thumb {
-                width: 16px;
-                height: 16px;
-                border-radius: 50%;
-                background: #4caf50;
-                cursor: pointer;
-                border: 2px solid white;
-                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-            }
-            .animation-labels {
-                display: flex;
-                justify-content: space-between;
-                font-size: 9px;
-                margin-top: 4px;
-                opacity: 0.6;
-                position: relative;
-            }
-            .animation-labels span:nth-child(3) {
-                position: absolute;
-                left: 50%;
-                transform: translateX(-50%);
+                min-width: 280px;
             }
         </style>
     </head>
     <body>
         <div class="control-panel">
-            <div class="control-title">Animation Blend</div>
+            <div class="control-title">Linear Blend Tree</div>
             <div class="slider-container">
                 <div class="slider-label">
                     <span>Blend Value:</span>
@@ -103,7 +27,7 @@
                     step="0.01"
                     value="0"
                 />
-                <div class="animation-labels">
+                <div class="animation-labels five-labels">
                     <span>Run Back</span>
                     <span>Walk Back</span>
                     <span>Idle</span>
@@ -111,6 +35,16 @@
                     <span>Run Fwd</span>
                 </div>
             </div>
+        </div>
+        <div class="back-link">
+            <a href="index.html">Examples</a>
+        </div>
+        <div class="source-link">
+            <a
+                href="https://github.com/jango-git/animouse/blob/gh-pages/01_linear_blend_tree.html"
+                target="_blank"
+                >source</a
+            >
         </div>
         <script type="module">
             import * as THREE from "https://esm.sh/three@0.175";

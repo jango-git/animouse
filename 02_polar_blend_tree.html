@@ -1,0 +1,253 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <title>Animouse Polar Blend Tree</title>
+        <link rel="stylesheet" href="shared-styles.css" />
+        <style>
+            .control-panel {
+                min-width: 320px;
+            }
+            .control-title {
+                margin: 0 0 16px 0;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="control-panel">
+            <div class="control-title">Polar Blend Tree</div>
+
+            <div class="slider-container">
+                <div class="slider-label">
+                    <span>Azimuth (Direction):</span>
+                    <span id="azimuth-value">0.00</span>
+                </div>
+                <input
+                    type="range"
+                    id="azimuth-slider"
+                    class="slider"
+                    min="-3.14159"
+                    max="3.14159"
+                    step="0.01"
+                    value="0"
+                />
+                <div class="animation-labels four-labels">
+                    <span>Backward</span>
+                    <span>Right</span>
+                    <span>Forward</span>
+                    <span>Left</span>
+                    <span>Backward</span>
+                </div>
+            </div>
+
+            <div class="slider-container">
+                <div class="slider-label">
+                    <span>Radius (Speed):</span>
+                    <span id="radius-value">0.00</span>
+                </div>
+                <input
+                    type="range"
+                    id="radius-slider"
+                    class="slider"
+                    min="0"
+                    max="1"
+                    step="0.01"
+                    value="0"
+                />
+                <div class="animation-labels three-labels">
+                    <span>Idle</span>
+                    <span>Walk</span>
+                    <span>Run</span>
+                </div>
+            </div>
+
+            <div class="polar-visualization">
+                <div>Polar Coordinates:</div>
+                <div>Direction: <span id="direction-text">Forward</span></div>
+                <div>Intensity: <span id="intensity-text">Idle</span></div>
+            </div>
+        </div>
+        <div class="back-link">
+            <a href="index.html">Examples</a>
+        </div>
+
+        <div class="source-link">
+            <a
+                href="https://github.com/jango-git/animouse/blob/gh-pages/02_polar_blend_tree.html"
+                target="_blank"
+                >source</a
+            >
+        </div>
+
+        <script type="module">
+            import * as THREE from "https://esm.sh/three@0.175";
+            import { OrbitControls } from "https://esm.sh/three@0.175/examples/jsm/controls/OrbitControls";
+            import { GLTFLoader } from "https://esm.sh/three@0.175/examples/jsm/loaders/GLTFLoader";
+            import * as ANIMOUSE from "https://esm.sh/animouse@0.7.0?deps=three@0.175";
+
+            const scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x222222);
+
+            const camera = new THREE.PerspectiveCamera(
+                45,
+                innerWidth / innerHeight,
+                0.1,
+                100,
+            );
+            camera.position.set(2, 2, 2);
+
+            const renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(innerWidth, innerHeight);
+            document.body.appendChild(renderer.domElement);
+
+            const controls = new OrbitControls(camera, renderer.domElement);
+            controls.target.set(0, 1, 0);
+            controls.update();
+
+            scene.add(new THREE.AmbientLight(0xffffff, 0.5));
+            const dirLight = new THREE.DirectionalLight(0xffffff, 1);
+            dirLight.position.set(5, 10, 5);
+            scene.add(dirLight);
+
+            // GLB load
+            const loader = new GLTFLoader();
+            const clock = new THREE.Clock();
+            let mixer;
+            let polarBlendTree;
+            let machine;
+
+            loader.setPath("assets/").load("SK_Character.glb", (gltf) => {
+                const model = gltf.scene;
+                scene.add(model);
+
+                mixer = new THREE.AnimationMixer(model);
+
+                // Parse animations by name
+                const clips = gltf.animations;
+                const clipMap = new Map();
+                for (const clip of clips) {
+                    const action = mixer.clipAction(clip);
+                    action.loop = THREE.LoopRepeat;
+                    clipMap.set(clip.name, action);
+                }
+
+                // Create PolarBlendTree with movement directions
+                polarBlendTree = new ANIMOUSE.PolarBlendTree(
+                    [
+                        {
+                            action: clipMap.get("A_Walk_Forward"),
+                            azimuth: 0,
+                            radius: 0.5,
+                        },
+                        {
+                            action: clipMap.get("A_Walk_Backward"),
+                            azimuth: Math.PI,
+                            radius: 0.5,
+                        },
+                        {
+                            action: clipMap.get("A_Walk_Left"),
+                            azimuth: Math.PI / 2,
+                            radius: 0.5,
+                        },
+                        {
+                            action: clipMap.get("A_Walk_Right"),
+                            azimuth: -Math.PI / 2,
+                            radius: 0.5,
+                        },
+                        {
+                            action: clipMap.get("A_Run_Forward"),
+                            azimuth: 0,
+                            radius: 1,
+                        },
+                        {
+                            action: clipMap.get("A_Run_Backward"),
+                            azimuth: Math.PI,
+                            radius: 1,
+                        },
+                        {
+                            action: clipMap.get("A_Run_Left"),
+                            azimuth: Math.PI / 2,
+                            radius: 1,
+                        },
+                        {
+                            action: clipMap.get("A_Run_Right"),
+                            azimuth: -Math.PI / 2,
+                            radius: 1,
+                        },
+                    ],
+                    clipMap.get("A_Idle"),
+                );
+
+                machine = new ANIMOUSE.AnimationMachine(polarBlendTree, mixer);
+
+                // Setup slider controls
+                setupControls();
+            });
+
+            function setupControls() {
+                const azimuthSlider = document.getElementById("azimuth-slider");
+                const radiusSlider = document.getElementById("radius-slider");
+                const azimuthValue = document.getElementById("azimuth-value");
+                const radiusValue = document.getElementById("radius-value");
+                const directionText = document.getElementById("direction-text");
+                const intensityText = document.getElementById("intensity-text");
+
+                function updateBlend() {
+                    const azimuth = parseFloat(azimuthSlider.value);
+                    const radius = parseFloat(radiusSlider.value);
+
+                    azimuthValue.textContent = azimuth.toFixed(2);
+                    radiusValue.textContent = radius.toFixed(2);
+
+                    // Update direction text
+                    const normalizedAzimuth =
+                        ((azimuth + Math.PI) % (2 * Math.PI)) - Math.PI;
+                    if (Math.abs(normalizedAzimuth) < Math.PI / 4) {
+                        directionText.textContent = "Forward";
+                    } else if (
+                        normalizedAzimuth >= Math.PI / 4 &&
+                        normalizedAzimuth < (3 * Math.PI) / 4
+                    ) {
+                        directionText.textContent = "Left";
+                    } else if (
+                        Math.abs(normalizedAzimuth) >=
+                        (3 * Math.PI) / 4
+                    ) {
+                        directionText.textContent = "Backward";
+                    } else {
+                        directionText.textContent = "Right";
+                    }
+
+                    // Update intensity text
+                    if (radius < 0.1) {
+                        intensityText.textContent = "Idle";
+                    } else if (radius < 0.6) {
+                        intensityText.textContent = "Walk";
+                    } else {
+                        intensityText.textContent = "Run";
+                    }
+
+                    if (polarBlendTree) {
+                        polarBlendTree.setBlend(azimuth, radius);
+                    }
+                }
+
+                azimuthSlider.addEventListener("input", updateBlend);
+                radiusSlider.addEventListener("input", updateBlend);
+            }
+
+            // render loop
+            window.addEventListener("resize", () => {
+                camera.aspect = innerWidth / innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(innerWidth, innerHeight);
+            });
+
+            renderer.setAnimationLoop(() => {
+                const deltaTime = clock.getDelta();
+                if (machine) machine.update(deltaTime);
+                renderer.render(scene, camera);
+            });
+        </script>
+    </body>
+</html>

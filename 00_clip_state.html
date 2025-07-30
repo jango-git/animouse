@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <title>Animouse Clip State</title>
+        <link rel="stylesheet" href="shared-styles.css" />
+    </head>
+    <body>
+        <div class="info-panel">
+            <div class="info-title">Clip State</div>
+            <div class="info-text">
+                Simple animation state that plays a single animation clip.
+            </div>
+            <div class="info-text">
+                Perfect for basic character idle states or looping animations.
+            </div>
+            <div class="animation-info">Current: Idle Animation</div>
+        </div>
+        <div class="back-link">
+            <a href="index.html">Examples</a>
+        </div>
+        <div class="source-link">
+            <a
+                href="https://github.com/jango-git/animouse/blob/gh-pages/00_clip_state.html"
+                target="_blank"
+                >source</a
+            >
+        </div>
+        <script type="module">
+            import * as THREE from "https://esm.sh/three@0.175";
+            import { OrbitControls } from "https://esm.sh/three@0.175/examples/jsm/controls/OrbitControls";
+            import { GLTFLoader } from "https://esm.sh/three@0.175/examples/jsm/loaders/GLTFLoader";
+            import * as ANIMOUSE from "https://esm.sh/animouse@0.7.0?deps=three@0.175";
+
+            const scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x222222);
+
+            const camera = new THREE.PerspectiveCamera(
+                45,
+                innerWidth / innerHeight,
+                0.1,
+                100,
+            );
+            camera.position.set(2, 2, 2);
+
+            const renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(innerWidth, innerHeight);
+            document.body.appendChild(renderer.domElement);
+
+            const controls = new OrbitControls(camera, renderer.domElement);
+            controls.target.set(0, 1, 0);
+            controls.update();
+
+            scene.add(new THREE.AmbientLight(0xffffff, 0.5));
+            const dirLight = new THREE.DirectionalLight(0xffffff, 1);
+            dirLight.position.set(5, 10, 5);
+            scene.add(dirLight);
+
+            // GLB load
+            const loader = new GLTFLoader();
+            const clock = new THREE.Clock();
+            let mixer;
+            let clipState;
+            let machine;
+
+            loader.setPath("assets/").load("SK_Character.glb", (gltf) => {
+                const model = gltf.scene;
+                scene.add(model);
+
+                mixer = new THREE.AnimationMixer(model);
+
+                // Parse animations by name
+                const clips = gltf.animations;
+                const clipMap = new Map();
+                for (const clip of clips) {
+                    const action = mixer.clipAction(clip);
+                    action.loop = THREE.LoopRepeat;
+                    clipMap.set(clip.name, action);
+                }
+
+                // Create ClipState with idle animation
+                clipState = new ANIMOUSE.ClipState(clipMap.get("A_Idle"));
+
+                machine = new ANIMOUSE.AnimationMachine(clipState, mixer);
+            });
+
+            // render loop
+            window.addEventListener("resize", () => {
+                camera.aspect = innerWidth / innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(innerWidth, innerHeight);
+            });
+
+            renderer.setAnimationLoop(() => {
+                const deltaTime = clock.getDelta();
+                if (machine) machine.update(deltaTime);
+                renderer.render(scene, camera);
+            });
+        </script>
+    </body>
+</html>
