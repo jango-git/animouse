@@ -536,6 +536,15 @@ export class PolarBlendTree extends AnimationTree {
       }
     }
 
-    throw new Error("No matching result found");
+    // This code is unreachable under all inputs.
+    // In a properly functioning system, currentRadius should always fall within the range of some ring pair.
+    // This method is only called when currentRadius is between the first and last ring radii,
+    // so there must always be at least one ring interval that contains the current radius.
+    // If this branch is ever taken, it implies a violation of polar grid invariants and a bug elsewhere in the pipeline —
+    // not an edge case to be covered by tests.
+    /* c8 ignore next 3 */
+    throw new Error(
+      `Invariant violation: currentRadius ${this.currentRadius} not found within any ring interval`,
+    );
   }
 }

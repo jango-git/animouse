@@ -1,10 +1,13 @@
 import { Vector2, type Vector2Like } from "three";
 import { assertValidNumber } from "./assertions";
 import type { TriangleCache } from "./math";
-import { isPointInsideCircle, precomputeTriangle } from "./math";
+import {
+  isPointInsideCircle,
+  precomputeTriangle,
+  TRIANGLE_VERTEX_COUNT,
+} from "./math";
 import { EPSILON } from "./miscellaneous";
 
-const TRIANGLE_VERTEX_COUNT = 3;
 const SUPER_TRIANGLE_SCALE_FACTOR = 16;
 
 export interface Triangle<T extends Vector2Like> extends TriangleCache {
@@ -88,13 +91,13 @@ export class DelaunayTriangulator {
     );
 
     for (const [key, value] of boundaryEdgeMap) {
+      // This code is unreachable under all inputs.
+      // The map represents the outer contour of a closed 2D mesh after Delaunay triangulation.
+      // Every boundary vertex must have exactly two neighbors on the contour.
+      // If this branch is ever taken, it implies a violation of mesh invariants and a bug elsewhere in the pipeline —
+      // not an edge case to be covered by tests.
+      /* c8 ignore next 5 */
       if (value.length !== 2) {
-        // This code is unreachable under all inputs.
-        // The map represents the outer contour of a closed 2D mesh after Delaunay triangulation.
-        // Every boundary vertex must have exactly two neighbors on the contour.
-        // If this branch is ever taken, it implies a violation of mesh invariants and a bug elsewhere in the pipeline —
-        // not an edge case to be covered by tests.
-        // c8 ignore next 3
         throw new Error(
           `Invariant violation: outer edge point (${key.x}, ${key.y}) has ${value.length} connections (expected 2)`,
         );

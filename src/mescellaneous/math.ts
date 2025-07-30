@@ -6,6 +6,8 @@ import {
 } from "./assertions";
 import { EPSILON, PI2 } from "./miscellaneous";
 
+export const TRIANGLE_VERTEX_COUNT = 3;
+
 /**
  * Precomputed data for efficient triangle operations.
  */
@@ -62,19 +64,19 @@ export function precomputeTriangle(
   const d00 = u.x * u.x + u.y * u.y;
   const d01 = u.x * v.x + u.y * v.y;
   const d11 = v.x * v.x + v.y * v.y;
-  const det = d00 * d11 - d01 * d01;
+  const bDet = d00 * d11 - d01 * d01;
 
-  if (Math.abs(det) < EPSILON) {
+  if (Math.abs(bDet) < EPSILON) {
     throw new Error(
-      `Degenerate triangle detected: determinant is too close to zero (${det}). ` +
+      `Degenerate triangle detected: determinant is too close to zero (${bDet}). ` +
         `Triangle points are a(${a.x}, ${a.y}), b(${b.x}, ${b.y}), c(${c.x}, ${c.y}).`,
     );
   }
 
-  const d = 2 * (u.x * v.y - u.y * v.x);
+  const cDet = 2 * (u.x * v.y - u.y * v.x);
   const circumcenter = {
-    x: a.x + (v.y * d00 - u.y * d11) / d,
-    y: a.y + (u.x * d11 - v.x * d00) / d,
+    x: a.x + (v.y * d00 - u.y * d11) / cDet,
+    y: a.y + (u.x * d11 - v.x * d00) / cDet,
   };
 
   return {
@@ -87,7 +89,7 @@ export function precomputeTriangle(
     d00,
     d01,
     d11,
-    invDenom: 1 / det,
+    invDenom: 1 / bDet,
     min: {
       x: Math.min(a.x, b.x, c.x),
       y: Math.min(a.y, b.y, c.y),
@@ -176,6 +178,17 @@ export function calculateBarycentricWeights(
   }
 
   return { aW, bW, cW };
+}
+
+export function calculateTriangleCentroid(
+  a: Vector2Like,
+  b: Vector2Like,
+  c: Vector2Like,
+): Vector2Like {
+  return {
+    x: (a.x + b.x + c.x) / TRIANGLE_VERTEX_COUNT,
+    y: (a.y + b.y + c.y) / TRIANGLE_VERTEX_COUNT,
+  };
 }
 
 /**

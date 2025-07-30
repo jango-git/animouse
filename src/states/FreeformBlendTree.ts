@@ -1,14 +1,14 @@
-import type { AnimationAction } from "three";
+import type { AnimationAction, Vector2Like } from "three";
 import { LoopOnce } from "three";
 import { AnimationStateEvent } from "../mescellaneous/AnimationStateEvent";
 import { assertValidNumber } from "../mescellaneous/assertions";
+import type { Triangle } from "../mescellaneous/DelaunayTriangulator";
+import { DelaunayTriangulator } from "../mescellaneous/DelaunayTriangulator";
 import {
-  DelaunayTriangulator,
-  type Triangle,
-} from "../mescellaneous/DelaunayTriangulator";
-import {
+  calculateBarycentricWeights,
   calculateDistanceSquared,
   calculateDistanceToEdgeSquared,
+  calculateTriangleCentroid,
 } from "../mescellaneous/math";
 import { EPSILON, type Anchor } from "../mescellaneous/miscellaneous";
 import { AnimationTree } from "./AnimationTree";
@@ -27,7 +27,13 @@ interface FreeformAnchor extends Anchor {
   y: number;
 }
 
-type FreeformTriangle = Triangle<FreeformAnchor>;
+interface FreeformTriangle
+  extends Omit<
+    Triangle<FreeformAnchor>,
+    "circumcenter" | "circumradiusSquared"
+  > {
+  centroid: Vector2Like;
+}
 
 export class FreeformBlendTree extends AnimationTree {
   private readonly activeAnchors = new Set<FreeformAnchor>();
@@ -105,7 +111,15 @@ export class FreeformBlendTree extends AnimationTree {
     }
 
     const result = DelaunayTriangulator.triangulate(anchors);
-    this.triangles = result.triangles;
+    this.triangles = result.triangles.map((t) => {
+      // Exclude 'circumcenter' and 'circumradiusSquared' from 't' — we don't need them in the result.
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { circumcenter, circumradiusSquared, ...rest } = t;
+      return {
+        ...rest,
+        centroid: calculateTriangleCentroid(t.a, t.b, t.c),
+      };
+    });
     this.boundaryEdgeMap = result.boundaryEdgeMap;
     this.sortTriangles();
     this.updateAnchors();
@@ -147,11 +161,9 @@ export class FreeformBlendTree extends AnimationTree {
       weights.set(anchor, 0);
     }
 
-    const containingTriangle = this.findContainingTriangle();
-
-    containingTriangle
-      ? this.applyBarycentricWeights(weights, containingTriangle)
-      : this.applyNearestNeighborWeight(weights);
+    if (!this.applyBarycentricWeights(weights)) {
+      this.applyNearestNeighborWeight(weights);
+    }
 
     this.activeAnchors.clear();
 
@@ -161,51 +173,22 @@ export class FreeformBlendTree extends AnimationTree {
     }
   }
 
-  private findContainingTriangle(): FreeformTriangle | undefined {
-    for (const blendTriangle of this.triangles) {
-      if (this.isPointInTriangle(blendTriangle)) {
-        return blendTriangle;
+  private applyBarycentricWeights(
+    result: Map<FreeformAnchor, number>,
+  ): boolean {
+    const point = { x: this.currentX, y: this.currentY };
+
+    for (const triangle of this.triangles) {
+      const weights = calculateBarycentricWeights(point, triangle);
+      if (weights) {
+        result.set(triangle.a, weights.aW);
+        result.set(triangle.b, weights.bW);
+        result.set(triangle.c, weights.cW);
+        return true;
       }
     }
 
-    return undefined;
-  }
-
-  private isPointInTriangle(triangle: FreeformTriangle): boolean {
-    const x = this.currentX;
-    const y = this.currentY;
-    const { a, b, c } = triangle;
-
-    const denom = (b.y - c.y) * (a.x - c.x) + (c.x - b.x) * (a.y - c.y);
-    const EPSILON_TRIANGLE = 1e-10;
-
-    if (Math.abs(denom) < EPSILON_TRIANGLE) {
-      return false;
-    }
-
-    const alpha = ((b.y - c.y) * (x - c.x) + (c.x - b.x) * (y - c.y)) / denom;
-    const beta = ((c.y - a.y) * (x - c.x) + (a.x - c.x) * (y - c.y)) / denom;
-    const gamma = 1 - alpha - beta;
-
-    return alpha >= 0 && beta >= 0 && gamma >= 0;
-  }
-
-  private applyBarycentricWeights(
-    result: Map<FreeformAnchor, number>,
-    anchor: FreeformTriangle,
-  ): void {
-    const { a, b, c } = anchor;
-    const x = this.currentX;
-    const y = this.currentY;
-
-    const denom = (b.y - c.y) * (a.x - c.x) + (c.x - b.x) * (a.y - c.y);
-    const alpha = ((b.y - c.y) * (x - c.x) + (c.x - b.x) * (y - c.y)) / denom;
-    const beta = ((c.y - a.y) * (x - c.x) + (a.x - c.x) * (y - c.y)) / denom;
-    const gamma = 1 - alpha - beta;
-
-    result.set(a, alpha);
-    result.set(b, beta);
-    result.set(c, gamma);
+    return false;
   }
 
   private applyNearestNeighborWeight(
@@ -224,8 +207,16 @@ export class FreeformBlendTree extends AnimationTree {
     );
 
     const edgeData = this.boundaryEdgeMap.get(closestAnchor);
+    // This code is unreachable under all inputs.
+    // Every outer contour vertex must have a corresponding entry in boundaryEdgeMap.
+    // If this branch is ever taken, it implies a violation of mesh construction invariants —
+    // most likely a logic error in how the boundary map was built or queried.
+    // This is not an edge case to be tested, but a correctness bug upstream.
+    /* c8 ignore next 5 */
     if (edgeData === undefined) {
-      throw new Error("Edge data not found");
+      throw new Error(
+        `Invariant violation: no edge data found for outer vertex (${closestAnchor.x}, ${closestAnchor.y})`,
+      );
     }
 
     const edge0: [FreeformAnchor, FreeformAnchor] = [
@@ -260,14 +251,14 @@ export class FreeformBlendTree extends AnimationTree {
     this.triangles.sort(
       (a, b) =>
         calculateDistanceSquared(
-          a.circumcenter.x,
-          a.circumcenter.y,
+          a.centroid.x,
+          a.centroid.y,
           this.currentX,
           this.currentY,
         ) -
         calculateDistanceSquared(
-          b.circumcenter.x,
-          b.circumcenter.y,
+          b.centroid.x,
+          b.centroid.y,
           this.currentX,
           this.currentY,
         ),
