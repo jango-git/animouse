@@ -46,14 +46,22 @@ export abstract class AnimationState extends Eventail {
     this.emit(AnimationStateEvent.EXIT, this);
   }
 
+  /**
+   * Updates the anchor's time tracking and emits iteration events when appropriate.
+   * Handles event firing logic based on animation time progression and anchor duration.
+   * Tracks whether iteration events have been fired to prevent duplicate emissions.
+   *
+   * @param anchor - The anchor object containing action, duration, and event tracking state
+   * @internal This method is intended to be called only by concrete animation state implementations
+   */
   protected updateAnchorTime(anchor: Anchor): void {
     const action = anchor.action;
     const time = action.time;
     const duration = anchor.duration;
 
     if (
-      time < anchor.previousTime ||
-      (!anchor.hasFiredIterationEvent && time >= duration)
+      !anchor.hasFiredIterationEvent &&
+      (time >= duration || time < anchor.previousTime)
     ) {
       this.emit(anchor.iterationEventType, action, this);
       anchor.hasFiredIterationEvent = true;

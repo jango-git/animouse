@@ -14,27 +14,27 @@ export const TRIANGLE_VERTEX_COUNT = 3;
  */
 export interface TriangleCache {
   /** A vertex of the triangle. */
-  origin: Vector2Like;
+  readonly origin: Vector2Like;
   /** The circumcenter of the triangle. */
-  circumcenter: Vector2Like;
+  readonly circumcenter: Vector2Like;
   /** The squared circumradius of the triangle. */
-  circumradiusSquared: number;
+  readonly circumradiusSquared: number;
   /** Vector from vertex A to vertex B. */
-  u: Vector2Like;
+  readonly u: Vector2Like;
   /** Vector from vertex A to vertex C. */
-  v: Vector2Like;
+  readonly v: Vector2Like;
   /** Pseudo dot product of u with itself (u·u). */
-  d00: number;
+  readonly d00: number;
   /** Pseudo dot product of u with v (u·v). */
-  d01: number;
+  readonly d01: number;
   /** Pseudo dot product of v with itself (v·v). */
-  d11: number;
+  readonly d11: number;
   /** Inverse of the determinant used in barycentric calculations. */
-  invDenom: number;
+  readonly invDenom: number;
   /** Minimum bounds of the triangle's axis-aligned bounding box. */
-  min: Vector2Like;
+  readonly min: Vector2Like;
   /** Maximum bounds of the triangle's axis-aligned bounding box. */
-  max: Vector2Like;
+  readonly max: Vector2Like;
 }
 
 /**

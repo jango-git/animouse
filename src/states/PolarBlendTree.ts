@@ -27,7 +27,7 @@ const MIN_POLAR_ACTIONS = 2;
 export interface PolarAction {
   /** The Three.js animation action to be played */
   action: AnimationAction;
-  /** Radial distance from the origin. Must be finite and non-negative. */
+  /** Radial distance from the origin. Must be finite and positive. */
   radius: number;
   /** Angular position in radians. Must be finite. Will be normalized to [0, 2π) range. */
   azimuth: number;
@@ -106,10 +106,10 @@ interface Ring {
  *
  * ## Input Validation
  * - Minimum 2 actions required for basic interpolation
- * - All radius values must be finite, non-negative, within JavaScript safe range
+ * - All radius values must be finite, positive, within JavaScript safe range
  * - All azimuth values must be finite, within JavaScript safe range
  * - No duplicate polar coordinates allowed
- * - If exactly 2 actions, they cannot be collinear (same azimuth)
+ * - At least 2 rays required (different azimuth values)
  * - All rays must have the same number of anchors for grid consistency
  *
  * ## Blending Algorithm
@@ -183,18 +183,22 @@ export class PolarBlendTree extends AnimationTree {
   /**
    * Creates a new polar blend tree with the specified animation actions.
    * Actions are organized into rays (by azimuth) and rings (by radius) for
-   * efficient bilinear interpolation.
+   * efficient bilinear interpolation. Initializes all actions to stopped state
+   * and validates clip durations.
    *
    * @param polarActions - Array of polar actions defining the blend space.
-   *                      Must contain at least 3 actions with unique coordinates.
+   *                      Must contain at least 2 actions with unique coordinates.
    * @param centerAction - Optional center action at origin (0,0)
-   * @throws {Error} When fewer than 3 actions are provided
+   * @throws {Error} When fewer than 2 actions are provided
    * @throws {Error} When any action has non-finite radius or azimuth values
-   * @throws {Error} When any action has negative radius
+   * @throws {Error} When any action has non-positive radius
    * @throws {Error} When any action has values outside JavaScript's safe range
    * @throws {Error} When multiple actions have the same polar coordinates
-   * @throws {Error} When exactly 3 actions are collinear (same azimuth)
-   * @throws {Error} When rays don't have consistent anchor counts
+   * @throws {Error} When fewer than 2 rays are created (insufficient azimuth variety)
+   * @throws {Error} When rays don't have consistent anchor counts for valid grid
+   * @throws {Error} When any animation clip duration is not a positive finite number
+   * @see {@link assertValidNumber} for coordinate validation details
+   * @see {@link assertValidPositiveNumber} for radius and duration validation details
    */
   constructor(polarActions: PolarAction[], centerAction?: AnimationAction) {
     super();
@@ -324,12 +328,16 @@ export class PolarBlendTree extends AnimationTree {
   /**
    * Sets the blend position in polar coordinates to determine animation weights.
    *
-   * The method clamps the radius to the valid range [0, maxRadius] and normalizes
-   * the azimuth to [0, 2π). When the position changes, animation weights are
-   * recalculated using bilinear interpolation between the closest anchors.
+   * The azimuth is normalized to [0, 2π) range and radius must be non-negative.
+   * When the position changes, animation weights are recalculated using bilinear
+   * interpolation between the closest anchors.
    *
-   * @param azimuth - Target angular position in radians. Will be normalized to [0, 2π).
-   * @param radius - Target radial distance from origin. Will be clamped to [0, maxRadius].
+   * @param azimuth - Target angular position in radians (finite number). Will be normalized to [0, 2π).
+   * @param radius - Target radial distance from origin (finite non-negative number).
+   * @throws {Error} When azimuth is not a finite number
+   * @throws {Error} When radius is not a finite non-negative number
+   * @see {@link assertValidNumber} for azimuth validation details
+   * @see {@link assertValidNonNegativeNumber} for radius validation details
    *
    * @example
    * ```typescript
@@ -339,8 +347,8 @@ export class PolarBlendTree extends AnimationTree {
    * // Blend to full speed, straight back
    * blendTree.setBlend(1.0, MathUtils.degToRad(180));
    *
-   * // Values outside range are automatically clamped
-   * blendTree.setBlend(-1, MathUtils.degToRad(600)); // Becomes (0, ~4.19)
+   * // Azimuth values are normalized to [0, 2π) range
+   * blendTree.setBlend(1.0, MathUtils.degToRad(450)); // Becomes (1.0, ~1.57)
    * ```
    *
    * @public

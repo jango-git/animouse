@@ -4,6 +4,16 @@ import { AnimationStateEvent } from "./mescellaneous/AnimationStateEvent";
 import { assertValidNonNegativeNumber } from "./mescellaneous/assertions";
 import type { AnimationState } from "./states/AnimationState";
 
+/**
+ * Condition function for event-triggered transitions.
+ * Determines whether a transition should occur based on event context.
+ *
+ * @param from - Source state (undefined if transition can occur from any state)
+ * @param to - Target state for the transition
+ * @param event - Event name or identifier that triggered the evaluation
+ * @param args - Additional arguments passed with the event
+ * @returns True if the transition should occur, false otherwise
+ */
 /* eslint-disable @typescript-eslint/no-explicit-any -- Using any here for generic condition function arguments */
 type EventCondition = (
   from: AnimationState | undefined,
@@ -12,6 +22,15 @@ type EventCondition = (
   ...args: any[]
 ) => boolean;
 
+/**
+ * Condition function for data-driven transitions.
+ * Evaluated continuously to determine if automatic transitions should occur.
+ *
+ * @param from - Source state where the transition originates
+ * @param to - Target state for the transition
+ * @param args - Additional data arguments for condition evaluation
+ * @returns True if the transition should occur, false otherwise
+ */
 /* eslint-disable @typescript-eslint/no-explicit-any -- Using any here for generic condition function arguments */
 type DataCondition = (
   from: AnimationState,
@@ -21,54 +40,57 @@ type DataCondition = (
 
 /**
  * Configuration for event-triggered transitions between animation states.
- *
- * @interface AnimationEventTransition
+ * These transitions occur when specific events are handled by the state machine.
  */
 export interface EventTransition {
   /** Optional source state. If not specified, transition can occur from any state */
   from?: AnimationState;
   /** Target state to transition to */
   to: AnimationState;
-  /** Duration of the transition in seconds */
+  /** Duration of the transition in seconds (finite non-negative number) */
   duration: number;
   /** Optional condition that must be met for the transition to occur */
   condition?: EventCondition;
 }
 
 /**
- * Configuration for automatic transitions that occur at the end of animations.
- *
- * @interface AnimationAutomaticTransition
+ * Configuration for automatic transitions that occur at animation completion.
+ * These transitions are triggered when ITERATE or FINISH events are emitted.
  */
 export interface AutomaticTransition {
   /** Target state to transition to */
   to: AnimationState;
-  /** Duration of the transition in seconds */
+  /** Duration of the transition in seconds (finite non-negative number) */
   duration: number;
 }
 
 /**
- * Configuration for data-driven transitions that occur based on condition evaluation.
- *
- * @interface AnimationDataTransition
+ * Configuration for data-driven transitions evaluated continuously each update.
+ * These transitions occur when their condition functions return true.
  */
 export interface DataTransition {
   /** Target state to transition to */
   to: AnimationState;
-  /** Duration of the transition in seconds */
+  /** Duration of the transition in seconds (finite non-negative number) */
   duration: number;
-  /** Data to be passed to the condition function */
+  /** Optional data arguments to be passed to the condition function */
   data?: any[];
-  /** Condition that determines if the transition should occur */
+  /** Condition function that determines if the transition should occur */
   condition: DataCondition;
 }
 
 /**
- * Manages complex animation state transitions with support for event-based,
- * automatic, and data-driven transitions. Handles smooth blending between
- * states and maintains proper animation weights throughout transitions.
+ * Animation state machine for managing complex state transitions and blending.
  *
- * @class AnimationStateMachine
+ * Provides a comprehensive system for controlling animation states with support for:
+ * - **Event-based transitions**: Triggered by specific events with optional conditions
+ * - **Automatic transitions**: Triggered when animations complete (ITERATE/FINISH events)
+ * - **Data-driven transitions**: Evaluated continuously based on condition functions
+ *
+ * The state machine handles smooth blending between states using configurable transition
+ * durations, automatically managing animation weights and ensuring proper lifecycle events.
+ * Multiple states can be active simultaneously during transitions, with weights smoothly
+ * interpolated using linear interpolation.
  */
 export class AnimationMachine {
   /** Internal storage for the currently active animation state */
@@ -98,10 +120,11 @@ export class AnimationMachine {
   private transitionElapsedTime?: number;
 
   /**
-   * Creates an instance of AnimationStateMachine.
+   * Creates a new animation state machine with the specified initial state.
+   * Immediately activates the initial state with full influence and enters it.
    *
-   * @param {AnimationState} initialState - The starting animation state
-   * @param {AnimationMixer} mixer - The THREE.js animation mixer to use
+   * @param initialState - The starting animation state to activate
+   * @param mixer - The THREE.js animation mixer for updating animations
    */
   constructor(initialState: AnimationState, mixer: AnimationMixer) {
     this.currentStateInternal = initialState;
@@ -115,18 +138,25 @@ export class AnimationMachine {
 
   /**
    * Gets the currently active animation state.
-   * @returns {AnimationState} The current animation state
+   * During transitions, this returns the state being transitioned to.
+   *
+   * @returns The current active animation state
    */
   public get currentState(): AnimationState {
     return this.currentStateInternal;
   }
 
   /**
-   * Adds a new event-triggered transition.
-   * These transitions occur when specific events are handled by the state machine.
+   * Adds a new event-triggered transition to the state machine.
+   * Multiple transitions can be registered for the same event with different source states.
+   * When an event is handled, the first matching transition will be executed.
    *
-   * @param {string} event - The event name that triggers this transition
-   * @param {EventTransition} transition - The transition configuration
+   * @param event - The event name or identifier that triggers this transition
+   * @param transition - The transition configuration with target state and duration
+   * @throws {Error} When transition duration is not a finite non-negative number
+   * @throws {Error} When transition creates a recursive loop (from === to)
+   * @throws {Error} When transition already exists for the same event and source state
+   * @see {@link assertValidNonNegativeNumber} for duration validation details
    */
   public addEventTransition(
     event: string | number,
@@ -157,11 +187,17 @@ export class AnimationMachine {
 
   /**
    * Adds an automatic transition that occurs when an animation completes.
-   * Only one automatic transition can be set per state.
+   * Listens for ITERATE and FINISH events from the source state to trigger transitions.
+   * Only one automatic transition can be registered per source state.
    *
-   * @param {AnimationState} from - The source state for the automatic transition
-   * @param {AutomaticTransition} transition - The transition configuration
-   * @throws {Error} If an automatic transition already exists for the source state
+   * @param from - The source state that will trigger the automatic transition
+   * @param transition - The transition configuration with target state and duration
+   * @throws {Error} When transition duration is not a finite non-negative number
+   * @throws {Error} When transition creates a recursive loop (from === to)
+   * @throws {Error} When an automatic transition already exists for the source state
+   * @see {@link assertValidNonNegativeNumber} for duration validation details
+   * @see {@link AnimationStateEvent.ITERATE} for iteration event details
+   * @see {@link AnimationStateEvent.FINISH} for completion event details
    */
   public addAutomaticTransition(
     from: AnimationState,
@@ -188,11 +224,16 @@ export class AnimationMachine {
   }
 
   /**
-   * Adds a data-driven transition that is evaluated each update.
-   * These transitions occur when their condition functions return true.
+   * Adds a data-driven transition that is evaluated continuously during updates.
+   * The condition function is called each frame when the source state is active.
+   * Multiple data transitions can be registered per state, but only one per target.
    *
-   * @param {AnimationState} from - The source state for the data transition
-   * @param {DataTransition} transition - The transition configuration
+   * @param from - The source state where the transition can originate
+   * @param transition - The transition configuration with condition and target state
+   * @throws {Error} When transition duration is not a finite non-negative number
+   * @throws {Error} When transition creates a recursive loop (from === to)
+   * @throws {Error} When a data transition to the same target already exists
+   * @see {@link assertValidNonNegativeNumber} for duration validation details
    */
   public addDataTransition(
     from: AnimationState,
@@ -222,11 +263,13 @@ export class AnimationMachine {
   }
 
   /**
-   * Handles an event by checking and executing any valid transitions.
+   * Handles an event by checking and executing the first matching transition.
+   * Evaluates all registered transitions for the event in registration order,
+   * executing the first one that matches the current state and passes conditions.
    *
-   * @param {string | number} event - The name of the event to handle
-   * @param {...unknown[]} args - Additional arguments passed to transition conditions
-   * @returns {boolean} True if a transition was executed, false otherwise
+   * @param event - The event name or identifier to handle
+   * @param args - Additional arguments passed to transition condition functions
+   * @returns True if a transition was executed, false if no matching transition found
    */
   public handleEvent(event: string | number, ...args: unknown[]): boolean {
     const transitions = this.eventTransitions.get(event);
@@ -249,11 +292,18 @@ export class AnimationMachine {
   }
 
   /**
-   * Updates the animation state machine and all animations.
-   * Evaluates data-driven transitions, updates transition progress,
-   * and updates the animation mixer.
+   * Updates the animation state machine and all animations for one frame.
    *
-   * @param {number} deltaTime - Time in seconds since the last update
+   * The update process:
+   * 1. Updates current state and all fading states with frame timing
+   * 2. Evaluates data-driven transitions for potential state changes
+   * 3. Progresses active transitions by interpolating state influences
+   * 4. Cleans up completed transitions and resets influences
+   * 5. Updates the THREE.js animation mixer
+   *
+   * @param deltaTime - Time elapsed since last update in seconds (finite non-negative number)
+   * @throws {Error} When deltaTime is not a finite non-negative number
+   * @see {@link assertValidNonNegativeNumber} for deltaTime validation details
    */
   public update(deltaTime: number): void {
     assertValidNonNegativeNumber(deltaTime, "Delta time");

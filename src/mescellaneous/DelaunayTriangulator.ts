@@ -8,20 +8,54 @@ import {
 } from "./math";
 import { EPSILON } from "./miscellaneous";
 
+/** Scale factor for generating the super triangle that encompasses all input points. */
 const SUPER_TRIANGLE_SCALE_FACTOR = 16;
 
+/**
+ * A triangle in 2D space with precomputed geometric properties.
+ * Extends the base TriangleCache with the actual vertex coordinates.
+ *
+ * @template T - Type of vertices that must be Vector2Like objects
+ */
 export interface Triangle<T extends Vector2Like> extends TriangleCache {
+  /** First vertex of the triangle (Vector2Like coordinates) */
   readonly a: T;
+  /** Second vertex of the triangle (Vector2Like coordinates) */
   readonly b: T;
+  /** Third vertex of the triangle (Vector2Like coordinates) */
   readonly c: T;
 }
 
+/**
+ * Result of Delaunay triangulation containing triangles and boundary information.
+ *
+ * @template T - Type of vertices that must be Vector2Like objects
+ */
 export interface TriangulationResult<T extends Vector2Like> {
+  /** Array of triangles forming the Delaunay triangulation */
   readonly triangles: Triangle<T>[];
+  /** Map from boundary vertices to their adjacent boundary vertices [prev, next] */
   readonly boundaryEdgeMap: Map<T, [T, T]>;
 }
 
+/**
+ * Implements Bowyer-Watson algorithm for Delaunay triangulation in 2D space.
+ * Generates a triangulation where no point lies inside the circumcircle of any triangle.
+ */
 export class DelaunayTriangulator {
+  /**
+   * Performs Delaunay triangulation on a set of 2D points using the Bowyer-Watson algorithm.
+   * The resulting triangulation satisfies the Delaunay condition: no point lies inside
+   * the circumcircle of any triangle.
+   *
+   * @template T - Type of vertices that must be Vector2Like objects
+   * @param points - Array of points to triangulate (minimum 3 points required)
+   * @returns Triangulation result containing triangles and boundary edge information
+   * @throws {Error} When fewer than 3 points provided, points contain invalid coordinates,
+   *                 duplicate points exist, or all points are collinear
+   * @see {@link TriangulationResult} for result structure details
+   * @see {@link Triangle} for triangle structure details
+   */
   public static triangulate<T extends Vector2Like>(
     points: T[],
   ): TriangulationResult<T> {
@@ -107,6 +141,17 @@ export class DelaunayTriangulator {
     return { triangles, boundaryEdgeMap: boundaryEdgeMap as Map<T, [T, T]> };
   }
 
+  /**
+   * Identifies and removes triangles whose circumcircles contain the given point.
+   * Such triangles violate the Delaunay condition and must be removed.
+   * Modifies the input triangles array in-place for efficiency.
+   *
+   * @template T - Type of vertices that must be Vector2Like objects
+   * @param triangles - Array of triangles to filter (modified in-place)
+   * @param point - Point to test against triangle circumcircles (Vector2Like coordinates)
+   * @returns Array of triangles that contain the point in their circumcircles
+   * @see {@link isPointInsideCircle} for circumcircle containment test
+   */
   private static filterBadTriangles<T extends Vector2Like>(
     triangles: Triangle<T>[],
     point: T,
@@ -132,6 +177,15 @@ export class DelaunayTriangulator {
     return badTriangles;
   }
 
+  /**
+   * Constructs the polygon boundary formed by removing bad triangles.
+   * Finds edges that belong to only one triangle (outer edges of the cavity).
+   * These edges will form the boundary of the polygon hole left by removed triangles.
+   *
+   * @template T - Type of vertices that must be Vector2Like objects
+   * @param triangles - Array of triangles forming the cavity (finite array)
+   * @returns Array of edges [vertex1, vertex2] that form the polygon boundary
+   */
   private static buildPolygon<T extends Vector2Like>(
     triangles: Triangle<T>[],
   ): [T, T][] {
@@ -168,6 +222,18 @@ export class DelaunayTriangulator {
     return polygonOuterEdges;
   }
 
+  /**
+   * Removes triangles containing super triangle vertices and builds boundary edge map.
+   * Filters out triangles that include any vertex from the initial super triangle,
+   * keeping only triangles formed entirely from input points. Also constructs
+   * a map of boundary vertices to their adjacent boundary vertices.
+   *
+   * @template T - Type of vertices that must be Vector2Like objects
+   * @param triangles - Array of triangles to filter (modified in-place)
+   * @param superTriangle - The super triangle used to initialize triangulation
+   * @returns Map from boundary vertices to arrays of their adjacent boundary vertices
+   * @throws {Error} When boundary vertex connectivity invariants are violated
+   */
   private static filterSuperTriangleVertices<T extends Vector2Like>(
     triangles: Triangle<T>[],
     superTriangle: Triangle<T>,
@@ -212,6 +278,17 @@ export class DelaunayTriangulator {
     return boundaryEdgeMap;
   }
 
+  /**
+   * Constructs a large triangle that encompasses all input points.
+   * The super triangle provides an initial triangulation that contains all points,
+   * allowing the incremental algorithm to proceed. Vertices are positioned far
+   * outside the bounding box of input points.
+   *
+   * @template T - Type of vertices that must be Vector2Like objects
+   * @param points - Array of input points to encompass (finite coordinates)
+   * @returns Triangle that contains all input points with precomputed properties
+   * @see {@link precomputeTriangle} for triangle property computation
+   */
   private static buildSuperTriangle<T extends Vector2Like>(
     points: T[],
   ): Triangle<T> {
@@ -237,6 +314,15 @@ export class DelaunayTriangulator {
     return { a, b, c, ...precomputeTriangle(a, b, c) };
   }
 
+  /**
+   * Tests whether a vertex belongs to a specific triangle.
+   * Uses reference equality to determine if the vertex is one of the triangle's vertices.
+   *
+   * @template T - Type of vertices that must be Vector2Like objects
+   * @param vertex - Vertex to test for membership (Vector2Like coordinates)
+   * @param triangle - Triangle to test against
+   * @returns True if the vertex is one of the triangle's vertices, false otherwise
+   */
   private static isVertexFromTriangle<T extends Vector2Like>(
     vertex: T,
     triangle: Triangle<T>,

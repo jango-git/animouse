@@ -32,12 +32,20 @@ export abstract class AnimationTree extends AnimationState {
 
   /**
    * Updates the weight of a specific animation anchor (AnimationAction + parameters).
-   * Handles animation playback lifecycle: starting, stopping, and weight adjustments.
+   * Handles animation playbook lifecycle: starting, stopping, and weight adjustments.
    * Combines the raw weight with the tree's influence to get the final action weight.
    *
+   * When transitioning from zero to non-zero weight: starts playback, resets time to 0,
+   * resets event tracking state, and emits PLAY event.
+   * When transitioning from non-zero to zero weight: stops playback, resets time to 0,
+   * resets event tracking state, and emits STOP event.
+   * For weight-only changes: updates the animation action weight without lifecycle changes.
+   *
    * @param anchor - The animation anchor containing the action and parameters to update
-   * @param weight - The raw weight value before applying tree influence. If not provided, uses the anchor's current weight
+   * @param weight - The raw weight value before applying tree influence (finite number). If not provided, uses the anchor's current weight
    * @throws {Error} When weight is not a finite number or is outside the range [0, 1]
+   * @see {@link AnimationStateEvent.PLAY} for play event details
+   * @see {@link AnimationStateEvent.STOP} for stop event details
    */
   protected updateAnchor(anchor: Anchor, weight: number = anchor.weight): void {
     assertValidUnitRange(weight, "Anchor weight");

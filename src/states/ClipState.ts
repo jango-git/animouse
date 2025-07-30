@@ -24,9 +24,12 @@ export class ClipState extends AnimationState {
   /**
    * Creates a new ClipState from a Three.js AnimationAction.
    * Initializes the animation to a stopped state and configures iteration events
-   * based on the animation's loop type.
+   * based on the animation's loop type. Sets up anchor with duration tracking
+   * and event state management.
    *
-   * @param animationAction - The Three.js AnimationAction to wrap
+   * @param animationAction - The Three.js AnimationAction to wrap (finite duration required)
+   * @throws {Error} When the animation clip duration is not a positive finite number
+   * @see {@link assertValidPositiveNumber} for duration validation details
    */
   constructor(animationAction: AnimationAction) {
     super();
@@ -54,9 +57,13 @@ export class ClipState extends AnimationState {
    * Internal method to set the influence of this animation state.
    * Controls animation playback: starts animation when influence becomes positive,
    * stops when influence becomes zero, and adjusts weight for intermediate values.
+   * Resets animation time and event tracking state on playback transitions.
    *
-   * @param influence - The new influence value in range [0, 1]
+   * @param influence - The new influence value in range [0, 1] (finite number)
+   * @throws {Error} When influence is not a finite number or is outside the range [0, 1]
    * @internal This method is intended to be called only by the animation state machine
+   * @see {@link AnimationStateEvent.PLAY} for play event details
+   * @see {@link AnimationStateEvent.STOP} for stop event details
    */
   protected ["setInfluenceInternal"](influence: number): void {
     assertValidUnitRange(influence, "Influence");
@@ -87,28 +94,14 @@ export class ClipState extends AnimationState {
   }
 
   /**
-   * Internal method called on each frame to track animation progress.
-   * Detects animation completion, restart events, and emits appropriate
-   * iteration events (FINISH for LoopOnce, ITERATE for looped animations).
+   * Internal method called on each frame to update animation state.
+   * Delegates to the inherited updateAnchorTime method to handle time tracking
+   * and iteration event emission based on animation progress.
    *
    * @internal This method is intended to be called only by the animation state machine
+   * @see {@link updateAnchorTime} for time tracking and event emission details
    */
   protected ["onTickInternal"](): void {
-    const anchor = this.anchor;
-    const animationAction = anchor.action;
-    const time = animationAction.time;
-    const duration = anchor.duration;
-
-    if (
-      !anchor.hasFiredIterationEvent &&
-      (time >= duration || time < anchor.previousTime)
-    ) {
-      this.emit(anchor.iterationEventType, animationAction, this);
-      anchor.hasFiredIterationEvent = true;
-    } else if (time < duration) {
-      anchor.hasFiredIterationEvent = false;
-    }
-
-    anchor.previousTime = time;
+    this.updateAnchorTime(this.anchor);
   }
 }

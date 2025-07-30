@@ -74,6 +74,7 @@ export class LinearBlendTree extends AnimationTree {
   /**
    * Creates a new linear blend tree with the specified animation actions.
    * Actions are automatically sorted by their value along the linear axis.
+   * Initializes all actions to stopped state and validates clip durations.
    *
    * @param linearActions - Array of linear actions defining the blend space.
    *                       Must contain at least 2 actions with unique, finite values.
@@ -81,6 +82,9 @@ export class LinearBlendTree extends AnimationTree {
    * @throws {Error} When any action has a non-finite value (NaN, ±Infinity)
    * @throws {Error} When any action has a value outside JavaScript's safe integer range
    * @throws {Error} When multiple actions have the same value (duplicate values)
+   * @throws {Error} When any animation clip duration is not a positive finite number
+   * @see {@link assertValidNumber} for value validation details
+   * @see {@link assertValidPositiveNumber} for duration validation details
    */
   constructor(linearActions: LinearAction[]) {
     super();
@@ -135,11 +139,13 @@ export class LinearBlendTree extends AnimationTree {
 
   /**
    * Sets the blend value to determine animation weights along the linear axis.
-   * The value is clamped to the range defined by the minimum and maximum
-   * action values. When the blend changes, animation weights are recalculated
-   * to interpolate between the two closest actions.
+   * When the blend changes, animation weights are recalculated to interpolate
+   * between the two closest actions. Values outside the action range are
+   * handled by giving full weight to the nearest boundary action.
    *
-   * @param value - The target blend value. Will be clamped to the valid range.
+   * @param value - The target blend value (finite number)
+   * @throws {Error} When the blend value is not a finite number
+   * @see {@link assertValidNumber} for value validation details
    */
   public setBlend(value: number): void {
     assertValidNumber(value, "Blend value");
@@ -156,6 +162,7 @@ export class LinearBlendTree extends AnimationTree {
    * complete or restart. Monitors all active anchors for timing changes.
    *
    * @internal This method is called exclusively by the animation state machine
+   * @see {@link updateAnchorTime} for time tracking and event emission details
    */
   protected ["onTickInternal"](): void {
     for (const anchor of this.anchors) {
