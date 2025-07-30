@@ -47,7 +47,8 @@
             // GLB load
             const loader = new GLTFLoader();
             const clock = new THREE.Clock();
-            let mixer;
+            let linearBlendTree;
+            let machine;
 
             loader.setPath("assets/").load("SK_Character.glb", (gltf) => {
                 const model = gltf.scene;
@@ -59,12 +60,17 @@
                 const clips = gltf.animations;
                 const clipMap = new Map();
                 for (const clip of clips) {
-                    clipMap.set(clip.name, clip);
+                    const action = mixer.clipAction(clip);
+                    action.loop = THREE.LoopRepeat;
+                    clipMap.set(clip.name, action);
                 }
 
-                // Example: play "A_Run"
-                const action = mixer.clipAction(clipMap.get("A_Walk_Forward"));
-                action.play();
+                linearBlendTree = new ANIMOUSE.LinearBlendTree([
+                    { action: clipMap.get("A_Idle"), value: 0 },
+                    { action: clipMap.get("A_Walk_Forward"), value: 0.5 },
+                ]);
+
+                machine = ANIMOUSE.AnimationMachine(linearBlendTree, mixer);
             });
 
             // render loop
@@ -75,8 +81,8 @@
             });
 
             renderer.setAnimationLoop(() => {
-                const dt = clock.getDelta();
-                if (mixer) mixer.update(dt);
+                const deltaTime = clock.getDelta();
+                if (machine) machine.update(deltaTime);
                 renderer.render(scene, camera);
             });
         </script>
