@@ -74,12 +74,12 @@
             .animation-labels {
                 display: flex;
                 justify-content: space-between;
-                font-size: 10px;
+                font-size: 9px;
                 margin-top: 4px;
                 opacity: 0.6;
                 position: relative;
             }
-            .animation-labels span:nth-child(2) {
+            .animation-labels span:nth-child(3) {
                 position: absolute;
                 left: 50%;
                 transform: translateX(-50%);
@@ -98,15 +98,17 @@
                     type="range"
                     id="blend-slider"
                     class="slider"
-                    min="0"
+                    min="-1"
                     max="1"
                     step="0.01"
                     value="0"
                 />
                 <div class="animation-labels">
+                    <span>Run Back</span>
+                    <span>Walk Back</span>
                     <span>Idle</span>
-                    <span>Walk</span>
-                    <span>Run</span>
+                    <span>Walk Fwd</span>
+                    <span>Run Fwd</span>
                 </div>
             </div>
         </div>
@@ -163,6 +165,8 @@
                 }
 
                 linearBlendTree = new ANIMOUSE.LinearBlendTree([
+                    { action: clipMap.get("A_Run_Backward"), value: -1 },
+                    { action: clipMap.get("A_Walk_Backward"), value: -0.5 },
                     { action: clipMap.get("A_Idle"), value: 0 },
                     { action: clipMap.get("A_Walk_Forward"), value: 0.5 },
                     { action: clipMap.get("A_Run_Forward"), value: 1 },
