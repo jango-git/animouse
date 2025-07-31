@@ -217,6 +217,30 @@ canvas {
     text-decoration: underline;
 }
 
+/* Disable text selection on interactive elements */
+.control-panel,
+.info-panel,
+.nav-buttons,
+.source-link,
+button,
+input[type="range"],
+.blend-area,
+.polar-area {
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+}
+
+/* Prevent drag on images and other elements */
+* {
+    -webkit-user-drag: none;
+    -khtml-user-drag: none;
+    -moz-user-drag: none;
+    -o-user-drag: none;
+    user-drag: none;
+}
+
 .nav-button.previous a::before {
     content: "←";
     font-size: 14px;

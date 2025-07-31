@@ -5,6 +5,12 @@
         <title>Animouse Freeform Blend Tree</title>
         <link rel="stylesheet" href="shared-styles.css" />
         <style>
+            body {
+                user-select: none;
+                -webkit-user-select: none;
+                -moz-user-select: none;
+                -ms-user-select: none;
+            }
             .control-panel {
                 min-width: 340px;
             }
@@ -146,6 +152,7 @@
             import * as THREE from "https://esm.sh/three@0.175";
             import { OrbitControls } from "https://esm.sh/three@0.175/examples/jsm/controls/OrbitControls";
             import { GLTFLoader } from "https://esm.sh/three@0.175/examples/jsm/loaders/GLTFLoader";
+            import { DRACOLoader } from "https://esm.sh/three@0.175.0/examples/jsm/loaders/DRACOLoader.js";
             import * as ANIMOUSE from "https://esm.sh/animouse@0.7.1?deps=three@0.175";
 
             const scene = new THREE.Scene();
@@ -167,8 +174,8 @@
             controls.target.set(0, 1, 0);
             controls.update();
 
-            scene.add(new THREE.HemisphereLight(0x87ceeb, 0x8b4513, 0.6));
-            const dirLight = new THREE.DirectionalLight(0xffffff, 1);
+            scene.add(new THREE.HemisphereLight(0x87ceeb, 0x8b4513, 1));
+            const dirLight = new THREE.DirectionalLight(0xffffff, 2);
             dirLight.position.set(5, 10, 5);
             scene.add(dirLight);
 
@@ -178,6 +185,12 @@
             let mixer;
             let freeformBlendTree;
             let machine;
+
+            const dracoLoader = new DRACOLoader();
+            dracoLoader.setDecoderPath(
+                "https://www.gstatic.com/draco/v1/decoders/",
+            );
+            loader.setDRACOLoader(dracoLoader);
 
             loader.setPath("assets/").load("SK_Character.glb", (gltf) => {
                 const model = gltf.scene;

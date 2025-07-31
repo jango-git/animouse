@@ -5,11 +5,113 @@
         <title>Animouse Polar Blend Tree</title>
         <link rel="stylesheet" href="shared-styles.css" />
         <style>
-            .control-panel {
-                min-width: 320px;
+            body {
+                user-select: none;
+                -webkit-user-select: none;
+                -moz-user-select: none;
+                -ms-user-select: none;
             }
-            .control-title {
-                margin: 0 0 16px 0;
+            .control-panel {
+                min-width: 340px;
+            }
+            .polar-control {
+                margin: 16px 0;
+                text-align: center;
+            }
+            .polar-area {
+                width: 220px;
+                height: 220px;
+                background: linear-gradient(
+                    135deg,
+                    rgba(255, 255, 255, 0.1),
+                    rgba(255, 255, 255, 0.05)
+                );
+                border: 2px solid rgba(255, 255, 255, 0.2);
+                border-radius: 50%;
+                position: relative;
+                margin: 0 auto;
+                cursor: crosshair;
+                overflow: hidden;
+            }
+            .polar-cursor {
+                width: 12px;
+                height: 12px;
+                background: #4caf50;
+                border: 2px solid white;
+                border-radius: 50%;
+                position: absolute;
+                transform: translate(-50%, -50%);
+                pointer-events: none;
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+                transition: all 0.1s ease;
+            }
+            .polar-rings {
+                position: absolute;
+                width: 100%;
+                height: 100%;
+                pointer-events: none;
+            }
+            .polar-ring {
+                position: absolute;
+                border: 1px solid rgba(255, 255, 255, 0.2);
+                border-radius: 50%;
+                left: 50%;
+                top: 50%;
+                transform: translate(-50%, -50%);
+            }
+            .polar-ring.walk {
+                width: 60%;
+                height: 60%;
+            }
+            .polar-ring.run {
+                width: 90%;
+                height: 90%;
+            }
+            .direction-labels {
+                position: absolute;
+                width: 100%;
+                height: 100%;
+                pointer-events: none;
+            }
+            .direction-label {
+                position: absolute;
+                font-size: 10px;
+                font-weight: 600;
+                color: rgba(255, 255, 255, 0.8);
+                text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+                transform: translate(-50%, -50%);
+            }
+            .direction-label.forward {
+                top: 10px;
+                left: 50%;
+            }
+            .direction-label.right {
+                top: 50%;
+                right: 10px;
+                transform: translate(50%, -50%);
+            }
+            .direction-label.backward {
+                bottom: 10px;
+                left: 50%;
+                transform: translate(-50%, 50%);
+            }
+            .direction-label.left {
+                top: 50%;
+                left: 10px;
+                transform: translate(-50%, -50%);
+            }
+            .direction-label.idle {
+                top: 50%;
+                left: 50%;
+                color: #4caf50;
+            }
+            .polar-coordinates-display {
+                margin-top: 12px;
+                padding: 8px;
+                background: rgba(255, 255, 255, 0.05);
+                border-radius: 4px;
+                font-size: 11px;
+                opacity: 0.8;
             }
         </style>
     </head>
@@ -17,54 +119,38 @@
         <div class="control-panel">
             <div class="control-title">Polar Blend Tree</div>
 
-            <div class="slider-container">
-                <div class="slider-label">
-                    <span>Azimuth (Direction):</span>
-                    <span id="azimuth-value">0.00</span>
+            <div class="polar-control">
+                <div class="slider-label" style="margin-bottom: 8px">
+                    <span>Polar Movement Control</span>
                 </div>
-                <input
-                    type="range"
-                    id="azimuth-slider"
-                    class="slider"
-                    min="-3.14159"
-                    max="3.14159"
-                    step="0.01"
-                    value="0"
-                />
-                <div class="animation-labels four-labels">
-                    <span>Backward</span>
-                    <span>Right</span>
-                    <span>Forward</span>
-                    <span>Left</span>
-                    <span>Backward</span>
+                <div class="polar-area" id="polar-area">
+                    <div class="polar-rings">
+                        <div class="polar-ring walk"></div>
+                        <div class="polar-ring run"></div>
+                    </div>
+                    <div class="direction-labels">
+                        <div class="direction-label forward">Forward</div>
+                        <div class="direction-label right">Right</div>
+                        <div class="direction-label backward">Backward</div>
+                        <div class="direction-label left">Left</div>
+                        <div class="direction-label idle">Idle</div>
+                    </div>
+                    <div class="polar-cursor" id="polar-cursor"></div>
                 </div>
-            </div>
-
-            <div class="slider-container">
-                <div class="slider-label">
-                    <span>Radius (Speed):</span>
-                    <span id="radius-value">0.00</span>
+                <div class="polar-coordinates-display">
+                    <div>
+                        Azimuth: <span id="azimuth-value">0.00</span> | Radius:
+                        <span id="radius-value">0.00</span>
+                    </div>
+                    <div>
+                        Direction: <span id="direction-text">Forward</span> |
+                        Intensity: <span id="intensity-text">Idle</span>
+                    </div>
+                    <div style="margin-top: 4px; font-size: 10px; opacity: 0.7">
+                        Move cursor: center = idle, inner ring = walk, outer
+                        ring = run
+                    </div>
                 </div>
-                <input
-                    type="range"
-                    id="radius-slider"
-                    class="slider"
-                    min="0"
-                    max="1"
-                    step="0.01"
-                    value="0"
-                />
-                <div class="animation-labels three-labels">
-                    <span>Idle</span>
-                    <span>Walk</span>
-                    <span>Run</span>
-                </div>
-            </div>
-
-            <div class="polar-visualization">
-                <div>Polar Coordinates:</div>
-                <div>Direction: <span id="direction-text">Forward</span></div>
-                <div>Intensity: <span id="intensity-text">Idle</span></div>
             </div>
         </div>
         <div class="nav-buttons">
@@ -91,6 +177,7 @@
             import * as THREE from "https://esm.sh/three@0.175";
             import { OrbitControls } from "https://esm.sh/three@0.175/examples/jsm/controls/OrbitControls";
             import { GLTFLoader } from "https://esm.sh/three@0.175/examples/jsm/loaders/GLTFLoader";
+            import { DRACOLoader } from "https://esm.sh/three@0.175.0/examples/jsm/loaders/DRACOLoader.js";
             import * as ANIMOUSE from "https://esm.sh/animouse@0.7.1?deps=three@0.175";
 
             const scene = new THREE.Scene();
@@ -112,8 +199,8 @@
             controls.target.set(0, 1, 0);
             controls.update();
 
-            scene.add(new THREE.HemisphereLight(0x87ceeb, 0x8b4513, 0.6));
-            const dirLight = new THREE.DirectionalLight(0xffffff, 1);
+            scene.add(new THREE.HemisphereLight(0x87ceeb, 0x8b4513, 1));
+            const dirLight = new THREE.DirectionalLight(0xffffff, 2);
             dirLight.position.set(5, 10, 5);
             scene.add(dirLight);
 
@@ -123,6 +210,12 @@
             let mixer;
             let polarBlendTree;
             let machine;
+
+            const dracoLoader = new DRACOLoader();
+            dracoLoader.setDecoderPath(
+                "https://www.gstatic.com/draco/v1/decoders/",
+            );
+            loader.setDRACOLoader(dracoLoader);
 
             loader.setPath("assets/").load("SK_Character.glb", (gltf) => {
                 const model = gltf.scene;
@@ -154,12 +247,12 @@
                         },
                         {
                             action: clipMap.get("A_Walk_Left"),
-                            azimuth: Math.PI / 2,
+                            azimuth: -Math.PI / 2,
                             radius: 0.5,
                         },
                         {
                             action: clipMap.get("A_Walk_Right"),
-                            azimuth: -Math.PI / 2,
+                            azimuth: Math.PI / 2,
                             radius: 0.5,
                         },
                         {
@@ -174,12 +267,12 @@
                         },
                         {
                             action: clipMap.get("A_Run_Left"),
-                            azimuth: Math.PI / 2,
+                            azimuth: -Math.PI / 2,
                             radius: 1,
                         },
                         {
                             action: clipMap.get("A_Run_Right"),
-                            azimuth: -Math.PI / 2,
+                            azimuth: Math.PI / 2,
                             radius: 1,
                         },
                     ],
@@ -193,34 +286,46 @@
             });
 
             function setupControls() {
-                const azimuthSlider = document.getElementById("azimuth-slider");
-                const radiusSlider = document.getElementById("radius-slider");
+                const polarArea = document.getElementById("polar-area");
+                const cursor = document.getElementById("polar-cursor");
                 const azimuthValue = document.getElementById("azimuth-value");
                 const radiusValue = document.getElementById("radius-value");
                 const directionText = document.getElementById("direction-text");
                 const intensityText = document.getElementById("intensity-text");
 
-                function updateBlend() {
-                    const azimuth = parseFloat(azimuthSlider.value);
-                    const radius = parseFloat(radiusSlider.value);
+                let isDragging = false;
 
+                // Initial position (center)
+                updateCursorPosition(0, 0);
+
+                function updateCursorPosition(azimuth, radius) {
+                    // Clamp radius to [0, 1] range
+                    radius = Math.max(0, Math.min(1, radius));
+
+                    // Convert polar to cartesian coordinates (azimuth 0 = forward/up)
+                    const x = radius * Math.sin(azimuth);
+                    const y = radius * Math.cos(azimuth);
+
+                    // Convert to pixel coordinates (110px = radius of circle)
+                    const pixelX = 110 + x * 100; // Center + scaled position
+                    const pixelY = 110 - y * 100; // Center - scaled position (CSS Y is flipped)
+
+                    cursor.style.left = pixelX + "px";
+                    cursor.style.top = pixelY + "px";
+
+                    // Update coordinate display
                     azimuthValue.textContent = azimuth.toFixed(2);
                     radiusValue.textContent = radius.toFixed(2);
 
-                    // Update direction text
-                    const normalizedAzimuth =
-                        ((azimuth + Math.PI) % (2 * Math.PI)) - Math.PI;
-                    if (Math.abs(normalizedAzimuth) < Math.PI / 4) {
+                    // Update direction text based on azimuth
+                    if (Math.abs(azimuth) < Math.PI / 4) {
                         directionText.textContent = "Forward";
                     } else if (
-                        normalizedAzimuth >= Math.PI / 4 &&
-                        normalizedAzimuth < (3 * Math.PI) / 4
+                        azimuth >= Math.PI / 4 &&
+                        azimuth < (3 * Math.PI) / 4
                     ) {
                         directionText.textContent = "Left";
-                    } else if (
-                        Math.abs(normalizedAzimuth) >=
-                        (3 * Math.PI) / 4
-                    ) {
+                    } else if (Math.abs(azimuth) >= (3 * Math.PI) / 4) {
                         directionText.textContent = "Backward";
                     } else {
                         directionText.textContent = "Right";
@@ -240,8 +345,64 @@
                     }
                 }
 
-                azimuthSlider.addEventListener("input", updateBlend);
-                radiusSlider.addEventListener("input", updateBlend);
+                function getPolarFromEvent(event) {
+                    const rect = polarArea.getBoundingClientRect();
+                    const centerX = rect.left + rect.width / 2;
+                    const centerY = rect.top + rect.height / 2;
+
+                    const x = (event.clientX - centerX) / 100; // Scale by radius
+                    const y = -(event.clientY - centerY) / 100; // Flip CSS Y coordinates
+
+                    let radius = Math.sqrt(x * x + y * y);
+                    let azimuth = Math.atan2(x, y); // atan2(x, y) so 0 is forward/up
+
+                    // Normalize azimuth to [-π, π]
+                    if (azimuth > Math.PI) azimuth -= 2 * Math.PI;
+                    if (azimuth < -Math.PI) azimuth += 2 * Math.PI;
+
+                    return { azimuth, radius };
+                }
+
+                polarArea.addEventListener("mousedown", (event) => {
+                    isDragging = true;
+                    const coords = getPolarFromEvent(event);
+                    updateCursorPosition(coords.azimuth, coords.radius);
+                    polarArea.style.cursor = "grabbing";
+                });
+
+                document.addEventListener("mousemove", (event) => {
+                    if (isDragging) {
+                        const coords = getPolarFromEvent(event);
+                        updateCursorPosition(coords.azimuth, coords.radius);
+                    }
+                });
+
+                document.addEventListener("mouseup", () => {
+                    isDragging = false;
+                    polarArea.style.cursor = "crosshair";
+                });
+
+                // Touch support for mobile
+                polarArea.addEventListener("touchstart", (event) => {
+                    event.preventDefault();
+                    isDragging = true;
+                    const touch = event.touches[0];
+                    const coords = getPolarFromEvent(touch);
+                    updateCursorPosition(coords.azimuth, coords.radius);
+                });
+
+                document.addEventListener("touchmove", (event) => {
+                    if (isDragging) {
+                        event.preventDefault();
+                        const touch = event.touches[0];
+                        const coords = getPolarFromEvent(touch);
+                        updateCursorPosition(coords.azimuth, coords.radius);
+                    }
+                });
+
+                document.addEventListener("touchend", () => {
+                    isDragging = false;
+                });
             }
 
             // render loop
