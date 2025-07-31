@@ -2,7 +2,7 @@
 <html lang="en">
     <head>
         <meta charset="UTF-8" />
-        <title>Animouse Linear Blend Tree</title>
+        <title>Animouse Event-Driven Transitions</title>
         <link rel="stylesheet" href="shared-styles.css" />
         <style>
             .control-panel {
@@ -12,44 +12,56 @@
     </head>
     <body>
         <div class="control-panel">
-            <div class="control-title">Linear Blend Tree</div>
+            <div class="control-title">Event-Driven Transitions</div>
             <div class="slider-container">
                 <div class="slider-label">
-                    <span>Blend Value:</span>
-                    <span id="blend-value">0.00</span>
+                    <span>Movement Speed:</span>
+                    <span id="speed-value">0.00</span>
                 </div>
                 <input
                     type="range"
-                    id="blend-slider"
+                    id="speed-slider"
                     class="slider"
-                    min="-1"
+                    min="0"
                     max="1"
                     step="0.01"
                     value="0"
                 />
-                <div class="animation-labels five-labels">
-                    <span>Run Back</span>
-                    <span>Walk Back</span>
+                <div class="animation-labels three-labels">
                     <span>Idle</span>
-                    <span>Walk Fwd</span>
-                    <span>Run Fwd</span>
+                    <span>Walk</span>
+                    <span>Run</span>
                 </div>
+            </div>
+            <div class="slider-container">
+                <button
+                    id="jump-button"
+                    style="
+                        background: #4caf50;
+                        color: white;
+                        border: none;
+                        padding: 10px 20px;
+                        border-radius: 4px;
+                        cursor: pointer;
+                        font-size: 12px;
+                        width: 100%;
+                    "
+                >
+                    JUMP
+                </button>
             </div>
         </div>
         <div class="nav-buttons">
             <div class="nav-button previous">
-                <a href="00_clip_state.html">Previous</a>
+                <a href="02_polar_blend_tree.html">Previous</a>
             </div>
             <div class="nav-button examples">
                 <a href="index.html">Examples</a>
             </div>
-            <div class="nav-button next">
-                <a href="02_polar_blend_tree.html">Next</a>
-            </div>
         </div>
         <div class="source-link">
             <a
-                href="https://github.com/jango-git/animouse/blob/gh-pages/01_linear_blend_tree.html"
+                href="https://github.com/jango-git/animouse/blob/gh-pages/03_event_driven_transitions.html"
                 target="_blank"
                 >source</a
             >
@@ -88,7 +100,8 @@
             const loader = new GLTFLoader();
             const clock = new THREE.Clock();
             let mixer;
-            let linearBlendTree;
+            let movementBlendTree;
+            let jumpState;
             let machine;
 
             loader.setPath("assets/").load("SK_Character.glb", (gltf) => {
@@ -106,28 +119,62 @@
                     clipMap.set(clip.name, action);
                 }
 
-                linearBlendTree = new ANIMOUSE.LinearBlendTree([
-                    { action: clipMap.get("A_Run_Backward"), value: -1 },
-                    { action: clipMap.get("A_Walk_Backward"), value: -0.5 },
+                // Create movement blend tree (idle, walk, run)
+                movementBlendTree = new ANIMOUSE.LinearBlendTree([
                     { action: clipMap.get("A_Idle"), value: 0 },
                     { action: clipMap.get("A_Walk_Forward"), value: 0.5 },
                     { action: clipMap.get("A_Run_Forward"), value: 1 },
                 ]);
 
-                machine = new ANIMOUSE.AnimationMachine(linearBlendTree, mixer);
+                // Create jump state
+                jumpState = new ANIMOUSE.ClipState(clipMap.get("A_Jump"));
 
-                // Setup slider control
-                const slider = document.getElementById("blend-slider");
-                const valueDisplay = document.getElementById("blend-value");
+                // Create machine starting with movement
+                machine = new ANIMOUSE.AnimationMachine(
+                    movementBlendTree,
+                    mixer,
+                );
 
-                slider.addEventListener("input", (e) => {
+                // Add event transition: any movement state -> jump
+                machine.addEventTransition("jump", {
+                    from: movementBlendTree,
+                    to: jumpState,
+                    duration: 0.25,
+                });
+
+                // Add automatic transition: jump -> back to movement when jump ends
+                machine.addAutomaticTransition(jumpState, {
+                    to: movementBlendTree,
+                    duration: 0.25,
+                });
+
+                // Setup controls
+                setupControls();
+            });
+
+            function setupControls() {
+                const speedSlider = document.getElementById("speed-slider");
+                const speedValue = document.getElementById("speed-value");
+                const jumpButton = document.getElementById("jump-button");
+
+                speedSlider.addEventListener("input", (e) => {
                     const value = parseFloat(e.target.value);
-                    valueDisplay.textContent = value.toFixed(2);
-                    if (linearBlendTree) {
-                        linearBlendTree.setBlend(value);
+                    speedValue.textContent = value.toFixed(2);
+                    if (movementBlendTree) {
+                        movementBlendTree.setBlend(value);
                     }
                 });
-            });
+
+                jumpButton.addEventListener("click", () => {
+                    if (machine) {
+                        console.log(
+                            "Jump button clicked",
+                            machine.currentState,
+                        );
+                        machine.handleEvent("jump");
+                    }
+                });
+            }
 
             // render loop
             window.addEventListener("resize", () => {

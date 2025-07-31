@@ -188,7 +188,7 @@ canvas {
     bottom: 20px;
     left: 20px;
     display: flex;
-    gap: 10px;
+    gap: 8px;
     z-index: 100;
 }
 
@@ -198,6 +198,8 @@ canvas {
     padding: 8px 12px;
     backdrop-filter: blur(10px);
     border: 1px solid rgba(255, 255, 255, 0.1);
+    min-width: 70px;
+    text-align: center;
 }
 
 .nav-button a {
@@ -207,6 +209,7 @@ canvas {
     font-weight: 500;
     display: flex;
     align-items: center;
+    justify-content: center;
     gap: 4px;
 }
 
@@ -214,7 +217,7 @@ canvas {
     text-decoration: underline;
 }
 
-.nav-button.back a::before {
+.nav-button.previous a::before {
     content: "←";
     font-size: 14px;
 }
@@ -222,6 +225,11 @@ canvas {
 .nav-button.next a::after {
     content: "→";
     font-size: 14px;
+}
+
+.nav-button.examples {
+    background: rgba(76, 175, 80, 0.2);
+    border: 1px solid rgba(76, 175, 80, 0.3);
 }
 
 /* Keep old back-link for compatibility */

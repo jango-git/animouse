@@ -68,8 +68,14 @@
             </div>
         </div>
         <div class="nav-buttons">
-            <div class="nav-button back">
+            <div class="nav-button previous">
+                <a href="01_linear_blend_tree.html">Previous</a>
+            </div>
+            <div class="nav-button examples">
                 <a href="index.html">Examples</a>
+            </div>
+            <div class="nav-button next">
+                <a href="03_event_driven_transitions.html">Next</a>
             </div>
         </div>
 
@@ -106,7 +112,7 @@
             controls.target.set(0, 1, 0);
             controls.update();
 
-            scene.add(new THREE.AmbientLight(0xffffff, 0.5));
+            scene.add(new THREE.HemisphereLight(0x87ceeb, 0x8b4513, 0.6));
             const dirLight = new THREE.DirectionalLight(0xffffff, 1);
             dirLight.position.set(5, 10, 5);
             scene.add(dirLight);
