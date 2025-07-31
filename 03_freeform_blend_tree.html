@@ -1,0 +1,319 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <title>Animouse Freeform Blend Tree</title>
+        <link rel="stylesheet" href="shared-styles.css" />
+        <style>
+            .control-panel {
+                min-width: 340px;
+            }
+            .blend-control {
+                margin: 16px 0;
+                text-align: center;
+            }
+            .blend-area {
+                width: 200px;
+                height: 200px;
+                background: linear-gradient(
+                    135deg,
+                    rgba(255, 255, 255, 0.1),
+                    rgba(255, 255, 255, 0.05)
+                );
+                border: 2px solid rgba(255, 255, 255, 0.2);
+                border-radius: 8px;
+                position: relative;
+                margin: 0 auto;
+                cursor: crosshair;
+                overflow: hidden;
+            }
+            .blend-cursor {
+                width: 12px;
+                height: 12px;
+                background: #4caf50;
+                border: 2px solid white;
+                border-radius: 50%;
+                position: absolute;
+                transform: translate(-50%, -50%);
+                pointer-events: none;
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+                transition: all 0.1s ease;
+            }
+            .dance-labels {
+                position: absolute;
+                width: 100%;
+                height: 100%;
+                pointer-events: none;
+            }
+            .dance-label {
+                position: absolute;
+                font-size: 10px;
+                font-weight: 600;
+                color: rgba(255, 255, 255, 0.8);
+                text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+                transform: translate(-50%, -50%);
+            }
+            .dance-label.top-left {
+                top: 15px;
+                left: 15px;
+                transform: none;
+            }
+            .dance-label.top-right {
+                top: 15px;
+                right: 15px;
+                transform: none;
+            }
+            .dance-label.bottom-left {
+                bottom: 15px;
+                left: 15px;
+                transform: none;
+            }
+            .dance-label.bottom-right {
+                bottom: 15px;
+                right: 15px;
+                transform: none;
+            }
+            .coordinates-display {
+                margin-top: 12px;
+                padding: 8px;
+                background: rgba(255, 255, 255, 0.05);
+                border-radius: 4px;
+                font-size: 11px;
+                opacity: 0.8;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="control-panel">
+            <div class="control-title">Freeform Blend Tree</div>
+
+            <div class="blend-control">
+                <div class="slider-label" style="margin-bottom: 8px">
+                    <span>Dance Style Blending</span>
+                </div>
+                <div class="blend-area" id="blend-area">
+                    <div class="dance-labels">
+                        <div class="dance-label top-left">Dance 0</div>
+                        <div class="dance-label top-right">Dance 1</div>
+                        <div class="dance-label bottom-left">Dance 2</div>
+                        <div class="dance-label bottom-right">Dance 3</div>
+                        <div
+                            class="dance-label"
+                            style="
+                                top: 50%;
+                                left: 50%;
+                                transform: translate(-50%, -50%);
+                            "
+                        >
+                            Idle
+                        </div>
+                    </div>
+                    <div class="blend-cursor" id="blend-cursor"></div>
+                </div>
+                <div class="coordinates-display">
+                    <div>
+                        X: <span id="x-coord">0.00</span> | Y:
+                        <span id="y-coord">0.00</span>
+                    </div>
+                    <div style="margin-top: 4px; font-size: 10px; opacity: 0.7">
+                        Move cursor to blend between dances and idle
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="nav-buttons">
+            <div class="nav-button previous">
+                <a href="02_polar_blend_tree.html">Previous</a>
+            </div>
+            <div class="nav-button examples">
+                <a href="index.html">Examples</a>
+            </div>
+            <div class="nav-button next">
+                <a href="04_event_driven_transitions.html">Next</a>
+            </div>
+        </div>
+
+        <div class="source-link">
+            <a
+                href="https://github.com/jango-git/animouse/blob/gh-pages/03_freeform_blend_tree.html"
+                target="_blank"
+                >source</a
+            >
+        </div>
+
+        <script type="module">
+            import * as THREE from "https://esm.sh/three@0.175";
+            import { OrbitControls } from "https://esm.sh/three@0.175/examples/jsm/controls/OrbitControls";
+            import { GLTFLoader } from "https://esm.sh/three@0.175/examples/jsm/loaders/GLTFLoader";
+            import * as ANIMOUSE from "https://esm.sh/animouse@0.7.1?deps=three@0.175";
+
+            const scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x222222);
+
+            const camera = new THREE.PerspectiveCamera(
+                45,
+                innerWidth / innerHeight,
+                0.1,
+                100,
+            );
+            camera.position.set(2, 2, 2);
+
+            const renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(innerWidth, innerHeight);
+            document.body.appendChild(renderer.domElement);
+
+            const controls = new OrbitControls(camera, renderer.domElement);
+            controls.target.set(0, 1, 0);
+            controls.update();
+
+            scene.add(new THREE.HemisphereLight(0x87ceeb, 0x8b4513, 0.6));
+            const dirLight = new THREE.DirectionalLight(0xffffff, 1);
+            dirLight.position.set(5, 10, 5);
+            scene.add(dirLight);
+
+            // GLB load
+            const loader = new GLTFLoader();
+            const clock = new THREE.Clock();
+            let mixer;
+            let freeformBlendTree;
+            let machine;
+
+            loader.setPath("assets/").load("SK_Character.glb", (gltf) => {
+                const model = gltf.scene;
+                scene.add(model);
+
+                mixer = new THREE.AnimationMixer(model);
+
+                // Parse animations by name
+                const clips = gltf.animations;
+                const clipMap = new Map();
+                for (const clip of clips) {
+                    const action = mixer.clipAction(clip);
+                    action.loop = THREE.LoopRepeat;
+                    clipMap.set(clip.name, action);
+                }
+
+                // Create freeform blend tree with numbered dances at corners and idle in center
+                freeformBlendTree = new ANIMOUSE.FreeformBlendTree([
+                    { action: clipMap.get("A_Dance_0"), x: -1, y: 1 },
+                    { action: clipMap.get("A_Dance_1"), x: 1, y: 1 },
+                    { action: clipMap.get("A_Dance_2"), x: -1, y: -1 },
+                    { action: clipMap.get("A_Dance_3"), x: 1, y: -1 },
+                    { action: clipMap.get("A_Idle"), x: 0, y: 0 },
+                ]);
+
+                machine = new ANIMOUSE.AnimationMachine(
+                    freeformBlendTree,
+                    mixer,
+                );
+
+                // Setup 2D control area
+                setup2DControl();
+            });
+
+            function setup2DControl() {
+                const blendArea = document.getElementById("blend-area");
+                const cursor = document.getElementById("blend-cursor");
+                const xCoord = document.getElementById("x-coord");
+                const yCoord = document.getElementById("y-coord");
+
+                let isDragging = false;
+
+                // Initial position (center)
+                updateCursorPosition(0, 0);
+
+                function updateCursorPosition(x, y) {
+                    // Clamp values to [-1, 1] range
+                    x = Math.max(-1, Math.min(1, x));
+                    y = Math.max(-1, Math.min(1, y));
+
+                    // Convert to pixel coordinates (0-200px)
+                    const pixelX = ((x + 1) / 2) * 200;
+                    const pixelY = ((1 - y) / 2) * 200; // Flip Y axis
+
+                    cursor.style.left = pixelX + "px";
+                    cursor.style.top = pixelY + "px";
+
+                    const roundedX = Math.round(x * 100) / 100;
+                    const roundedY = Math.round(y * 100) / 100;
+
+                    // Update coordinate display
+                    xCoord.textContent = roundedX;
+                    yCoord.textContent = roundedY;
+
+                    // Update blend tree
+                    if (freeformBlendTree) {
+                        freeformBlendTree.setBlend(roundedX, roundedY);
+                    }
+                }
+
+                function getCoordinatesFromEvent(event) {
+                    const rect = blendArea.getBoundingClientRect();
+                    const pixelX = event.clientX - rect.left;
+                    const pixelY = event.clientY - rect.top;
+
+                    // Convert pixel coordinates to [-1, 1] range
+                    const x = (pixelX / 200) * 2 - 1;
+                    const y = 1 - (pixelY / 200) * 2; // Flip Y axis
+
+                    return { x, y };
+                }
+
+                blendArea.addEventListener("mousedown", (event) => {
+                    isDragging = true;
+                    const coords = getCoordinatesFromEvent(event);
+                    updateCursorPosition(coords.x, coords.y);
+                    blendArea.style.cursor = "grabbing";
+                });
+
+                document.addEventListener("mousemove", (event) => {
+                    if (isDragging) {
+                        const coords = getCoordinatesFromEvent(event);
+                        updateCursorPosition(coords.x, coords.y);
+                    }
+                });
+
+                document.addEventListener("mouseup", () => {
+                    isDragging = false;
+                    blendArea.style.cursor = "crosshair";
+                });
+
+                // Touch support for mobile
+                blendArea.addEventListener("touchstart", (event) => {
+                    event.preventDefault();
+                    isDragging = true;
+                    const touch = event.touches[0];
+                    const coords = getCoordinatesFromEvent(touch);
+                    updateCursorPosition(coords.x, coords.y);
+                });
+
+                document.addEventListener("touchmove", (event) => {
+                    if (isDragging) {
+                        event.preventDefault();
+                        const touch = event.touches[0];
+                        const coords = getCoordinatesFromEvent(touch);
+                        updateCursorPosition(coords.x, coords.y);
+                    }
+                });
+
+                document.addEventListener("touchend", () => {
+                    isDragging = false;
+                });
+            }
+
+            // render loop
+            window.addEventListener("resize", () => {
+                camera.aspect = innerWidth / innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(innerWidth, innerHeight);
+            });
+
+            renderer.setAnimationLoop(() => {
+                const deltaTime = clock.getDelta();
+                if (machine) machine.update(deltaTime);
+                renderer.render(scene, camera);
+            });
+        </script>
+    </body>
+</html>

@@ -53,7 +53,7 @@
         </div>
         <div class="nav-buttons">
             <div class="nav-button previous">
-                <a href="02_polar_blend_tree.html">Previous</a>
+                <a href="03_freeform_blend_tree.html">Previous</a>
             </div>
             <div class="nav-button examples">
                 <a href="index.html">Examples</a>
@@ -61,7 +61,7 @@
         </div>
         <div class="source-link">
             <a
-                href="https://github.com/jango-git/animouse/blob/gh-pages/03_event_driven_transitions.html"
+                href="https://github.com/jango-git/animouse/blob/gh-pages/04_event_driven_transitions.html"
                 target="_blank"
                 >source</a
             >
@@ -70,7 +70,7 @@
             import * as THREE from "https://esm.sh/three@0.175";
             import { OrbitControls } from "https://esm.sh/three@0.175/examples/jsm/controls/OrbitControls";
             import { GLTFLoader } from "https://esm.sh/three@0.175/examples/jsm/loaders/GLTFLoader";
-            import * as ANIMOUSE from "https://esm.sh/animouse@0.7.0/dist/index.js?deps=three@0.175&dev";
+            import * as ANIMOUSE from "https://esm.sh/animouse@0.7.1?deps=three@0.175";
 
             const scene = new THREE.Scene();
             scene.background = new THREE.Color(0x222222);
@@ -115,7 +115,11 @@
                 const clipMap = new Map();
                 for (const clip of clips) {
                     const action = mixer.clipAction(clip);
-                    action.loop = THREE.LoopRepeat;
+                    action.loop =
+                        clip.name === "A_Jump"
+                            ? THREE.LoopOnce
+                            : THREE.LoopRepeat;
+                    action.clampWhenFinished = action.loop === THREE.LoopOnce;
                     clipMap.set(clip.name, action);
                 }
 
@@ -167,7 +171,7 @@
 
                 jumpButton.addEventListener("click", () => {
                     if (machine) {
-                        machine.handleEvent("jump");
+                        console.log(machine.handleEvent("jump"));
                     }
                 });
             }
