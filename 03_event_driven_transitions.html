@@ -70,7 +70,7 @@
             import * as THREE from "https://esm.sh/three@0.175";
             import { OrbitControls } from "https://esm.sh/three@0.175/examples/jsm/controls/OrbitControls";
             import { GLTFLoader } from "https://esm.sh/three@0.175/examples/jsm/loaders/GLTFLoader";
-            import * as ANIMOUSE from "https://esm.sh/animouse@0.7.0?deps=three@0.175";
+            import * as ANIMOUSE from "https://esm.sh/animouse@0.7.0/dist/index.js?deps=three@0.175&dev";
 
             const scene = new THREE.Scene();
             scene.background = new THREE.Color(0x222222);
@@ -167,10 +167,6 @@
 
                 jumpButton.addEventListener("click", () => {
                     if (machine) {
-                        console.log(
-                            "Jump button clicked",
-                            machine.currentState,
-                        );
                         machine.handleEvent("jump");
                     }
                 });
