@@ -283,8 +283,7 @@ export class AnimationMachine {
         !condition || condition(from, to, event, ...args);
 
       if (isValidFromState && isValidCondition) {
-        this.transitionTo(to, duration);
-        return true;
+        return this.transitionTo(to, duration);
       }
     }
 
@@ -368,18 +367,22 @@ export class AnimationMachine {
    * @param {AnimationState} state - The state to transition to
    * @param {number} duration - The duration of the transition in seconds
    */
-  private transitionTo(state: AnimationState, duration: number): void {
-    if (this.currentStateInternal !== state) {
-      this.fadingStates = this.fadingStates.filter((s) => s !== state);
-
-      this.fadingStates.push(this.currentStateInternal);
-      this.currentStateInternal["onExitInternal"]();
-
-      this.currentStateInternal = state;
-      this.currentStateInternal["onEnterInternal"]();
-
-      this.transitionElapsedTime = duration;
+  private transitionTo(state: AnimationState, duration: number): boolean {
+    if (this.currentStateInternal === state) {
+      return false;
     }
+
+    this.fadingStates = this.fadingStates.filter((s) => s !== state);
+
+    this.fadingStates.push(this.currentStateInternal);
+    this.currentStateInternal["onExitInternal"]();
+
+    this.currentStateInternal = state;
+    this.currentStateInternal["onEnterInternal"]();
+
+    this.transitionElapsedTime = duration;
+
+    return true;
   }
 
   /**
