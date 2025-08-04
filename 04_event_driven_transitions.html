@@ -77,7 +77,7 @@
             import { OrbitControls } from "https://esm.sh/three@0.175/examples/jsm/controls/OrbitControls";
             import { GLTFLoader } from "https://esm.sh/three@0.175/examples/jsm/loaders/GLTFLoader";
             import { DRACOLoader } from "https://esm.sh/three@0.175.0/examples/jsm/loaders/DRACOLoader.js";
-            import * as ANIMOUSE from "https://esm.sh/animouse@0.7.3?deps=three@0.175";
+            import * as ANIMOUSE from "https://esm.sh/animouse@0.7.4?deps=three@0.175";
 
             const scene = new THREE.Scene();
             scene.background = new THREE.Color(0x222222);
@@ -109,6 +109,7 @@
             let mixer;
             let movementBlendTree;
             let jumpState;
+            let jumpRunState;
             let machine;
 
             const dracoLoader = new DRACOLoader();
@@ -117,21 +118,24 @@
             );
             loader.setDRACOLoader(dracoLoader);
 
+            let value = 0;
+
             loader.setPath("assets/").load("SK_Character.glb", (gltf) => {
                 const model = gltf.scene;
                 scene.add(model);
 
                 mixer = new THREE.AnimationMixer(model);
 
+                const loopOnceAnimations = ["A_Jump", "A_Jump_Run"];
+
                 // Parse animations by name
                 const clips = gltf.animations;
                 const clipMap = new Map();
                 for (const clip of clips) {
                     const action = mixer.clipAction(clip);
-                    action.loop =
-                        clip.name === "A_Jump"
-                            ? THREE.LoopOnce
-                            : THREE.LoopRepeat;
+                    action.loop = loopOnceAnimations.includes(clip.name)
+                        ? THREE.LoopOnce
+                        : THREE.LoopRepeat;
                     action.clampWhenFinished = action.loop === THREE.LoopOnce;
                     clipMap.set(clip.name, action);
                 }
@@ -146,6 +150,11 @@
                 // Create jump state
                 jumpState = new ANIMOUSE.ClipState(clipMap.get("A_Jump"));
 
+                // Create jump state
+                jumpRunState = new ANIMOUSE.ClipState(
+                    clipMap.get("A_Jump_Run"),
+                );
+
                 // Create machine starting with movement
                 machine = new ANIMOUSE.AnimationMachine(
                     movementBlendTree,
@@ -155,12 +164,24 @@
                 // Add event transition: any movement state -> jump
                 machine.addEventTransition("jump", {
                     from: movementBlendTree,
+                    to: jumpRunState,
+                    duration: 0.25,
+                    condition: () => value > 0.75,
+                });
+
+                machine.addEventTransition("jump", {
+                    from: movementBlendTree,
                     to: jumpState,
                     duration: 0.25,
                 });
 
                 // Add automatic transition: jump -> back to movement when jump ends
                 machine.addAutomaticTransition(jumpState, {
+                    to: movementBlendTree,
+                    duration: 0.25,
+                });
+
+                machine.addAutomaticTransition(jumpRunState, {
                     to: movementBlendTree,
                     duration: 0.25,
                 });
@@ -175,7 +196,7 @@
                 const jumpButton = document.getElementById("jump-button");
 
                 speedSlider.addEventListener("input", (e) => {
-                    const value = parseFloat(e.target.value);
+                    value = parseFloat(e.target.value);
                     speedValue.textContent = value.toFixed(2);
                     if (movementBlendTree) {
                         movementBlendTree.setBlend(value);
@@ -184,6 +205,7 @@
 
                 jumpButton.addEventListener("click", () => {
                     if (machine) {
+                        console.log(value < 0.5);
                         machine.handleEvent("jump");
                     }
                 });
