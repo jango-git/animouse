@@ -171,10 +171,10 @@ export class LinearBlendTree extends AnimationTree {
       );
     }
 
-    if (this.lastLeftAnchor) {
+    if (this.lastLeftAnchor?.weight) {
       this.updateAnchorTime(this.lastLeftAnchor, deltaTime);
     }
-    if (this.lastRightAnchor) {
+    if (this.lastRightAnchor?.weight) {
       this.updateAnchorTime(this.lastRightAnchor, deltaTime);
     }
   }
