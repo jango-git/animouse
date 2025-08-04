@@ -137,6 +137,10 @@ export class LinearBlendTree extends AnimationTree {
     this.updateAnchors();
   }
 
+  public get blendValue(): number {
+    return this.currentBlend;
+  }
+
   /**
    * Sets the blend value to determine animation weights along the linear axis.
    * When the blend changes, animation weights are recalculated to interpolate

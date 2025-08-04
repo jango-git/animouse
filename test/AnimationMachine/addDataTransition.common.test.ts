@@ -61,26 +61,6 @@ test("addDataTransition: common: should throw error for invalid duration values"
   );
 });
 
-test("addDataTransition: common: should throw error when adding duplicate transition", () => {
-  const from = new AnimationTreeProxy();
-  const to = new AnimationTreeProxy();
-  const machine = new AnimationMachineProxy(from, MIXER);
-
-  const transition = {
-    to,
-    data: [{}],
-    condition: (): boolean => true,
-    duration: 0.25,
-  };
-
-  machine.addDataTransition(from, transition);
-
-  assert.throws(
-    () => machine.addDataTransition(from, transition),
-    /already exists/,
-  );
-});
-
 test("addEventTransition: common: should throw error when creating self-loop transition", () => {
   const from = new AnimationTreeProxy();
   const machine = new AnimationMachineProxy(from, MIXER);

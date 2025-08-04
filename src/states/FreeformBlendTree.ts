@@ -202,6 +202,10 @@ export class FreeformBlendTree extends AnimationTree {
     this.updateAnchors();
   }
 
+  public get blendValue(): Vector2Like {
+    return { x: this.currentX, y: this.currentY };
+  }
+
   /**
    * Sets the blend position in 2D Cartesian coordinates to determine animation weights.
    * When the position changes, animation weights are recalculated using barycentric
