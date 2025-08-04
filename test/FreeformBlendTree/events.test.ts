@@ -4,6 +4,7 @@ import { test } from "uvu";
 import * as assert from "uvu/assert";
 import { AnimationStateEvent } from "../../src/mescellaneous/AnimationStateEvent";
 import { buildMockFreeformAction } from "../mocks/buildMockAction";
+import { MIXER } from "../mocks/buildMockAnimationAction";
 import { FreeformBlendTreeProxy } from "../proxies/FreeformBlendTreeProxy";
 
 test("events: should emit ENTER/EXIT events", () => {
@@ -66,6 +67,7 @@ test("events: should emit correct FINISH/ITERATE event based on animation loop m
     loopRepeatAction,
     loopPingPongAction,
   ]);
+  tree.invokeSetInfluence(1.0);
 
   let loopOnceFinishEventFired = false;
   let loopOnceIterateEventFired = false;
@@ -96,20 +98,16 @@ test("events: should emit correct FINISH/ITERATE event based on animation loop m
     }
   });
 
-  loopOnceAction.action.time = 1;
-  loopRepeatAction.action.time = 0;
-  loopPingPongAction.action.time = 0;
-  tree.invokeOnTick();
-
-  loopOnceAction.action.time = 0;
-  loopRepeatAction.action.time = 1;
-  loopPingPongAction.action.time = 0;
-  tree.invokeOnTick();
-
-  loopOnceAction.action.time = 0;
-  loopRepeatAction.action.time = 0;
-  loopPingPongAction.action.time = 1;
-  tree.invokeOnTick();
+  const step = 1;
+  tree.setBlend(0, 0);
+  tree.invokeOnTick(step);
+  MIXER.update(step);
+  tree.setBlend(0, 1);
+  tree.invokeOnTick(step);
+  MIXER.update(step);
+  tree.setBlend(1, 0);
+  tree.invokeOnTick(step);
+  MIXER.update(step);
 
   assert.ok(
     loopOnceFinishEventFired,
@@ -140,21 +138,26 @@ test("events: should emit correct FINISH/ITERATE event based on animation loop m
 });
 
 test("events: should prevent duplicate iteration events", () => {
-  const action = buildMockFreeformAction(0, 0);
+  const action = buildMockFreeformAction(0, 0, LoopOnce);
+  action.action.clampWhenFinished = true;
+
   const tree = new FreeformBlendTreeProxy([
     action,
     buildMockFreeformAction(1, 0),
     buildMockFreeformAction(0, 1),
   ]);
+  tree.invokeSetInfluence(1.0);
 
   let eventCount = 0;
-  tree.on(AnimationStateEvent.ITERATE, () => {
+  tree.on(AnimationStateEvent.FINISH, () => {
     eventCount += 1;
   });
 
-  action.action.time = 1.0;
-  tree.invokeOnTick();
-  tree.invokeOnTick();
+  const step = 1;
+  tree.invokeOnTick(step);
+  MIXER.update(step);
+  tree.invokeOnTick(step);
+  MIXER.update(step);
 
   assert.equal(
     eventCount,

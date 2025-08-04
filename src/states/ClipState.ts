@@ -39,13 +39,15 @@ export class ClipState extends AnimationState {
     animationAction.stop();
     animationAction.time = 0;
     animationAction.weight = 0;
+    animationAction.paused = false;
+    animationAction.enabled = false;
 
     this.anchor = {
       action: animationAction,
-      weight: 1,
-      previousTime: 0,
+      get weight(): number {
+        throw new Error("ClipState weight is not accessible");
+      },
       duration,
-      hasFiredIterationEvent: false,
       iterationEventType:
         animationAction.loop === LoopOnce
           ? AnimationStateEvent.FINISH
@@ -68,26 +70,26 @@ export class ClipState extends AnimationState {
   protected ["setInfluenceInternal"](influence: number): void {
     assertValidUnitRange(influence, "Influence");
 
+    if (this.influenceInternal === influence) {
+      return;
+    }
+
     this.influenceInternal = influence;
     const anchor = this.anchor;
     const animationAction = anchor.action;
 
-    if (influence === 0 && animationAction.weight > 0) {
+    if (influence > 0 && animationAction.weight === 0) {
+      animationAction.enabled = true;
+      animationAction.paused = false;
+      animationAction.time = 0;
+      animationAction.play();
+      this.emit(AnimationStateEvent.PLAY, animationAction, this);
+    } else if (influence === 0 && animationAction.weight > 0) {
       animationAction.stop();
       animationAction.time = 0;
-      animationAction.weight = 0;
-      anchor.hasFiredIterationEvent = false;
+      animationAction.paused = false;
+      animationAction.enabled = false;
       this.emit(AnimationStateEvent.STOP, animationAction, this);
-      return;
-    }
-
-    if (influence > 0 && animationAction.weight === 0) {
-      animationAction.play();
-      animationAction.time = 0;
-      animationAction.weight = influence;
-      anchor.hasFiredIterationEvent = false;
-      this.emit(AnimationStateEvent.PLAY, animationAction, this);
-      return;
     }
 
     animationAction.weight = influence;
@@ -101,7 +103,12 @@ export class ClipState extends AnimationState {
    * @internal This method is intended to be called only by the animation state machine
    * @see {@link updateAnchorTime} for time tracking and event emission details
    */
-  protected ["onTickInternal"](): void {
-    this.updateAnchorTime(this.anchor);
+  protected ["onTickInternal"](deltaTime: number): void {
+    if (this.influence === 0) {
+      throw new Error(
+        `${this.name}: cannot update anchor time because the animation influence is zero`,
+      );
+    }
+    this.updateAnchorTime(this.anchor, deltaTime);
   }
 }

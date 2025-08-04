@@ -95,7 +95,8 @@ interface FreeformTriangle
  * ```
  */
 export class FreeformBlendTree extends AnimationTree {
-  private readonly activeAnchors = new Set<FreeformAnchor>();
+  private readonly tempAnchorMap = new Map<FreeformAnchor, number>();
+  private readonly trackableAnchors: FreeformAnchor[] = [];
   private readonly triangles: FreeformTriangle[] = [];
   private readonly boundaryEdgeMap = new Map<
     FreeformAnchor,
@@ -161,9 +162,12 @@ export class FreeformBlendTree extends AnimationTree {
 
     for (const freeformAction of freeformActions) {
       const animationAction = freeformAction.action;
+
       animationAction.stop();
       animationAction.time = 0;
       animationAction.weight = 0;
+      animationAction.paused = false;
+      animationAction.enabled = false;
 
       const duration = animationAction.getClip().duration;
       if (duration <= 0) {
@@ -174,8 +178,6 @@ export class FreeformBlendTree extends AnimationTree {
         action: animationAction,
         weight: 0,
         duration,
-        previousTime: 0,
-        hasFiredIterationEvent: false,
         iterationEventType:
           animationAction.loop === LoopOnce
             ? AnimationStateEvent.FINISH
@@ -244,11 +246,15 @@ export class FreeformBlendTree extends AnimationTree {
    * @internal This method is called exclusively by the animation state machine
    * @see {@link updateAnchorTime} for time tracking and event emission details
    */
-  protected ["onTickInternal"](): void {
-    for (const triangle of this.triangles) {
-      for (const anchor of [triangle.a, triangle.b, triangle.c]) {
-        this.updateAnchorTime(anchor);
-      }
+  protected ["onTickInternal"](deltaTime: number): void {
+    if (this.influence === 0) {
+      throw new Error(
+        `${this.name}: cannot update anchor time because the animation influence is zero`,
+      );
+    }
+
+    for (const anchor of this.trackableAnchors) {
+      this.updateAnchorTime(anchor, deltaTime);
     }
   }
 
@@ -259,10 +265,8 @@ export class FreeformBlendTree extends AnimationTree {
    * their existing weight distribution from the freeform blending calculations.
    */
   protected updateAnchorsInfluence(): void {
-    for (const triangle of this.triangles) {
-      for (const anchor of [triangle.a, triangle.b, triangle.c]) {
-        this.updateAnchor(anchor);
-      }
+    for (const anchor of this.trackableAnchors) {
+      this.updateAnchorWeight(anchor);
     }
   }
 
@@ -278,21 +282,21 @@ export class FreeformBlendTree extends AnimationTree {
    * providing seamless 2-way edge blending for boundary cases.
    */
   private updateAnchors(): void {
-    const weights = new Map<FreeformAnchor, number>();
-
-    for (const anchor of this.activeAnchors) {
-      weights.set(anchor, 0);
+    this.tempAnchorMap.clear();
+    for (const anchor of this.trackableAnchors) {
+      this.tempAnchorMap.set(anchor, 0);
     }
 
-    if (!this.applyBarycentricWeights(weights)) {
-      this.applyNearestNeighborWeight(weights);
+    if (!this.applyBarycentricWeights(this.tempAnchorMap)) {
+      this.applyNearestNeighborWeight(this.tempAnchorMap);
     }
 
-    this.activeAnchors.clear();
-
-    for (const [anchor, weight] of weights) {
-      this.activeAnchors.add(anchor);
-      this.updateAnchor(anchor, weight);
+    this.trackableAnchors.length = 0;
+    for (const [anchor, weight] of this.tempAnchorMap) {
+      this.updateAnchorWeight(anchor, weight);
+      if (weight > 0) {
+        this.trackableAnchors.push(anchor);
+      }
     }
   }
 

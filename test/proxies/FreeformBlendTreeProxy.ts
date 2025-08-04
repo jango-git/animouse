@@ -5,8 +5,8 @@ export class FreeformBlendTreeProxy extends FreeformBlendTree {
     this.setInfluenceInternal(influence);
   }
 
-  public invokeOnTick(): void {
-    this.onTickInternal();
+  public invokeOnTick(deltaTime: number): void {
+    this.onTickInternal(deltaTime);
   }
 
   public invokeOnEnter(): void {

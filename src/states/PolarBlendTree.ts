@@ -162,8 +162,8 @@ interface Ring {
  * @public
  */
 export class PolarBlendTree extends AnimationTree {
-  /** Set of currently active anchors that have non-zero weights */
-  private readonly activeAnchors = new Set<PolarAnchor>();
+  private readonly tempAnchorMap = new Map<PolarAnchor, number>();
+  private readonly trackableAnchors: PolarAnchor[] = [];
 
   /** Optional center anchor at origin (0,0) for special blending behavior */
   private readonly centerAnchor?: PolarAnchor;
@@ -246,13 +246,13 @@ export class PolarBlendTree extends AnimationTree {
       animationAction.stop();
       animationAction.time = 0;
       animationAction.weight = 0;
+      animationAction.paused = false;
+      animationAction.enabled = false;
 
       const anchor: PolarAnchor = {
         action: animationAction,
         weight: 0,
         duration,
-        previousTime: 0,
-        hasFiredIterationEvent: false,
         iterationEventType:
           animationAction.loop === LoopOnce
             ? AnimationStateEvent.FINISH
@@ -304,22 +304,30 @@ export class PolarBlendTree extends AnimationTree {
       centerAction.stop();
       centerAction.time = 0;
       centerAction.weight = 0;
+      centerAction.paused = false;
+      centerAction.enabled = false;
 
       this.centerAnchor = {
         action: centerAction,
         weight: 1,
         duration,
-        previousTime: 0,
-        hasFiredIterationEvent: false,
         iterationEventType:
           centerAction.loop === LoopOnce
             ? AnimationStateEvent.FINISH
             : AnimationStateEvent.ITERATE,
-        radius: 0,
-        azimuth: 0,
+        get radius(): number {
+          throw new Error(
+            "PolarBlendTree central anchor radius is not accessible",
+          );
+        },
+        get azimuth(): number {
+          throw new Error(
+            "PolarBlendTree central anchor azimuth is not accessible",
+          );
+        },
       };
 
-      this.activeAnchors.add(this.centerAnchor);
+      this.trackableAnchors.push(this.centerAnchor);
     } else {
       this.updateAnchors();
     }
@@ -379,11 +387,15 @@ export class PolarBlendTree extends AnimationTree {
    * @internal This method is called exclusively by the animation state machine
    * @override
    */
-  protected ["onTickInternal"](): void {
-    for (const ray of this.rays) {
-      for (const anchor of ray.anchors) {
-        this.updateAnchorTime(anchor);
-      }
+  protected ["onTickInternal"](deltaTime: number): void {
+    if (this.influence === 0) {
+      throw new Error(
+        `${this.name}: cannot update anchor time because the animation influence is zero`,
+      );
+    }
+
+    for (const anchor of this.trackableAnchors) {
+      this.updateAnchorTime(anchor, deltaTime);
     }
   }
 
@@ -399,8 +411,8 @@ export class PolarBlendTree extends AnimationTree {
    * @protected
    */
   protected updateAnchorsInfluence(): void {
-    for (const anchor of this.activeAnchors) {
-      this.updateAnchor(anchor);
+    for (const anchor of this.trackableAnchors) {
+      this.updateAnchorWeight(anchor);
     }
   }
 
@@ -422,10 +434,9 @@ export class PolarBlendTree extends AnimationTree {
    * @private
    */
   private updateAnchors(): void {
-    const weights = new Map<PolarAnchor, number>();
-
-    for (const anchor of this.activeAnchors) {
-      weights.set(anchor, 0);
+    this.tempAnchorMap.clear();
+    for (const anchor of this.trackableAnchors) {
+      this.tempAnchorMap.set(anchor, 0);
     }
 
     for (let lRayIndex = 0; lRayIndex < this.rays.length; lRayIndex++) {
@@ -456,24 +467,30 @@ export class PolarBlendTree extends AnimationTree {
 
           if (this.centerAnchor) {
             const ringWeight = this.currentRadius / this.rings[0].radius;
-            weights.set(this.centerAnchor, 1 - ringWeight);
+            this.tempAnchorMap.set(this.centerAnchor, 1 - ringWeight);
             lWeight *= ringWeight;
             rWeight *= ringWeight;
           }
 
-          weights.set(lRay.anchors[0], lWeight);
-          weights.set(rRay.anchors[0], rWeight);
+          this.tempAnchorMap.set(lRay.anchors[0], lWeight);
+          this.tempAnchorMap.set(rRay.anchors[0], rWeight);
         } else if (
           this.currentRadius >= this.rings[this.rings.length - 1].radius
         ) {
           let lWeight = lRayT;
           let rWeight = rRayT;
 
-          weights.set(lRay.anchors[lRay.anchors.length - 1], lWeight);
-          weights.set(rRay.anchors[rRay.anchors.length - 1], rWeight);
+          this.tempAnchorMap.set(
+            lRay.anchors[lRay.anchors.length - 1],
+            lWeight,
+          );
+          this.tempAnchorMap.set(
+            rRay.anchors[rRay.anchors.length - 1],
+            rWeight,
+          );
         } else {
           this.calculateBilinearWeights(
-            weights,
+            this.tempAnchorMap,
             lRayT,
             rRayT,
             lRayIndex,
@@ -484,11 +501,12 @@ export class PolarBlendTree extends AnimationTree {
       }
     }
 
-    this.activeAnchors.clear();
-
-    for (const [anchor, weight] of weights) {
-      this.activeAnchors.add(anchor);
-      this.updateAnchor(anchor, weight);
+    this.trackableAnchors.length = 0;
+    for (const [anchor, weight] of this.tempAnchorMap) {
+      this.updateAnchorWeight(anchor, weight);
+      if (weight > 0) {
+        this.trackableAnchors.push(anchor);
+      }
     }
   }
 

@@ -308,11 +308,15 @@ export class AnimationMachine {
     assertValidNonNegativeNumber(deltaTime, "Delta time");
 
     // Update current state
-    this.currentStateInternal["onTickInternal"](deltaTime);
+    if (this.currentStateInternal.influence > 0) {
+      this.currentStateInternal["onTickInternal"](deltaTime);
+    }
 
     // Update all fading states
     for (const state of this.fadingStates) {
-      state["onTickInternal"](deltaTime);
+      if (state.influence > 0) {
+        state["onTickInternal"](deltaTime);
+      }
     }
 
     const transition = this.dataTransitions

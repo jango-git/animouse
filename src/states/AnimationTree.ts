@@ -47,9 +47,11 @@ export abstract class AnimationTree extends AnimationState {
    * @see {@link AnimationStateEvent.PLAY} for play event details
    * @see {@link AnimationStateEvent.STOP} for stop event details
    */
-  protected updateAnchor(anchor: Anchor, weight: number = anchor.weight): void {
+  protected updateAnchorWeight(
+    anchor: Anchor,
+    weight: number = anchor.weight,
+  ): void {
     assertValidUnitRange(weight, "Anchor weight");
-
     anchor.weight = weight;
 
     const combinedWeight = weight * this.influenceInternal;
@@ -60,23 +62,17 @@ export abstract class AnimationTree extends AnimationState {
     }
 
     if (combinedWeight > 0 && animationAction.weight === 0) {
+      animationAction.enabled = true;
+      animationAction.paused = false;
       animationAction.time = 0;
-      animationAction.weight = combinedWeight;
       animationAction.play();
-      anchor.previousTime = 0;
-      anchor.hasFiredIterationEvent = false;
       this.emit(AnimationStateEvent.PLAY, animationAction, this);
-      return;
-    }
-
-    if (combinedWeight === 0 && animationAction.weight > 0) {
+    } else if (combinedWeight === 0 && animationAction.weight > 0) {
       animationAction.stop();
       animationAction.time = 0;
-      animationAction.weight = 0;
-      anchor.previousTime = 0;
-      anchor.hasFiredIterationEvent = false;
+      animationAction.paused = false;
+      animationAction.enabled = false;
       this.emit(AnimationStateEvent.STOP, animationAction, this);
-      return;
     }
 
     animationAction.weight = combinedWeight;

@@ -11,6 +11,12 @@ import type { Anchor } from "../mescellaneous/miscellaneous";
  */
 export abstract class AnimationState extends Eventail {
   /**
+   * The name identifier for this animation state.
+   * Used to identify and reference the state within the animation state machine.
+   */
+  public name = "";
+
+  /**
    * Internal storage for the state's influence value.
    * Represents the weight/contribution of this state in the animation state machine.
    */
@@ -52,24 +58,25 @@ export abstract class AnimationState extends Eventail {
    * Tracks whether iteration events have been fired to prevent duplicate emissions.
    *
    * @param anchor - The anchor object containing action, duration, and event tracking state
+   * @param deltaTime - Time elapsed since the last frame, in milliseconds
+   * @throws {Error} When the anchor's action is not running
    * @internal This method is intended to be called only by concrete animation state implementations
    */
-  protected updateAnchorTime(anchor: Anchor): void {
+  protected updateAnchorTime(anchor: Anchor, deltaTime: number): void {
     const action = anchor.action;
+
+    if (anchor.action.weight === 0) {
+      throw new Error(
+        `Cannot update anchor time for a non-running action: ${this.name}`,
+      );
+    }
+
     const time = action.time;
     const duration = anchor.duration;
 
-    if (
-      !anchor.hasFiredIterationEvent &&
-      (time >= duration || time < anchor.previousTime)
-    ) {
+    if (time < duration && time + deltaTime >= duration) {
       this.emit(anchor.iterationEventType, action, this);
-      anchor.hasFiredIterationEvent = true;
-    } else if (time < duration) {
-      anchor.hasFiredIterationEvent = false;
     }
-
-    anchor.previousTime = time;
   }
 
   /**

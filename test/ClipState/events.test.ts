@@ -2,7 +2,10 @@ import { LoopOnce, LoopPingPong, LoopRepeat } from "three";
 import { test } from "uvu";
 import * as assert from "uvu/assert";
 import { AnimationStateEvent } from "../../src/mescellaneous/AnimationStateEvent";
-import { buildMockAnimationAction } from "../mocks/buildMockAnimationAction";
+import {
+  buildMockAnimationAction,
+  MIXER,
+} from "../mocks/buildMockAnimationAction";
 import { ClipStateProxy } from "../proxies/ClipStateProxy";
 
 test("events: should emit ENTER/EXIT events", () => {
@@ -98,13 +101,11 @@ test("events: should emit correct FINISH/ITERATE event based on animation loop m
   loopRepeatState.invokeSetInfluence(1.0);
   loopPingPongState.invokeSetInfluence(1.0);
 
-  loopOnceAction.time = 1.0;
-  loopRepeatAction.time = 1.0;
-  loopPingPongAction.time = 1.0;
-
-  loopOnceState.invokeOnTick();
-  loopRepeatState.invokeOnTick();
-  loopPingPongState.invokeOnTick();
+  const step = 1;
+  loopOnceState.invokeOnTick(step);
+  loopRepeatState.invokeOnTick(step);
+  loopPingPongState.invokeOnTick(step);
+  MIXER.update(step);
 
   assert.ok(
     loopOnceFinishEventFired,
@@ -135,19 +136,22 @@ test("events: should emit correct FINISH/ITERATE event based on animation loop m
 });
 
 test("events: should prevent duplicate iteration events", () => {
-  const action = buildMockAnimationAction(1);
-  const clipState = new ClipStateProxy(action);
+  const action = buildMockAnimationAction(1, LoopOnce);
+  action.clampWhenFinished = true;
 
+  const clipState = new ClipStateProxy(action);
   clipState.invokeSetInfluence(1.0);
 
   let eventCount = 0;
-  clipState.on(AnimationStateEvent.ITERATE, () => {
+  clipState.on(AnimationStateEvent.FINISH, () => {
     eventCount += 1;
   });
 
-  action.time = 1.0;
-  clipState.invokeOnTick();
-  clipState.invokeOnTick();
+  const step = 1;
+  clipState.invokeOnTick(step);
+  MIXER.update(step);
+  clipState.invokeOnTick(step);
+  MIXER.update(step);
 
   assert.equal(
     eventCount,
@@ -217,19 +221,24 @@ test("events: should stop animation and emit STOP when influence becomes zero", 
 test("events: should detect animation restart and emit iteration event", () => {
   const action = buildMockAnimationAction(1);
   const clipState = new ClipStateProxy(action);
-
   clipState.invokeSetInfluence(1.0);
 
-  action.time = 0.8;
-  clipState.invokeOnTick();
+  {
+    const step = 0.5;
+    clipState.invokeOnTick(step);
+    MIXER.update(step);
+  }
 
   let eventFired = false;
   clipState.on(AnimationStateEvent.ITERATE, () => {
     eventFired = true;
   });
 
-  action.time = 0.1;
-  clipState.invokeOnTick();
+  {
+    const step = 0.5;
+    clipState.invokeOnTick(step);
+    MIXER.update(step);
+  }
 
   assert.ok(
     eventFired,
@@ -243,35 +252,49 @@ test("events: should update internal tracking state on each tick", () => {
 
   clipState.invokeSetInfluence(1.0);
 
-  action.time = 0.3;
-  clipState.invokeOnTick();
-
-  action.time = 0.6;
-  clipState.invokeOnTick();
+  {
+    const step = 0.3;
+    clipState.invokeOnTick(step);
+    MIXER.update(step);
+  }
+  {
+    const step = 0.6;
+    clipState.invokeOnTick(step);
+    MIXER.update(step);
+  }
 
   let eventFired = false;
   clipState.once(AnimationStateEvent.ITERATE, () => {
     eventFired = true;
   });
 
-  action.time = 1.0;
-  clipState.invokeOnTick();
+  {
+    const step = 1;
+    clipState.invokeOnTick(step);
+    MIXER.update(step);
+  }
 
   assert.ok(
     eventFired,
     "Should properly track state and fire events after partial progress",
   );
 
-  action.time = 0.5;
-  clipState.invokeOnTick();
+  {
+    const step = 0.5;
+    clipState.invokeOnTick(step);
+    MIXER.update(step);
+  }
 
   let secondEventFired = false;
   clipState.once(AnimationStateEvent.ITERATE, () => {
     secondEventFired = true;
   });
 
-  action.time = 1.0;
-  clipState.invokeOnTick();
+  {
+    const step = 1;
+    clipState.invokeOnTick(step);
+    MIXER.update(step);
+  }
 
   assert.ok(
     secondEventFired,

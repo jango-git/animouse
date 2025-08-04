@@ -1,14 +1,20 @@
 {
   "name": "animouse",
-  "version": "0.7.1",
+  "version": "0.7.2",
   "description": "lightweight animation state machine for three js",
   "scripts": {
     "clean": "rm -rf dist",
     "build": "npm run clean && rollup -c",
     "build:prod": "npm run clean && NODE_ENV=production rollup -c",
     "test": "npx --node-options='--import=tsx/esm' uvu test",
-    "test:math": "npx --node-options='--import=tsx/esm' uvu test/math",
+    "test:machine": "npx --node-options='--import=tsx/esm' uvu test/AnimationMachine",
+    "test:tree": "npx --node-options='--import=tsx/esm' uvu test/AnimationTree",
+    "test:clip": "npx --node-options='--import=tsx/esm' uvu test/ClipState",
     "test:delaunay": "npx --node-options='--import=tsx/esm' uvu test/DelaunayTriangulator",
+    "test:freeform": "npx --node-options='--import=tsx/esm' uvu test/FreeformBlendTree",
+    "test:linear": "npx --node-options='--import=tsx/esm' uvu test/LinearBlendTree",
+    "test:math": "npx --node-options='--import=tsx/esm' uvu test/math",
+    "test:polar": "npx --node-options='--import=tsx/esm' uvu test/PolarBlendTree",
     "coverage": "c8 --include=src --reporter=text npm test",
     "prepublishOnly": "npm run build:prod && npm test"
   },

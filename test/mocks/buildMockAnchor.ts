@@ -14,9 +14,7 @@ export function buildMockAnchor(
   return {
     action,
     weight: anchorWeight,
-    previousTime: 0,
     duration: action.getClip().duration,
-    hasFiredIterationEvent: false,
     iterationEventType:
       action.loop === LoopOnce
         ? AnimationStateEvent.FINISH

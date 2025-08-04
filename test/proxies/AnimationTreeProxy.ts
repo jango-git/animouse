@@ -16,7 +16,7 @@ export class AnimationTreeProxy extends AnimationTree {
   }
 
   public invokeUpdateAnchor(anchor: Anchor, weight?: number): void {
-    this.updateAnchor(anchor, weight);
+    this.updateAnchorWeight(anchor, weight);
   }
 
   public invokeIterateEvent(

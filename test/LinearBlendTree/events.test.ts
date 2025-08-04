@@ -1,9 +1,9 @@
-import type { AnimationAction } from "three";
 import { LoopOnce, LoopPingPong, LoopRepeat } from "three";
 import { test } from "uvu";
 import * as assert from "uvu/assert";
 import { AnimationStateEvent } from "../../src/mescellaneous/AnimationStateEvent";
 import { buildMockLinearAction } from "../mocks/buildMockAction";
+import { MIXER } from "../mocks/buildMockAnimationAction";
 import { LinearBlendTreeProxy } from "../proxies/LinearBlendTreeProxy";
 
 test("events: should emit ENTER/EXIT events", () => {
@@ -55,101 +55,129 @@ test("events: should emit ENTER/EXIT events", () => {
   assert.equal(exitState, tree, "EXIT event should provide the state");
 });
 
-test("events: should emit correct FINISH/ITERATE event based on animation loop mode", () => {
+test("events: should emit FINISH event for LoopOnce animations", () => {
   const loopOnceAction = buildMockLinearAction(0, LoopOnce);
-  const loopRepeatAction = buildMockLinearAction(0.5, LoopRepeat);
-  const loopPingPongAction = buildMockLinearAction(1, LoopPingPong);
 
   const tree = new LinearBlendTreeProxy([
     loopOnceAction,
-    loopRepeatAction,
-    loopPingPongAction,
+    buildMockLinearAction(1),
   ]);
+  tree.invokeSetInfluence(1);
 
-  let loopOnceFinishEventFired = false;
-  let loopOnceIterateEventFired = false;
+  let finishEventFired = false;
+  let iterateEventFired = false;
 
-  let loopRepeatFinishEventFired = false;
-  let loopRepeatIterateEventFired = false;
-
-  let loopPingPongFinishEventFired = false;
-  let loopPingPongIterateEventFired = false;
-
-  tree.on(AnimationStateEvent.FINISH, (action: AnimationAction) => {
-    if (action.loop === LoopOnce) {
-      loopOnceFinishEventFired = true;
-    } else if (action.loop === LoopRepeat) {
-      loopRepeatFinishEventFired = true;
-    } else {
-      loopPingPongFinishEventFired = true;
-    }
+  tree.on(AnimationStateEvent.FINISH, () => {
+    finishEventFired = true;
   });
 
-  tree.on(AnimationStateEvent.ITERATE, (action: AnimationAction) => {
-    if (action.loop === LoopOnce) {
-      loopOnceIterateEventFired = true;
-    } else if (action.loop === LoopRepeat) {
-      loopRepeatIterateEventFired = true;
-    } else {
-      loopPingPongIterateEventFired = true;
-    }
+  tree.on(AnimationStateEvent.ITERATE, () => {
+    iterateEventFired = true;
   });
 
-  loopOnceAction.action.time = 1;
-  loopRepeatAction.action.time = 0;
-  loopPingPongAction.action.time = 0;
-  tree.invokeOnTick();
-
-  loopOnceAction.action.time = 0;
-  loopRepeatAction.action.time = 1;
-  loopPingPongAction.action.time = 0;
-  tree.invokeOnTick();
-
-  loopOnceAction.action.time = 0;
-  loopRepeatAction.action.time = 0;
-  loopPingPongAction.action.time = 1;
-  tree.invokeOnTick();
+  const step = 1;
+  tree.invokeOnTick(step);
+  MIXER.update(step);
 
   assert.ok(
-    loopOnceFinishEventFired,
+    finishEventFired,
     "FINISH event should fire for LoopOnce animations",
   );
   assert.not.ok(
-    loopOnceIterateEventFired,
+    iterateEventFired,
     "ITERATE event should not fire for LoopOnce animations",
   );
+});
+
+test("events: should emit ITERATE event for LoopRepeat animations", () => {
+  const loopRepeatAction = buildMockLinearAction(0, LoopRepeat);
+
+  const tree = new LinearBlendTreeProxy([
+    loopRepeatAction,
+    buildMockLinearAction(1),
+  ]);
+  tree.invokeSetInfluence(1);
+
+  let finishEventFired = false;
+  let iterateEventFired = false;
+
+  tree.on(AnimationStateEvent.FINISH, () => {
+    finishEventFired = true;
+  });
+
+  tree.on(AnimationStateEvent.ITERATE, () => {
+    iterateEventFired = true;
+  });
+
+  const step = 1;
+  tree.invokeOnTick(step);
+  MIXER.update(step);
 
   assert.ok(
-    loopRepeatIterateEventFired,
+    iterateEventFired,
     "ITERATE event should fire for looped animations",
   );
   assert.not.ok(
-    loopRepeatFinishEventFired,
+    finishEventFired,
     "FINISH event should not fire for looped animations",
   );
+});
+
+test("events: should emit ITERATE event for LoopPingPong animations", () => {
+  const loopPingPongAction = buildMockLinearAction(0, LoopPingPong);
+
+  const tree = new LinearBlendTreeProxy([
+    loopPingPongAction,
+    buildMockLinearAction(1),
+  ]);
+  tree.invokeSetInfluence(1);
+
+  let finishEventFired = false;
+  let iterateEventFired = false;
+
+  tree.on(AnimationStateEvent.FINISH, () => {
+    finishEventFired = true;
+  });
+
+  tree.on(AnimationStateEvent.ITERATE, () => {
+    iterateEventFired = true;
+  });
+
+  const step = 1;
+  tree.invokeOnTick(step);
+  MIXER.update(step);
 
   assert.ok(
-    loopPingPongIterateEventFired,
+    iterateEventFired,
     "ITERATE event should fire for ping-pong animations",
   );
   assert.not.ok(
-    loopPingPongFinishEventFired,
+    finishEventFired,
     "FINISH event should not fire for ping-pong animations",
   );
 });
 
 test("events: should prevent duplicate iteration events", () => {
-  const action = buildMockLinearAction(0);
-  const tree = new LinearBlendTreeProxy([action, buildMockLinearAction(1)]);
+  const one = buildMockLinearAction(0, LoopOnce);
+  const two = buildMockLinearAction(1, LoopOnce);
+
+  one.action.clampWhenFinished = true;
+  two.action.clampWhenFinished = true;
+
+  const tree = new LinearBlendTreeProxy([one, two]);
+  tree.invokeSetInfluence(1);
 
   let eventCount = 0;
-  tree.on(AnimationStateEvent.ITERATE, () => {
+  tree.on(AnimationStateEvent.FINISH, () => {
     eventCount += 1;
   });
 
-  action.action.time = 1.0;
-  tree.invokeOnTick();
-  tree.invokeOnTick();
+  const step = 1;
+  tree.invokeOnTick(step);
+  MIXER.update(step);
+
+  tree.invokeOnTick(step);
+  MIXER.update(step);
 
   assert.equal(
     eventCount,

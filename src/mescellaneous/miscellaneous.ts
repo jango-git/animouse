@@ -19,12 +19,8 @@ export interface Anchor {
   action: AnimationAction;
   /** The weight of the animation action */
   weight: number;
-  /** The previous time value for animation timing */
-  previousTime: number;
   /** The duration of the animation */
   duration: number;
-  /** Whether an iteration event has been fired for this anchor */
-  hasFiredIterationEvent: boolean;
   /** The type of iteration event associated with this anchor */
   iterationEventType: AnimationStateEvent;
 }

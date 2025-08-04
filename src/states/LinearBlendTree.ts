@@ -115,6 +115,8 @@ export class LinearBlendTree extends AnimationTree {
       animationAction.stop();
       animationAction.time = 0;
       animationAction.weight = 0;
+      animationAction.paused = false;
+      animationAction.enabled = false;
 
       const duration = animationAction.getClip().duration;
       assertValidPositiveNumber(duration, "Clip duration");
@@ -123,8 +125,6 @@ export class LinearBlendTree extends AnimationTree {
         action: animationAction,
         weight: 0,
         duration,
-        previousTime: 0,
-        hasFiredIterationEvent: false,
         iterationEventType:
           animationAction.loop === LoopOnce
             ? AnimationStateEvent.FINISH
@@ -164,9 +164,18 @@ export class LinearBlendTree extends AnimationTree {
    * @internal This method is called exclusively by the animation state machine
    * @see {@link updateAnchorTime} for time tracking and event emission details
    */
-  protected ["onTickInternal"](): void {
-    for (const anchor of this.anchors) {
-      this.updateAnchorTime(anchor);
+  protected ["onTickInternal"](deltaTime: number): void {
+    if (this.influence === 0) {
+      throw new Error(
+        `${this.name}: cannot update anchor time because the animation influence is zero`,
+      );
+    }
+
+    if (this.lastLeftAnchor) {
+      this.updateAnchorTime(this.lastLeftAnchor, deltaTime);
+    }
+    if (this.lastRightAnchor) {
+      this.updateAnchorTime(this.lastRightAnchor, deltaTime);
     }
   }
 
@@ -178,10 +187,10 @@ export class LinearBlendTree extends AnimationTree {
    */
   protected updateAnchorsInfluence(): void {
     if (this.lastLeftAnchor) {
-      this.updateAnchor(this.lastLeftAnchor);
+      this.updateAnchorWeight(this.lastLeftAnchor);
     }
     if (this.lastRightAnchor) {
-      this.updateAnchor(this.lastRightAnchor);
+      this.updateAnchorWeight(this.lastRightAnchor);
     }
   }
 
@@ -199,14 +208,14 @@ export class LinearBlendTree extends AnimationTree {
     const firstAnchor = this.anchors[0];
     if (this.currentBlend <= firstAnchor.value) {
       if (this.lastLeftAnchor && this.lastLeftAnchor !== firstAnchor) {
-        this.updateAnchor(this.lastLeftAnchor, 0);
+        this.updateAnchorWeight(this.lastLeftAnchor, 0);
       }
 
       if (this.lastRightAnchor) {
-        this.updateAnchor(this.lastRightAnchor, 0);
+        this.updateAnchorWeight(this.lastRightAnchor, 0);
       }
 
-      this.updateAnchor(firstAnchor, 1);
+      this.updateAnchorWeight(firstAnchor, 1);
       this.lastLeftAnchor = firstAnchor;
       this.lastRightAnchor = undefined;
       return;
@@ -215,14 +224,14 @@ export class LinearBlendTree extends AnimationTree {
     const lastAnchor = this.anchors[this.anchors.length - 1];
     if (this.currentBlend >= lastAnchor.value) {
       if (this.lastRightAnchor && this.lastRightAnchor !== lastAnchor) {
-        this.updateAnchor(this.lastRightAnchor, 0);
+        this.updateAnchorWeight(this.lastRightAnchor, 0);
       }
 
       if (this.lastLeftAnchor) {
-        this.updateAnchor(this.lastLeftAnchor, 0);
+        this.updateAnchorWeight(this.lastLeftAnchor, 0);
       }
 
-      this.updateAnchor(lastAnchor, 1);
+      this.updateAnchorWeight(lastAnchor, 1);
       this.lastRightAnchor = lastAnchor;
       this.lastLeftAnchor = undefined;
       return;
@@ -245,7 +254,7 @@ export class LinearBlendTree extends AnimationTree {
         this.lastLeftAnchor !== lAnchor &&
         this.lastLeftAnchor !== rAnchor
       ) {
-        this.updateAnchor(this.lastLeftAnchor, 0);
+        this.updateAnchorWeight(this.lastLeftAnchor, 0);
       }
 
       if (
@@ -253,13 +262,13 @@ export class LinearBlendTree extends AnimationTree {
         this.lastRightAnchor !== lAnchor &&
         this.lastRightAnchor !== rAnchor
       ) {
-        this.updateAnchor(this.lastRightAnchor, 0);
+        this.updateAnchorWeight(this.lastRightAnchor, 0);
       }
 
       const difference =
         (this.currentBlend - lAnchor.value) / (rAnchor.value - lAnchor.value);
-      this.updateAnchor(lAnchor, 1 - difference);
-      this.updateAnchor(rAnchor, difference);
+      this.updateAnchorWeight(lAnchor, 1 - difference);
+      this.updateAnchorWeight(rAnchor, difference);
 
       this.lastLeftAnchor = lAnchor;
       this.lastRightAnchor = rAnchor;
