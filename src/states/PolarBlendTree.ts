@@ -333,6 +333,10 @@ export class PolarBlendTree extends AnimationTree {
     }
   }
 
+  public get blendValue(): { azimuth: number; radius: number } {
+    return { azimuth: this.currentAzimuth, radius: this.currentRadius };
+  }
+
   /**
    * Sets the blend position in polar coordinates to determine animation weights.
    *

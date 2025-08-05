@@ -175,9 +175,14 @@ export class AnimationMachine {
 
     const transitions = this.eventTransitions.get(event) ?? [];
 
-    for (const someTransition of transitions) {
-      if (someTransition.from === transition.from) {
-        throw new Error("Event animation transition already exists");
+    if (!transition.condition) {
+      for (const someTransition of transitions) {
+        if (
+          !someTransition.condition &&
+          someTransition.from === transition.from
+        ) {
+          throw new Error("Event animation transition already exists");
+        }
       }
     }
 
@@ -251,12 +256,6 @@ export class AnimationMachine {
     }
 
     const transitions = this.dataTransitions.get(from) ?? [];
-
-    for (const someTransition of transitions) {
-      if (someTransition.to === transition.to) {
-        throw new Error("Data animation transition already exists");
-      }
-    }
 
     transitions.push(transition);
     this.dataTransitions.set(from, transitions);
