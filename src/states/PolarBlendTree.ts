@@ -399,6 +399,15 @@ export class PolarBlendTree extends AnimationTree {
     }
   }
 
+  protected override ["onEnterInternal"](): void {
+    super.onEnterInternal();
+    if (this.influence > 0) {
+      for (const anchor of this.trackableAnchors) {
+        this.resetFinishedAction(anchor);
+      }
+    }
+  }
+
   /**
    * Updates the global influence for all active anchors in the polar blend tree.
    *

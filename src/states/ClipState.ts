@@ -111,4 +111,11 @@ export class ClipState extends AnimationState {
     }
     this.updateAnchorTime(this.anchor, deltaTime);
   }
+
+  protected override ["onEnterInternal"](): void {
+    super.onEnterInternal();
+    if (this.influence > 0) {
+      this.resetFinishedAction(this.anchor);
+    }
+  }
 }

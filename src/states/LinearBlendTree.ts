@@ -179,6 +179,18 @@ export class LinearBlendTree extends AnimationTree {
     }
   }
 
+  protected override ["onEnterInternal"](): void {
+    super.onEnterInternal();
+    if (this.influence > 0) {
+      if (this.lastLeftAnchor) {
+        this.resetFinishedAction(this.lastLeftAnchor);
+      }
+      if (this.lastRightAnchor) {
+        this.resetFinishedAction(this.lastRightAnchor);
+      }
+    }
+  }
+
   /**
    * Updates the influence for all anchors in the linear blend tree.
    * Called when the tree's influence changes but relative weights remain the same.

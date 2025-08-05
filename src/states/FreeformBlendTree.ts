@@ -258,6 +258,15 @@ export class FreeformBlendTree extends AnimationTree {
     }
   }
 
+  protected override ["onEnterInternal"](): void {
+    super.onEnterInternal();
+    if (this.influence > 0) {
+      for (const anchor of this.trackableAnchors) {
+        this.resetFinishedAction(anchor);
+      }
+    }
+  }
+
   /**
    * Updates the influence for all anchors in the freeform blend tree.
    * Called when the tree's influence changes but relative weights remain the same.

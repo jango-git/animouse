@@ -1,10 +1,17 @@
-# Animouse 🐭
+<p align="center">
+  <img src="https://raw.githubusercontent.com/jango-git/animouse/main/assets/logotype.svg" width="200" alt="Animouse logo"><br/>
+  <h1 align="center">Animouse</h1>
+  <p align="center">
+      A powerful animation state machine and blending system for Three.js that makes complex animation workflows simple and intuitive.
+  </p>
+</p>
 
-A powerful animation state machine and blending system for Three.js that makes complex animation workflows simple and intuitive.
-
-[![npm version](https://img.shields.io/npm/v/animouse.svg)](https://www.npmjs.com/package/animouse)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Three.js](https://img.shields.io/badge/Three.js-%5E0.176.0-blue)](https://threejs.org/)
+<p align="center">
+<a href="https://www.npmjs.com/package/animouse"><img src="https://img.shields.io/npm/v/animouse.svg" alt="npm version"></a>
+<a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License: MIT"></a>
+<a href="https://www.typescriptlang.org/"><img src="https://img.shields.io/badge/TypeScript-%5E5.8.0-blue" alt="TypeScript"></a>
+<a href="https://threejs.org/"><img src="https://img.shields.io/badge/Three.js-%5E0.175.0-blue" alt="TypeScript"></a>
+</p>
 
 ## Features
 

@@ -1,4 +1,5 @@
 import { Eventail } from "eventail";
+import { LoopOnce } from "three";
 import { AnimationStateEvent } from "../mescellaneous/AnimationStateEvent";
 import type { Anchor } from "../mescellaneous/miscellaneous";
 
@@ -76,6 +77,15 @@ export abstract class AnimationState extends Eventail {
 
     if (time < duration && time + deltaTime >= duration) {
       this.emit(anchor.iterationEventType, action, this);
+    }
+  }
+
+  protected resetFinishedAction(anchor: Anchor): void {
+    const action = anchor.action;
+    if (action.loop === LoopOnce && action.time === anchor.duration) {
+      action.time = 0;
+      action.paused = false;
+      action.enabled = true;
     }
   }
 
