@@ -20,14 +20,15 @@
             }
             .polar-area {
                 width: 220px;
-                height: 220px;
+                height: 110px;
                 background: linear-gradient(
                     135deg,
                     rgba(255, 255, 255, 0.1),
                     rgba(255, 255, 255, 0.05)
                 );
                 border: 2px solid rgba(255, 255, 255, 0.2);
-                border-radius: 50%;
+                border-radius: 110px 110px 0 0;
+                border-bottom: 2px solid rgba(255, 255, 255, 0.2);
                 position: relative;
                 margin: 0 auto;
                 cursor: crosshair;
@@ -54,18 +55,20 @@
             .polar-ring {
                 position: absolute;
                 border: 1px solid rgba(255, 255, 255, 0.2);
-                border-radius: 50%;
+                border-bottom: none;
                 left: 50%;
-                top: 50%;
-                transform: translate(-50%, -50%);
+                bottom: 0;
+                transform: translateX(-50%);
             }
             .polar-ring.walk {
                 width: 60%;
-                height: 60%;
+                height: 66px;
+                border-radius: 66px 66px 0 0;
             }
             .polar-ring.run {
                 width: 90%;
-                height: 90%;
+                height: 99px;
+                border-radius: 99px 99px 0 0;
             }
             .direction-labels {
                 position: absolute;
@@ -81,29 +84,41 @@
                 text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
                 transform: translate(-50%, -50%);
             }
-            .direction-label.forward {
-                top: 10px;
-                left: 50%;
-            }
-            .direction-label.right {
-                top: 50%;
-                right: 10px;
-                transform: translate(50%, -50%);
-            }
-            .direction-label.backward {
+
+            .direction-label.idle {
                 bottom: 10px;
                 left: 50%;
+                color: #4caf50;
                 transform: translate(-50%, 50%);
             }
-            .direction-label.left {
-                top: 50%;
-                left: 10px;
-                transform: translate(-50%, -50%);
-            }
-            .direction-label.idle {
-                top: 50%;
+            .polar-labels-overlay {
+                position: absolute;
+                width: 260px;
+                height: 130px;
+                top: 0;
                 left: 50%;
-                color: #4caf50;
+                transform: translateX(-50%);
+                pointer-events: none;
+                z-index: 10;
+            }
+            .direction-label.forward {
+                position: absolute;
+                top: 50px;
+                left: 50%;
+                color: rgba(255, 255, 255, 0.8);
+                transform: translateX(-50%);
+            }
+            .direction-label.left {
+                position: absolute;
+                top: 180px;
+                left: 2px;
+                color: rgba(255, 255, 255, 0.8);
+            }
+            .direction-label.right {
+                position: absolute;
+                top: 180px;
+                right: -25px;
+                color: rgba(255, 255, 255, 0.8);
             }
             .polar-coordinates-display {
                 margin-top: 12px;
@@ -129,13 +144,14 @@
                         <div class="polar-ring run"></div>
                     </div>
                     <div class="direction-labels">
-                        <div class="direction-label forward">Forward</div>
-                        <div class="direction-label right">Right</div>
-                        <div class="direction-label backward">Backward</div>
-                        <div class="direction-label left">Left</div>
                         <div class="direction-label idle">Idle</div>
                     </div>
                     <div class="polar-cursor" id="polar-cursor"></div>
+                </div>
+                <div class="polar-labels-overlay">
+                    <div class="direction-label forward">Forward</div>
+                    <div class="direction-label left">Left</div>
+                    <div class="direction-label right">Right</div>
                 </div>
                 <div class="polar-coordinates-display">
                     <div>
@@ -147,8 +163,8 @@
                         Intensity: <span id="intensity-text">Idle</span>
                     </div>
                     <div style="margin-top: 4px; font-size: 10px; opacity: 0.7">
-                        Move cursor: center = idle, inner ring = walk, outer
-                        ring = run
+                        Move cursor: bottom = idle, inner arc = walk, outer arc
+                        = run
                     </div>
                 </div>
             </div>
@@ -232,17 +248,12 @@
                     clipMap.set(clip.name, action);
                 }
 
-                // Create PolarBlendTree with movement directions
+                // Create PolarBlendTree with movement directions (semicircle only)
                 polarBlendTree = new ANIMOUSE.PolarBlendTree(
                     [
                         {
                             action: clipMap.get("A_Walk_Forward"),
                             azimuth: 0,
-                            radius: 0.5,
-                        },
-                        {
-                            action: clipMap.get("A_Walk_Backward"),
-                            azimuth: Math.PI,
                             radius: 0.5,
                         },
                         {
@@ -258,11 +269,6 @@
                         {
                             action: clipMap.get("A_Run_Forward"),
                             azimuth: 0,
-                            radius: 1,
-                        },
-                        {
-                            action: clipMap.get("A_Run_Backward"),
-                            azimuth: Math.PI,
                             radius: 1,
                         },
                         {
@@ -299,6 +305,11 @@
                 updateCursorPosition(0, 0);
 
                 function updateCursorPosition(azimuth, radius) {
+                    // Clamp azimuth to semicircle range [-π/2, π/2]
+                    azimuth = Math.max(
+                        -Math.PI / 2,
+                        Math.min(Math.PI / 2, azimuth),
+                    );
                     // Clamp radius to [0, 1] range
                     radius = Math.max(0, Math.min(1, radius));
 
@@ -306,9 +317,9 @@
                     const x = radius * Math.sin(azimuth);
                     const y = radius * Math.cos(azimuth);
 
-                    // Convert to pixel coordinates (110px = radius of circle)
+                    // Convert to pixel coordinates (110px = radius of semicircle)
                     const pixelX = 110 + x * 100; // Center + scaled position
-                    const pixelY = 110 - y * 100; // Center - scaled position (CSS Y is flipped)
+                    const pixelY = 110 - y * 100; // Bottom - scaled position (CSS Y is flipped)
 
                     cursor.style.left = pixelX + "px";
                     cursor.style.top = pixelY + "px";
@@ -317,16 +328,11 @@
                     azimuthValue.textContent = azimuth.toFixed(2);
                     radiusValue.textContent = radius.toFixed(2);
 
-                    // Update direction text based on azimuth
-                    if (Math.abs(azimuth) < Math.PI / 4) {
+                    // Update direction text based on azimuth (semicircle only)
+                    if (Math.abs(azimuth) < Math.PI / 6) {
                         directionText.textContent = "Forward";
-                    } else if (
-                        azimuth >= Math.PI / 4 &&
-                        azimuth < (3 * Math.PI) / 4
-                    ) {
+                    } else if (azimuth < 0) {
                         directionText.textContent = "Left";
-                    } else if (Math.abs(azimuth) >= (3 * Math.PI) / 4) {
-                        directionText.textContent = "Backward";
                     } else {
                         directionText.textContent = "Right";
                     }
@@ -348,17 +354,24 @@
                 function getPolarFromEvent(event) {
                     const rect = polarArea.getBoundingClientRect();
                     const centerX = rect.left + rect.width / 2;
-                    const centerY = rect.top + rect.height / 2;
+                    const centerY = rect.bottom; // Bottom of semicircle
 
-                    const x = (event.clientX - centerX) / 100; // Scale by radius
-                    const y = -(event.clientY - centerY) / 100; // Flip CSS Y coordinates
+                    let x = (event.clientX - centerX) / 100; // Scale by radius
+                    let y = -(event.clientY - centerY) / 100; // Flip CSS Y coordinates
+
+                    // Clamp to semicircle area only - don't allow negative y
+                    if (y < 0) {
+                        y = 0;
+                    }
 
                     let radius = Math.sqrt(x * x + y * y);
                     let azimuth = Math.atan2(x, y); // atan2(x, y) so 0 is forward/up
 
-                    // Normalize azimuth to [-π, π]
-                    if (azimuth > Math.PI) azimuth -= 2 * Math.PI;
-                    if (azimuth < -Math.PI) azimuth += 2 * Math.PI;
+                    // Clamp azimuth to semicircle: only allow forward hemisphere
+                    azimuth = Math.max(
+                        -Math.PI / 2,
+                        Math.min(Math.PI / 2, azimuth),
+                    );
 
                     return { azimuth, radius };
                 }
