@@ -148,6 +148,45 @@
             >
         </div>
 
+        <div
+            class="description-panel"
+            style="
+                position: fixed;
+                top: 60%;
+                left: 20px;
+                transform: translateY(-50%);
+                max-width: 350px;
+                background: rgba(0, 0, 0, 0.8);
+                border-radius: 8px;
+                padding: 16px;
+                color: white;
+                font-size: 12px;
+                line-height: 1.4;
+                backdrop-filter: blur(10px);
+            "
+        >
+            <div style="font-weight: 600; margin-bottom: 8px; color: #4caf50">
+                What's happening here?
+            </div>
+            <div style="margin-bottom: 8px">
+                This example demonstrates <strong>FreeformBlendTree</strong> - a
+                2D animation blending system where animations can be positioned
+                at arbitrary coordinates in 2D space.
+            </div>
+            <div style="margin-bottom: 8px">
+                Move the cursor in the square area to blend between:
+                <br />• <strong>Corners</strong>: 4 different dance styles
+                <br />• <strong>Center</strong>: Idle animation <br />•
+                <strong>Edges/Between</strong>: Smooth blends of nearby
+                animations
+            </div>
+            <div style="opacity: 0.7">
+                Perfect for emotion systems, facial expressions, dance/gesture
+                blending, or any scenario requiring natural 2D interpolation
+                between multiple states.
+            </div>
+        </div>
+
         <script type="module">
             import * as THREE from "https://esm.sh/three@0.175";
             import { OrbitControls } from "https://esm.sh/three@0.175/examples/jsm/controls/OrbitControls";

@@ -14,16 +14,38 @@
         </style>
     </head>
     <body>
-        <div class="info-panel">
-            <div class="info-title">Clip State</div>
-            <div class="info-text">
-                Simple animation state that plays a single animation clip.
+        <div
+            class="description-panel"
+            style="
+                position: absolute;
+                top: 20px;
+                left: 20px;
+                max-width: 350px;
+                background: rgba(0, 0, 0, 0.8);
+                border-radius: 8px;
+                padding: 16px;
+                color: white;
+                font-size: 12px;
+                line-height: 1.4;
+                backdrop-filter: blur(10px);
+                z-index: 100;
+            "
+        >
+            <div style="font-weight: 600; margin-bottom: 8px; color: #4caf50">
+                What's happening here?
             </div>
-            <div class="info-text">
-                Perfect for basic character idle states or looping animations.
+            <div style="margin-bottom: 8px">
+                This example demonstrates the most basic Animouse state:
+                <strong>ClipState</strong>. A ClipState simply plays a single
+                animation clip continuously.
             </div>
-            <div class="animation-info">Current: Idle Animation</div>
+            <div style="margin-bottom: 8px">
+                The character is playing the "A_Idle" animation on loop. This is
+                perfect for:
+                <br />• Static character states (idle, breathing) <br />
+            </div>
         </div>
+
         <div class="nav-buttons">
             <div class="nav-button examples">
                 <a href="index.html">Examples</a>

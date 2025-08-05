@@ -72,6 +72,45 @@
                 >source</a
             >
         </div>
+
+        <div
+            class="description-panel"
+            style="
+                position: fixed;
+                top: 50%;
+                left: 20px;
+                transform: translateY(-50%);
+                max-width: 350px;
+                background: rgba(0, 0, 0, 0.8);
+                border-radius: 8px;
+                padding: 16px;
+                color: white;
+                font-size: 12px;
+                line-height: 1.4;
+                backdrop-filter: blur(10px);
+            "
+        >
+            <div style="font-weight: 600; margin-bottom: 8px; color: #4caf50">
+                What's happening here?
+            </div>
+            <div style="margin-bottom: 8px">
+                This example demonstrates
+                <strong>Event-Driven Transitions</strong> and
+                <strong>Automatic Transitions</strong> - the state machine
+                responds to events and automatically returns to previous states.
+            </div>
+            <div style="margin-bottom: 8px">
+                • <strong>Speed Slider</strong>: Controls LinearBlendTree
+                (idle→walk→run) <br />• <strong>Jump Button</strong>: Triggers
+                event transition to jump <br />• <strong>Auto Return</strong>:
+                Jump automatically returns to movement <br />• Different jump
+                animations based on current speed
+            </div>
+            <div style="opacity: 0.7">
+                Perfect for action games, interactive characters, or any system
+                requiring temporary state changes with automatic cleanup.
+            </div>
+        </div>
         <script type="module">
             import * as THREE from "https://esm.sh/three@0.175";
             import { OrbitControls } from "https://esm.sh/three@0.175/examples/jsm/controls/OrbitControls";

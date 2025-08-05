@@ -169,6 +169,7 @@
                 </div>
             </div>
         </div>
+
         <div class="nav-buttons">
             <div class="nav-button previous">
                 <a href="01_linear_blend_tree.html">Previous</a>
@@ -187,6 +188,44 @@
                 target="_blank"
                 >source</a
             >
+        </div>
+
+        <div
+            class="description-panel"
+            style="
+                position: fixed;
+                top: 50%;
+                left: 20px;
+                transform: translateY(-50%);
+                max-width: 350px;
+                background: rgba(0, 0, 0, 0.8);
+                border-radius: 8px;
+                padding: 16px;
+                color: white;
+                font-size: 12px;
+                line-height: 1.4;
+                backdrop-filter: blur(10px);
+            "
+        >
+            <div style="font-weight: 600; margin-bottom: 8px; color: #4caf50">
+                What's happening here?
+            </div>
+            <div style="margin-bottom: 8px">
+                This example demonstrates <strong>PolarBlendTree</strong> - a 2D
+                animation blending system using polar coordinates (angle +
+                distance from center).
+            </div>
+            <div style="margin-bottom: 8px">
+                Move the cursor in the circular area to control:
+                <br />• <strong>Azimuth</strong>: Direction (left/forward/right)
+                <br />• <strong>Radius</strong>: Intensity (idle/walk/run)
+                <br />• Center = idle, inner ring = walk, outer ring = run
+            </div>
+            <div style="opacity: 0.7">
+                Perfect for omnidirectional movement systems, vehicle controls,
+                or any scenario requiring natural 2D navigation with varying
+                intensity.
+            </div>
         </div>
 
         <script type="module">

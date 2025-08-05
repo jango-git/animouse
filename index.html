@@ -106,6 +106,11 @@
                 character animations and transitions.
             </p>
             <p>
+                The library supports various state types: simple clip states,
+                linear and polar blend trees, freeform 2D blending, as well as
+                event-driven, automatic state transitions, and more.
+            </p>
+            <p>
                 Explore the examples below to see how to integrate Animouse into
                 your Three.js projects.
             </p>
@@ -141,9 +146,9 @@
             <div class="example-card">
                 <div class="example-title">00. Clip State</div>
                 <div class="example-description">
-                    Basic example showing how to play a single animation using
-                    ClipState. Perfect introduction to Animouse with a simple
-                    idle character animation.
+                    Simplest example showing how to play a single animation
+                    using ClipState. Demonstrates basic Animouse functionality
+                    with a character in idle state.
                 </div>
                 <div>
                     <span class="tech-stack">Three.js</span>
@@ -161,8 +166,9 @@
                 <div class="example-title">01. Linear Blend Tree</div>
                 <div class="example-description">
                     Interactive demonstration of Linear Blend Tree for 1D
-                    animation blending. Control character movement from running
-                    backward to running forward with smooth transitions.
+                    animation blending. Slider allows smooth transitions between
+                    5 states: run backward, walk backward, idle, walk forward,
+                    run forward.
                 </div>
                 <div>
                     <span class="tech-stack">Three.js</span>
@@ -180,8 +186,8 @@
                 <div class="example-title">02. Polar Blend Tree</div>
                 <div class="example-description">
                     Advanced 2D animation blending using polar coordinates.
-                    Control character movement direction (azimuth) and intensity
-                    (radius) with dual sliders for omnidirectional movement.
+                    Circular control allows managing movement direction
+                    (left-right-forward) and intensity (idle-walk-run).
                 </div>
                 <div>
                     <span class="tech-stack">Three.js</span>
@@ -198,9 +204,9 @@
             <div class="example-card">
                 <div class="example-title">03. Freeform Blend Tree</div>
                 <div class="example-description">
-                    Interactive 2D animation blending with arbitrary
-                    positioning. Control dance style mixing using a 2D area with
-                    mouse/touch interaction for natural blend transitions.
+                    Interactive 2D blending with arbitrary animation
+                    positioning. Cursor control in a square area for blending 4
+                    dance styles and idle state.
                 </div>
                 <div>
                     <span class="tech-stack">Three.js</span>
@@ -217,9 +223,9 @@
             <div class="example-card">
                 <div class="example-title">04. Event-Driven Transitions</div>
                 <div class="example-description">
-                    Learn how to trigger animation transitions using events and
-                    automatic transitions. Features a jump action with seamless
-                    return to movement states.
+                    Demonstration of event-driven and automatic state
+                    transitions. Slider controls movement (idle-walk-run),
+                    button triggers jump with automatic return to movement.
                 </div>
                 <div>
                     <span class="tech-stack">Three.js</span>
