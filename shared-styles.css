@@ -1,108 +1,197 @@
 /* Shared styles for Animouse examples */
 
+:root {
+    --primary-color: #4caf50;
+    --primary-hover: #45a049;
+    --secondary-color: #3498db;
+    --secondary-hover: #2980b9;
+    --accent-color: #81c784;
+    --bg-dark: #1a1a1a;
+    --bg-panel: rgba(45, 45, 45, 0.95);
+    --bg-overlay: rgba(0, 0, 0, 0.8);
+    --text-primary: #ffffff;
+    --text-secondary: rgba(255, 255, 255, 0.8);
+    --text-muted: rgba(255, 255, 255, 0.6);
+    --border-color: rgba(255, 255, 255, 0.1);
+    --border-active: rgba(76, 175, 80, 0.3);
+}
+
 body {
     margin: 0;
     overflow: hidden;
     font-family:
         -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: var(--bg-dark);
+    color: var(--text-primary);
 }
 
 canvas {
     display: block;
 }
 
-/* Control Panel Styles */
+/* Combined Panel Styles */
+.main-panel {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    background: var(--bg-panel);
+    border-radius: 12px;
+    padding: 0;
+    color: var(--text-primary);
+    z-index: 100;
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--border-color);
+    min-width: 280px;
+    max-width: 350px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.control-section {
+    padding: 20px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.description-section {
+    padding: 20px;
+    background: var(--bg-overlay);
+    border-radius: 0 0 12px 12px;
+}
+
+.control-title {
+    margin: 0 0 16px 0;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--primary-color);
+    text-align: center;
+}
+
+.description-title {
+    font-weight: 600;
+    margin-bottom: 12px;
+    color: var(--primary-color);
+    font-size: 14px;
+}
+
+.description-text {
+    font-size: 12px;
+    line-height: 1.5;
+    margin-bottom: 12px;
+    color: var(--text-secondary);
+}
+
+.description-text:last-child {
+    margin-bottom: 0;
+    color: var(--text-muted);
+}
+
+/* Legacy support for old panel styles */
 .control-panel,
 .info-panel {
     position: absolute;
     top: 20px;
     left: 20px;
-    background: rgba(0, 0, 0, 0.75);
-    border-radius: 8px;
-    padding: 16px;
-    color: white;
+    background: var(--bg-panel);
+    border-radius: 12px;
+    padding: 20px;
+    color: var(--text-primary);
     z-index: 100;
     backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    min-width: 200px;
+    border: 1px solid var(--border-color);
+    min-width: 280px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
 }
 
-.control-title,
 .info-title {
-    margin: 0 0 12px 0;
-    font-size: 14px;
+    margin: 0 0 16px 0;
+    font-size: 16px;
     font-weight: 600;
-    opacity: 0.9;
+    color: var(--primary-color);
 }
 
 .info-text {
     font-size: 12px;
-    opacity: 0.8;
+    color: var(--text-secondary);
     margin: 8px 0;
+    line-height: 1.5;
 }
 
 .animation-info {
     font-size: 11px;
-    color: #4caf50;
+    color: var(--primary-color);
     margin-top: 12px;
-    padding-top: 8px;
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    padding-top: 12px;
+    border-top: 1px solid var(--border-color);
 }
 
 /* Slider Controls */
 .slider-container {
-    margin: 12px 0;
+    margin: 16px 0;
 }
 
 .slider-label {
     display: flex;
     justify-content: space-between;
     font-size: 12px;
-    margin-bottom: 6px;
-    opacity: 0.8;
+    margin-bottom: 8px;
+    color: var(--text-secondary);
+    font-weight: 500;
 }
 
 .slider {
     width: 100%;
-    height: 4px;
-    border-radius: 2px;
-    background: rgba(255, 255, 255, 0.2);
+    height: 6px;
+    border-radius: 3px;
+    background: rgba(255, 255, 255, 0.15);
     outline: none;
     -webkit-appearance: none;
     appearance: none;
     margin: 0;
     display: block;
+    cursor: pointer;
 }
 
 .slider::-webkit-slider-thumb {
     appearance: none;
-    width: 16px;
-    height: 16px;
+    width: 18px;
+    height: 18px;
     border-radius: 50%;
-    background: #4caf50;
+    background: var(--primary-color);
     cursor: pointer;
     border: 2px solid white;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+    transition: all 0.2s ease;
+}
+
+.slider::-webkit-slider-thumb:hover {
+    background: var(--primary-hover);
+    transform: scale(1.1);
 }
 
 .slider::-moz-range-thumb {
-    width: 16px;
-    height: 16px;
+    width: 18px;
+    height: 18px;
     border-radius: 50%;
-    background: #4caf50;
+    background: var(--primary-color);
     cursor: pointer;
     border: 2px solid white;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+    transition: all 0.2s ease;
+}
+
+.slider::-moz-range-thumb:hover {
+    background: var(--primary-hover);
+    transform: scale(1.1);
 }
 
 .animation-labels {
     display: flex;
     font-size: 10px;
-    margin-top: 6px;
-    opacity: 0.7;
+    margin-top: 8px;
+    color: var(--text-muted);
     position: relative;
     padding: 0;
     width: 100%;
+    font-weight: 500;
 }
 
 .animation-labels span {
@@ -148,38 +237,203 @@ canvas {
     flex: 0 0 auto;
 }
 
+/* Button Styles */
+.control-button {
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 10px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    min-width: 80px;
+}
+
+.control-button:hover {
+    background: var(--primary-hover);
+    transform: translateY(-1px);
+}
+
+.control-button.secondary {
+    background: var(--secondary-color);
+}
+
+.control-button.secondary:hover {
+    background: var(--secondary-hover);
+}
+
+.control-buttons {
+    margin: 16px 0;
+    display: flex;
+    gap: 10px;
+}
+
 /* Polar Blend Tree specific */
 .polar-visualization {
-    margin: 12px 0;
-    padding: 12px;
+    margin: 16px 0;
+    padding: 16px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    font-size: 11px;
+    color: var(--text-secondary);
+    border: 1px solid var(--border-color);
+}
+
+/* Freeform Blend specific */
+.blend-control {
+    margin: 16px 0;
+    text-align: center;
+}
+
+.blend-area {
+    width: 200px;
+    height: 200px;
+    background: linear-gradient(
+        135deg,
+        rgba(76, 175, 80, 0.1),
+        rgba(76, 175, 80, 0.05)
+    );
+    border: 2px solid var(--border-active);
+    border-radius: 8px;
+    position: relative;
+    margin: 0 auto;
+    cursor: crosshair;
+    overflow: hidden;
+}
+
+.blend-cursor {
+    width: 12px;
+    height: 12px;
+    background: var(--primary-color);
+    border: 2px solid white;
+    border-radius: 50%;
+    position: absolute;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+    transition: all 0.1s ease;
+}
+
+.dance-labels {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+}
+
+.dance-label {
+    position: absolute;
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--text-primary);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.7);
+    transform: translate(-50%, -50%);
+}
+
+.dance-label.top-left {
+    top: 15px;
+    left: 15px;
+    transform: none;
+}
+
+.dance-label.top-right {
+    top: 15px;
+    right: 15px;
+    transform: none;
+}
+
+.dance-label.bottom-left {
+    bottom: 15px;
+    left: 15px;
+    transform: none;
+}
+
+.dance-label.bottom-right {
+    bottom: 15px;
+    right: 15px;
+    transform: none;
+}
+
+.coordinates-display {
+    margin-top: 12px;
+    padding: 10px;
     background: rgba(255, 255, 255, 0.05);
     border-radius: 6px;
     font-size: 11px;
-    opacity: 0.8;
+    color: var(--text-secondary);
+    border: 1px solid var(--border-color);
 }
 
-/* Source Link */
-.source-link {
+/* Polar area styles */
+.polar-area {
+    width: 160px;
+    height: 160px;
+    border: 2px solid var(--border-active);
+    border-radius: 50%;
+    position: relative;
+    margin: 0 auto;
+    background: radial-gradient(circle, rgba(76, 175, 80, 0.05), transparent);
+    cursor: crosshair;
+}
+
+.polar-cursor {
+    width: 12px;
+    height: 12px;
+    background: var(--primary-color);
+    border: 2px solid white;
+    border-radius: 50%;
     position: absolute;
-    bottom: 20px;
-    right: 20px;
-    background: rgba(0, 0, 0, 0.75);
-    border-radius: 6px;
-    padding: 8px 12px;
-    z-index: 100;
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
 }
 
-.source-link a {
-    color: #4caf50;
-    text-decoration: none;
+/* Automatic transitions specific */
+.dance-indicator {
+    margin: 16px 0;
+    padding: 16px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    text-align: center;
+    border: 1px solid var(--border-color);
+}
+
+.current-dance {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--primary-color);
+    margin-bottom: 8px;
+}
+
+.dance-list {
+    margin: 16px 0;
     font-size: 12px;
-    font-weight: 500;
+    color: var(--text-secondary);
 }
 
-.source-link a:hover {
-    text-decoration: underline;
+.dance-item {
+    padding: 8px 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-radius: 6px;
+    margin: 4px 0;
+    transition: all 0.2s ease;
+}
+
+.dance-item.active {
+    color: var(--primary-color);
+    font-weight: 600;
+    background: rgba(76, 175, 80, 0.15);
+    border: 1px solid var(--border-active);
+}
+
+.dance-number {
+    color: var(--text-muted);
+    font-size: 10px;
+    font-weight: normal;
 }
 
 /* Navigation Buttons */
@@ -188,36 +442,126 @@ canvas {
     bottom: 20px;
     left: 20px;
     display: flex;
-    gap: 8px;
+    gap: 10px;
     z-index: 100;
 }
 
 .nav-button {
-    background: rgba(0, 0, 0, 0.75);
-    border-radius: 6px;
-    padding: 8px 12px;
+    background: var(--bg-panel);
+    border-radius: 8px;
+    padding: 10px 16px;
     backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    min-width: 70px;
+    border: 1px solid var(--border-color);
+    min-width: 80px;
     text-align: center;
+    transition: all 0.2s ease;
+}
+
+.nav-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
 .nav-button a {
-    color: #4caf50;
+    color: var(--primary-color);
     text-decoration: none;
     font-size: 12px;
     font-weight: 500;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 4px;
+    gap: 6px;
 }
 
 .nav-button a:hover {
+    color: var(--primary-hover);
+}
+
+.nav-button.previous a::before {
+    content: "←";
+    font-size: 14px;
+}
+
+.nav-button.next a::after {
+    content: "→";
+    font-size: 14px;
+}
+
+.nav-button.examples {
+    background: rgba(76, 175, 80, 0.2);
+    border: 1px solid var(--border-active);
+}
+
+.nav-button.examples a {
+    color: var(--text-primary);
+}
+
+/* Source Link */
+.source-link {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    background: var(--bg-panel);
+    border-radius: 8px;
+    padding: 10px 16px;
+    z-index: 100;
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--border-color);
+    transition: all 0.2s ease;
+}
+
+.source-link:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.source-link a {
+    color: var(--secondary-color);
+    text-decoration: none;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.source-link a:hover {
+    color: var(--secondary-hover);
     text-decoration: underline;
 }
 
+/* Keep old back-link for compatibility */
+.back-link {
+    position: absolute;
+    bottom: 20px;
+    left: 20px;
+    background: var(--bg-panel);
+    border-radius: 8px;
+    padding: 10px 16px;
+    z-index: 100;
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--border-color);
+}
+
+.back-link a {
+    color: var(--primary-color);
+    text-decoration: none;
+    font-size: 12px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.back-link a:hover {
+    color: var(--primary-hover);
+    text-decoration: underline;
+}
+
+.back-link a::before {
+    content: "←";
+    font-size: 14px;
+}
+
 /* Disable text selection on interactive elements */
+.main-panel,
 .control-panel,
 .info-panel,
 .nav-buttons,
@@ -239,51 +583,4 @@ input[type="range"],
     -moz-user-drag: none;
     -o-user-drag: none;
     user-drag: none;
-}
-
-.nav-button.previous a::before {
-    content: "←";
-    font-size: 14px;
-}
-
-.nav-button.next a::after {
-    content: "→";
-    font-size: 14px;
-}
-
-.nav-button.examples {
-    background: rgba(76, 175, 80, 0.2);
-    border: 1px solid rgba(76, 175, 80, 0.3);
-}
-
-/* Keep old back-link for compatibility */
-.back-link {
-    position: absolute;
-    bottom: 20px;
-    left: 20px;
-    background: rgba(0, 0, 0, 0.75);
-    border-radius: 6px;
-    padding: 8px 12px;
-    z-index: 100;
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.back-link a {
-    color: #4caf50;
-    text-decoration: none;
-    font-size: 12px;
-    font-weight: 500;
-    display: flex;
-    align-items: center;
-    gap: 4px;
-}
-
-.back-link a:hover {
-    text-decoration: underline;
-}
-
-.back-link a::before {
-    content: "←";
-    font-size: 14px;
 }

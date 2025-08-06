@@ -4,45 +4,34 @@
         <meta charset="UTF-8" />
         <title>Animouse Clip State</title>
         <link rel="stylesheet" href="shared-styles.css" />
-        <style>
-            body {
-                user-select: none;
-                -webkit-user-select: none;
-                -moz-user-select: none;
-                -ms-user-select: none;
-            }
-        </style>
     </head>
     <body>
-        <div
-            class="description-panel"
-            style="
-                position: absolute;
-                top: 20px;
-                left: 20px;
-                max-width: 350px;
-                background: rgba(0, 0, 0, 0.8);
-                border-radius: 8px;
-                padding: 16px;
-                color: white;
-                font-size: 12px;
-                line-height: 1.4;
-                backdrop-filter: blur(10px);
-                z-index: 100;
-            "
-        >
-            <div style="font-weight: 600; margin-bottom: 8px; color: #4caf50">
-                What's happening here?
+        <div class="main-panel">
+            <div class="control-section">
+                <div class="control-title">Clip State</div>
+                <div class="info-text">
+                    Currently playing: <strong>A_Idle</strong>
+                </div>
             </div>
-            <div style="margin-bottom: 8px">
-                This example demonstrates the most basic Animouse state:
-                <strong>ClipState</strong>. A ClipState simply plays a single
-                animation clip continuously.
-            </div>
-            <div style="margin-bottom: 8px">
-                The character is playing the "A_Idle" animation on loop. This is
-                perfect for:
-                <br />• Static character states (idle, breathing) <br />
+
+            <div class="description-section">
+                <div class="description-title">What's happening here?</div>
+                <div class="description-text">
+                    This example demonstrates the most basic Animouse state:
+                    <strong>ClipState</strong>. A ClipState simply plays a
+                    single animation clip continuously.
+                </div>
+                <div class="description-text">
+                    • <strong>Single Animation</strong>: Plays one clip on
+                    loop<br />
+                    • <strong>Simple Setup</strong>: Minimal code required<br />
+                    • <strong>Foundation</strong>: Building block for complex
+                    states
+                </div>
+                <div class="description-text">
+                    Perfect for static character states, idle animations,
+                    breathing cycles, or any single-animation scenarios.
+                </div>
             </div>
         </div>
 

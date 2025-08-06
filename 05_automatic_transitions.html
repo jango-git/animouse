@@ -4,77 +4,60 @@
         <meta charset="UTF-8" />
         <title>Animouse Automatic Transitions</title>
         <link rel="stylesheet" href="shared-styles.css" />
-        <style>
-            body {
-                user-select: none;
-                -webkit-user-select: none;
-                -moz-user-select: none;
-                -ms-user-select: none;
-            }
-            .control-panel {
-                min-width: 280px;
-            }
-            .dance-indicator {
-                margin: 16px 0;
-                padding: 12px;
-                background: rgba(255, 255, 255, 0.05);
-                border-radius: 6px;
-                text-align: center;
-            }
-            .current-dance {
-                font-size: 16px;
-                font-weight: 600;
-                color: #4caf50;
-                margin-bottom: 8px;
-            }
-            .dance-list {
-                margin: 12px 0;
-                font-size: 12px;
-                color: rgba(255, 255, 255, 0.8);
-            }
-            .dance-item {
-                padding: 6px 0;
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-            }
-            .dance-item.active {
-                color: #4caf50;
-                font-weight: 600;
-                background: rgba(76, 175, 80, 0.1);
-                padding: 6px 8px;
-                border-radius: 4px;
-            }
-            .dance-number {
-                opacity: 0.7;
-                font-size: 10px;
-            }
-        </style>
     </head>
     <body>
-        <div class="control-panel">
-            <div class="control-title">Automatic Transitions</div>
+        <div class="main-panel">
+            <div class="control-section">
+                <div class="control-title">Automatic Transitions</div>
 
-            <div class="dance-indicator">
-                <div class="current-dance" id="current-dance">Animation 0</div>
+                <div class="dance-indicator">
+                    <div class="current-dance" id="current-dance">
+                        Animation 0
+                    </div>
+                </div>
+
+                <div class="dance-list">
+                    <div class="dance-item active" id="dance-0">
+                        <span>Animation 0</span>
+                        <span class="dance-number">#0</span>
+                    </div>
+                    <div class="dance-item" id="dance-1">
+                        <span>Animation 1</span>
+                        <span class="dance-number">#1</span>
+                    </div>
+                    <div class="dance-item" id="dance-2">
+                        <span>Animation 2</span>
+                        <span class="dance-number">#2</span>
+                    </div>
+                    <div class="dance-item" id="dance-3">
+                        <span>Animation 3</span>
+                        <span class="dance-number">#3</span>
+                    </div>
+                </div>
             </div>
 
-            <div class="dance-list">
-                <div class="dance-item active" id="dance-0">
-                    <span>Animation 0</span>
-                    <span class="dance-number">#0</span>
+            <div class="description-section">
+                <div class="description-title">What's happening here?</div>
+                <div class="description-text">
+                    This example demonstrates
+                    <strong>Automatic Transitions</strong>
+                    that occur when animations naturally complete their cycles.
+                    The character continuously cycles through 4 different
+                    animations.
                 </div>
-                <div class="dance-item" id="dance-1">
-                    <span>Animation 1</span>
-                    <span class="dance-number">#1</span>
+                <div class="description-text">
+                    • <strong>Natural Cycling</strong>: Transitions happen when
+                    animations finish<br />
+                    • <strong>Smooth Transitions</strong>: 0.5s blend between
+                    states<br />
+                    • <strong>No Timers</strong>: Pure automatic behavior<br />
+                    • <strong>State Tracking</strong>: Uses currentState to
+                    track active animation
                 </div>
-                <div class="dance-item" id="dance-2">
-                    <span>Animation 2</span>
-                    <span class="dance-number">#2</span>
-                </div>
-                <div class="dance-item" id="dance-3">
-                    <span>Animation 3</span>
-                    <span class="dance-number">#3</span>
+                <div class="description-text">
+                    Perfect for showcases, background characters, idle systems,
+                    or any scenario where you want seamless automatic animation
+                    cycling without manual timing.
                 </div>
             </div>
         </div>
@@ -94,39 +77,6 @@
                 target="_blank"
                 >source</a
             >
-        </div>
-
-        <div
-            class="description-panel"
-            style="
-                position: fixed;
-                top: 50%;
-                left: 20px;
-                transform: translateY(-50%);
-                max-width: 350px;
-                background: rgba(0, 0, 0, 0.8);
-                border-radius: 8px;
-                padding: 16px;
-                color: white;
-                font-size: 12px;
-                line-height: 1.4;
-                backdrop-filter: blur(10px);
-            "
-        >
-            <div style="font-weight: 600; margin-bottom: 8px; color: #4caf50">
-                What's happening here?
-            </div>
-            <div style="margin-bottom: 8px">
-                This example demonstrates <strong>Automatic Transitions</strong>
-                that occur when animations naturally complete their cycles. The
-                character continuously cycles through 4 different animations.
-            </div>
-            <div style="margin-bottom: 8px">
-                • <strong>Natural Cycling</strong>: Transitions happen when
-                animations finish <br />• <strong>Smooth Transitions</strong>:
-                0.5s blend between states <br />• <strong>No Timers</strong>:
-                Pure automatic behavior
-            </div>
         </div>
 
         <script type="module">
@@ -188,7 +138,7 @@
                     clipMap.set(clip.name, action);
                 }
 
-                // Create individual dance states
+                // Create individual states for each dance animation
                 danceStates = [
                     new ANIMOUSE.ClipState(clipMap.get("A_Dance_0")),
                     new ANIMOUSE.ClipState(clipMap.get("A_Dance_1")),
@@ -218,7 +168,7 @@
                 const currentState = machine.currentState;
                 let currentDanceIndex = -1;
 
-                // Find which dance state is currently active
+                // Find which animation state is currently active
                 for (let i = 0; i < danceStates.length; i++) {
                     if (currentState === danceStates[i]) {
                         currentDanceIndex = i;
@@ -232,7 +182,7 @@
                         document.getElementById("current-dance");
                     currentDanceElement.textContent = `Animation ${currentDanceIndex}`;
 
-                    // Update dance list highlighting
+                    // Update animation list highlighting
                     for (let i = 0; i < 4; i++) {
                         const danceItem = document.getElementById(`dance-${i}`);
                         if (i === currentDanceIndex) {

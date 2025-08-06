@@ -4,126 +4,78 @@
         <meta charset="UTF-8" />
         <title>Animouse Freeform Blend Tree</title>
         <link rel="stylesheet" href="shared-styles.css" />
-        <style>
-            body {
-                user-select: none;
-                -webkit-user-select: none;
-                -moz-user-select: none;
-                -ms-user-select: none;
-            }
-            .control-panel {
-                min-width: 340px;
-            }
-            .blend-control {
-                margin: 16px 0;
-                text-align: center;
-            }
-            .blend-area {
-                width: 200px;
-                height: 200px;
-                background: linear-gradient(
-                    135deg,
-                    rgba(255, 255, 255, 0.1),
-                    rgba(255, 255, 255, 0.05)
-                );
-                border: 2px solid rgba(255, 255, 255, 0.2);
-                border-radius: 8px;
-                position: relative;
-                margin: 0 auto;
-                cursor: crosshair;
-                overflow: hidden;
-            }
-            .blend-cursor {
-                width: 12px;
-                height: 12px;
-                background: #4caf50;
-                border: 2px solid white;
-                border-radius: 50%;
-                position: absolute;
-                transform: translate(-50%, -50%);
-                pointer-events: none;
-                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-                transition: all 0.1s ease;
-            }
-            .dance-labels {
-                position: absolute;
-                width: 100%;
-                height: 100%;
-                pointer-events: none;
-            }
-            .dance-label {
-                position: absolute;
-                font-size: 10px;
-                font-weight: 600;
-                color: rgba(255, 255, 255, 0.8);
-                text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
-                transform: translate(-50%, -50%);
-            }
-            .dance-label.top-left {
-                top: 15px;
-                left: 15px;
-                transform: none;
-            }
-            .dance-label.top-right {
-                top: 15px;
-                right: 15px;
-                transform: none;
-            }
-            .dance-label.bottom-left {
-                bottom: 15px;
-                left: 15px;
-                transform: none;
-            }
-            .dance-label.bottom-right {
-                bottom: 15px;
-                right: 15px;
-                transform: none;
-            }
-            .coordinates-display {
-                margin-top: 12px;
-                padding: 8px;
-                background: rgba(255, 255, 255, 0.05);
-                border-radius: 4px;
-                font-size: 11px;
-                opacity: 0.8;
-            }
-        </style>
     </head>
     <body>
-        <div class="control-panel">
-            <div class="control-title">Freeform Blend Tree</div>
+        <div class="main-panel">
+            <div class="control-section">
+                <div class="control-title">Freeform Blend Tree</div>
 
-            <div class="blend-control">
-                <div class="slider-label" style="margin-bottom: 8px">
-                    <span>Dance Style Blending</span>
-                </div>
-                <div class="blend-area" id="blend-area">
-                    <div class="dance-labels">
-                        <div class="dance-label top-left">Dance 0</div>
-                        <div class="dance-label top-right">Dance 1</div>
-                        <div class="dance-label bottom-left">Dance 2</div>
-                        <div class="dance-label bottom-right">Dance 3</div>
+                <div class="blend-control">
+                    <div class="slider-label" style="margin-bottom: 8px">
+                        <span>Animation Style Blending</span>
+                    </div>
+                    <div class="blend-area" id="blend-area">
+                        <div class="dance-labels">
+                            <div class="dance-label top-left">Animation 0</div>
+                            <div class="dance-label top-right">Animation 1</div>
+                            <div class="dance-label bottom-left">
+                                Animation 2
+                            </div>
+                            <div class="dance-label bottom-right">
+                                Animation 3
+                            </div>
+                            <div
+                                class="dance-label"
+                                style="
+                                    top: 50%;
+                                    left: 50%;
+                                    transform: translate(-50%, -50%);
+                                "
+                            >
+                                Idle
+                            </div>
+                        </div>
+                        <div class="blend-cursor" id="blend-cursor"></div>
+                    </div>
+                    <div class="coordinates-display">
+                        <div>
+                            X: <span id="x-coord">0.00</span> | Y:
+                            <span id="y-coord">0.00</span>
+                        </div>
                         <div
-                            class="dance-label"
                             style="
-                                top: 50%;
-                                left: 50%;
-                                transform: translate(-50%, -50%);
+                                margin-top: 6px;
+                                font-size: 10px;
+                                color: var(--text-muted);
                             "
                         >
-                            Idle
+                            Move cursor to blend between animations and idle
                         </div>
                     </div>
-                    <div class="blend-cursor" id="blend-cursor"></div>
                 </div>
-                <div class="coordinates-display">
-                    <div>
-                        X: <span id="x-coord">0.00</span> | Y:
-                        <span id="y-coord">0.00</span>
-                    </div>
-                    <div style="margin-top: 4px; font-size: 10px; opacity: 0.7">
-                        Move cursor to blend between dances and idle
-                    </div>
+            </div>
+
+            <div class="description-section">
+                <div class="description-title">What's happening here?</div>
+                <div class="description-text">
+                    This example demonstrates
+                    <strong>FreeformBlendTree</strong> - a 2D animation blending
+                    system where animations can be positioned at arbitrary
+                    coordinates in 2D space.
+                </div>
+                <div class="description-text">
+                    • <strong>2D Control</strong>: Square area for free
+                    movement<br />
+                    • <strong>Corner Animations</strong>: 4 different styles at
+                    corners<br />
+                    • <strong>Center Idle</strong>: Idle animation at origin<br />
+                    • <strong>Smooth Blending</strong>: Natural interpolation
+                    between nearby states
+                </div>
+                <div class="description-text">
+                    Perfect for emotion systems, facial expressions, gesture
+                    blending, or any scenario requiring natural 2D interpolation
+                    between multiple states.
                 </div>
             </div>
         </div>
@@ -146,45 +98,6 @@
                 target="_blank"
                 >source</a
             >
-        </div>
-
-        <div
-            class="description-panel"
-            style="
-                position: fixed;
-                top: 60%;
-                left: 20px;
-                transform: translateY(-50%);
-                max-width: 350px;
-                background: rgba(0, 0, 0, 0.8);
-                border-radius: 8px;
-                padding: 16px;
-                color: white;
-                font-size: 12px;
-                line-height: 1.4;
-                backdrop-filter: blur(10px);
-            "
-        >
-            <div style="font-weight: 600; margin-bottom: 8px; color: #4caf50">
-                What's happening here?
-            </div>
-            <div style="margin-bottom: 8px">
-                This example demonstrates <strong>FreeformBlendTree</strong> - a
-                2D animation blending system where animations can be positioned
-                at arbitrary coordinates in 2D space.
-            </div>
-            <div style="margin-bottom: 8px">
-                Move the cursor in the square area to blend between:
-                <br />• <strong>Corners</strong>: 4 different dance styles
-                <br />• <strong>Center</strong>: Idle animation <br />•
-                <strong>Edges/Between</strong>: Smooth blends of nearby
-                animations
-            </div>
-            <div style="opacity: 0.7">
-                Perfect for emotion systems, facial expressions, dance/gesture
-                blending, or any scenario requiring natural 2D interpolation
-                between multiple states.
-            </div>
         </div>
 
         <script type="module">

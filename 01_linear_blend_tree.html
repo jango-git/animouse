@@ -4,41 +4,56 @@
         <meta charset="UTF-8" />
         <title>Animouse Linear Blend Tree</title>
         <link rel="stylesheet" href="shared-styles.css" />
-        <style>
-            body {
-                user-select: none;
-                -webkit-user-select: none;
-                -moz-user-select: none;
-                -ms-user-select: none;
-            }
-            .control-panel {
-                min-width: 280px;
-            }
-        </style>
     </head>
     <body>
-        <div class="control-panel">
-            <div class="control-title">Linear Blend Tree</div>
-            <div class="slider-container">
-                <div class="slider-label">
-                    <span>Blend Value:</span>
-                    <span id="blend-value">0.00</span>
+        <div class="main-panel">
+            <div class="control-section">
+                <div class="control-title">Linear Blend Tree</div>
+                <div class="slider-container">
+                    <div class="slider-label">
+                        <span>Blend Value:</span>
+                        <span id="blend-value">0.00</span>
+                    </div>
+                    <input
+                        type="range"
+                        id="blend-slider"
+                        class="slider"
+                        min="-1"
+                        max="1"
+                        step="0.01"
+                        value="0"
+                    />
+                    <div class="animation-labels five-labels">
+                        <span>Run Back</span>
+                        <span>Walk Back</span>
+                        <span>Idle</span>
+                        <span>Walk Fwd</span>
+                        <span>Run Fwd</span>
+                    </div>
                 </div>
-                <input
-                    type="range"
-                    id="blend-slider"
-                    class="slider"
-                    min="-1"
-                    max="1"
-                    step="0.01"
-                    value="0"
-                />
-                <div class="animation-labels five-labels">
-                    <span>Run Back</span>
-                    <span>Walk Back</span>
-                    <span>Idle</span>
-                    <span>Walk Fwd</span>
-                    <span>Run Fwd</span>
+            </div>
+
+            <div class="description-section">
+                <div class="description-title">What's happening here?</div>
+                <div class="description-text">
+                    This example demonstrates <strong>LinearBlendTree</strong> -
+                    a 1D animation blending system that smoothly transitions
+                    between multiple animations based on a single parameter.
+                </div>
+                <div class="description-text">
+                    • <strong>1D Blending</strong>: Single slider controls 5
+                    animations<br />
+                    • <strong>Smooth Transitions</strong>: Natural movement
+                    between states<br />
+                    • <strong>Value Mapping</strong>: -1 to 1 range covers all
+                    animations<br />
+                    • <strong>Real-time Control</strong>: Instant response to
+                    input
+                </div>
+                <div class="description-text">
+                    Perfect for locomotion systems, weapon handling, or any
+                    scenario where you need smooth transitions along a single
+                    axis of control.
                 </div>
             </div>
         </div>
@@ -61,43 +76,6 @@
             >
         </div>
 
-        <div
-            class="description-panel"
-            style="
-                position: fixed;
-                top: 50%;
-                left: 20px;
-                transform: translateY(-50%);
-                max-width: 350px;
-                background: rgba(0, 0, 0, 0.8);
-                border-radius: 8px;
-                padding: 16px;
-                color: white;
-                font-size: 12px;
-                line-height: 1.4;
-                backdrop-filter: blur(10px);
-            "
-        >
-            <div style="font-weight: 600; margin-bottom: 8px; color: #4caf50">
-                What's happening here?
-            </div>
-            <div style="margin-bottom: 8px">
-                This example demonstrates <strong>LinearBlendTree</strong> - a
-                1D animation blending system that smoothly transitions between
-                multiple animations based on a single parameter.
-            </div>
-            <div style="margin-bottom: 8px">
-                The slider controls a blend value from -1 to 1, which maps to 5
-                different animations:
-                <br />• -1.0: Run Backward <br />• -0.5: Walk Backward <br />•
-                0.0: Idle <br />• 0.5: Walk Forward <br />• 1.0: Run Forward
-            </div>
-            <div style="opacity: 0.7">
-                Perfect for locomotion systems, weapon handling, or any scenario
-                where you need smooth transitions along a single axis of
-                control.
-            </div>
-        </div>
         <script type="module">
             import * as THREE from "https://esm.sh/three@0.175";
             import { OrbitControls } from "https://esm.sh/three@0.175/examples/jsm/controls/OrbitControls";

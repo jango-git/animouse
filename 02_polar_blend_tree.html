@@ -5,46 +5,21 @@
         <title>Animouse Polar Blend Tree</title>
         <link rel="stylesheet" href="shared-styles.css" />
         <style>
-            body {
-                user-select: none;
-                -webkit-user-select: none;
-                -moz-user-select: none;
-                -ms-user-select: none;
-            }
-            .control-panel {
-                min-width: 340px;
-            }
-            .polar-control {
-                margin: 16px 0;
-                text-align: center;
-            }
             .polar-area {
                 width: 220px;
                 height: 110px;
                 background: linear-gradient(
                     135deg,
-                    rgba(255, 255, 255, 0.1),
-                    rgba(255, 255, 255, 0.05)
+                    rgba(76, 175, 80, 0.1),
+                    rgba(76, 175, 80, 0.05)
                 );
-                border: 2px solid rgba(255, 255, 255, 0.2);
+                border: 2px solid var(--border-active);
                 border-radius: 110px 110px 0 0;
-                border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+                border-bottom: 2px solid var(--border-active);
                 position: relative;
                 margin: 0 auto;
                 cursor: crosshair;
                 overflow: hidden;
-            }
-            .polar-cursor {
-                width: 12px;
-                height: 12px;
-                background: #4caf50;
-                border: 2px solid white;
-                border-radius: 50%;
-                position: absolute;
-                transform: translate(-50%, -50%);
-                pointer-events: none;
-                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-                transition: all 0.1s ease;
             }
             .polar-rings {
                 position: absolute;
@@ -54,7 +29,7 @@
             }
             .polar-ring {
                 position: absolute;
-                border: 1px solid rgba(255, 255, 255, 0.2);
+                border: 1px solid rgba(255, 255, 255, 0.3);
                 border-bottom: none;
                 left: 50%;
                 bottom: 0;
@@ -80,15 +55,14 @@
                 position: absolute;
                 font-size: 10px;
                 font-weight: 600;
-                color: rgba(255, 255, 255, 0.8);
-                text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+                color: var(--text-primary);
+                text-shadow: 0 1px 2px rgba(0, 0, 0, 0.7);
                 transform: translate(-50%, -50%);
             }
-
             .direction-label.idle {
                 bottom: 10px;
                 left: 50%;
-                color: #4caf50;
+                color: var(--primary-color);
                 transform: translate(-50%, 50%);
             }
             .polar-labels-overlay {
@@ -105,67 +79,115 @@
                 position: absolute;
                 top: 50px;
                 left: 50%;
-                color: rgba(255, 255, 255, 0.8);
+                color: var(--text-secondary);
                 transform: translateX(-50%);
             }
             .direction-label.left {
                 position: absolute;
                 top: 180px;
                 left: 2px;
-                color: rgba(255, 255, 255, 0.8);
+                color: var(--text-secondary);
             }
             .direction-label.right {
                 position: absolute;
                 top: 180px;
                 right: -25px;
-                color: rgba(255, 255, 255, 0.8);
-            }
-            .polar-coordinates-display {
-                margin-top: 12px;
-                padding: 8px;
-                background: rgba(255, 255, 255, 0.05);
-                border-radius: 4px;
-                font-size: 11px;
-                opacity: 0.8;
+                color: var(--text-secondary);
             }
         </style>
     </head>
     <body>
-        <div class="control-panel">
-            <div class="control-title">Polar Blend Tree</div>
+        <div class="main-panel">
+            <div class="control-section">
+                <div class="control-title">Polar Blend Tree</div>
 
-            <div class="polar-control">
-                <div class="slider-label" style="margin-bottom: 8px">
-                    <span>Polar Movement Control</span>
+                <div class="blend-control">
+                    <div class="slider-label" style="margin-bottom: 8px">
+                        <span>Direction & Intensity</span>
+                    </div>
+                    <div class="polar-area" id="polar-area">
+                        <div class="polar-rings">
+                            <div class="polar-ring walk"></div>
+                            <div class="polar-ring run"></div>
+                        </div>
+                        <div class="direction-labels">
+                            <div class="direction-label idle">Idle</div>
+                        </div>
+                        <div class="polar-cursor" id="polar-cursor"></div>
+                    </div>
+                    <div class="polar-labels-overlay">
+                        <div class="direction-label forward">Forward</div>
+                        <div class="direction-label left">Left</div>
+                        <div class="direction-label right">Right</div>
+                    </div>
+                    <div class="coordinates-display">
+                        <div>
+                            Azimuth: <span id="azimuth-coord">0.00</span> |
+                            Radius:
+                            <span id="radius-coord">0.00</span>
+                        </div>
+                        <div>
+                            Direction:
+                            <span id="direction-text">Forward</span> |
+                            Intensity: <span id="intensity-text">Idle</span>
+                        </div>
+                        <div
+                            style="
+                                margin-top: 6px;
+                                font-size: 10px;
+                                color: var(--text-muted);
+                            "
+                        >
+                            Click to control movement direction and intensity
+                        </div>
+                    </div>
                 </div>
-                <div class="polar-area" id="polar-area">
-                    <div class="polar-rings">
-                        <div class="polar-ring walk"></div>
-                        <div class="polar-ring run"></div>
+
+                <div class="polar-visualization">
+                    <div
+                        style="
+                            font-weight: 600;
+                            margin-bottom: 8px;
+                            color: var(--primary-color);
+                        "
+                    >
+                        Polar Coordinates:
                     </div>
-                    <div class="direction-labels">
-                        <div class="direction-label idle">Idle</div>
+                    <div style="margin-bottom: 6px; font-size: 11px">
+                        • <strong>Azimuth</strong>: Direction angle
+                        (left←→right)
                     </div>
-                    <div class="polar-cursor" id="polar-cursor"></div>
+                    <div style="margin-bottom: 6px; font-size: 11px">
+                        • <strong>Radius</strong>: Distance from center
+                        (intensity)
+                    </div>
+                    <div style="font-size: 10px; color: var(--text-muted)">
+                        Center = idle, inner ring = walk, outer ring = run
+                    </div>
                 </div>
-                <div class="polar-labels-overlay">
-                    <div class="direction-label forward">Forward</div>
-                    <div class="direction-label left">Left</div>
-                    <div class="direction-label right">Right</div>
+            </div>
+
+            <div class="description-section">
+                <div class="description-title">What's happening here?</div>
+                <div class="description-text">
+                    This example demonstrates <strong>PolarBlendTree</strong> -
+                    a 2D animation blending system using polar coordinates for
+                    intuitive directional movement control.
                 </div>
-                <div class="polar-coordinates-display">
-                    <div>
-                        Azimuth: <span id="azimuth-value">0.00</span> | Radius:
-                        <span id="radius-value">0.00</span>
-                    </div>
-                    <div>
-                        Direction: <span id="direction-text">Forward</span> |
-                        Intensity: <span id="intensity-text">Idle</span>
-                    </div>
-                    <div style="margin-top: 4px; font-size: 10px; opacity: 0.7">
-                        Move cursor: bottom = idle, inner arc = walk, outer arc
-                        = run
-                    </div>
+                <div class="description-text">
+                    • <strong>Polar Control</strong>: Semicircle area for
+                    natural movement<br />
+                    • <strong>Direction & Speed</strong>: Azimuth sets
+                    direction, radius sets intensity<br />
+                    • <strong>Multi-layer Blending</strong>: Smooth transitions
+                    between all states<br />
+                    • <strong>Visual Feedback</strong>: Real-time coordinate
+                    display
+                </div>
+                <div class="description-text">
+                    Perfect for character locomotion, vehicle controls, or any
+                    scenario requiring directional movement with variable
+                    intensity.
                 </div>
             </div>
         </div>
@@ -188,44 +210,6 @@
                 target="_blank"
                 >source</a
             >
-        </div>
-
-        <div
-            class="description-panel"
-            style="
-                position: fixed;
-                top: 50%;
-                left: 20px;
-                transform: translateY(-50%);
-                max-width: 350px;
-                background: rgba(0, 0, 0, 0.8);
-                border-radius: 8px;
-                padding: 16px;
-                color: white;
-                font-size: 12px;
-                line-height: 1.4;
-                backdrop-filter: blur(10px);
-            "
-        >
-            <div style="font-weight: 600; margin-bottom: 8px; color: #4caf50">
-                What's happening here?
-            </div>
-            <div style="margin-bottom: 8px">
-                This example demonstrates <strong>PolarBlendTree</strong> - a 2D
-                animation blending system using polar coordinates (angle +
-                distance from center).
-            </div>
-            <div style="margin-bottom: 8px">
-                Move the cursor in the circular area to control:
-                <br />• <strong>Azimuth</strong>: Direction (left/forward/right)
-                <br />• <strong>Radius</strong>: Intensity (idle/walk/run)
-                <br />• Center = idle, inner ring = walk, outer ring = run
-            </div>
-            <div style="opacity: 0.7">
-                Perfect for omnidirectional movement systems, vehicle controls,
-                or any scenario requiring natural 2D navigation with varying
-                intensity.
-            </div>
         </div>
 
         <script type="module">
@@ -326,15 +310,15 @@
 
                 machine = new ANIMOUSE.AnimationMachine(polarBlendTree, mixer);
 
-                // Setup slider controls
+                // Setup controls
                 setupControls();
             });
 
             function setupControls() {
                 const polarArea = document.getElementById("polar-area");
                 const cursor = document.getElementById("polar-cursor");
-                const azimuthValue = document.getElementById("azimuth-value");
-                const radiusValue = document.getElementById("radius-value");
+                const azimuthCoord = document.getElementById("azimuth-coord");
+                const radiusCoord = document.getElementById("radius-coord");
                 const directionText = document.getElementById("direction-text");
                 const intensityText = document.getElementById("intensity-text");
 
@@ -364,8 +348,11 @@
                     cursor.style.top = pixelY + "px";
 
                     // Update coordinate display
-                    azimuthValue.textContent = azimuth.toFixed(2);
-                    radiusValue.textContent = radius.toFixed(2);
+                    const azimuthDegrees = ((azimuth * 180) / Math.PI).toFixed(
+                        0,
+                    );
+                    azimuthCoord.textContent = azimuthDegrees + "°";
+                    radiusCoord.textContent = radius.toFixed(2);
 
                     // Update direction text based on azimuth (semicircle only)
                     if (Math.abs(azimuth) < Math.PI / 6) {

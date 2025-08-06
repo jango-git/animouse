@@ -4,57 +4,62 @@
         <meta charset="UTF-8" />
         <title>Animouse Event-Driven Transitions</title>
         <link rel="stylesheet" href="shared-styles.css" />
-        <style>
-            body {
-                user-select: none;
-                -webkit-user-select: none;
-                -moz-user-select: none;
-                -ms-user-select: none;
-            }
-            .control-panel {
-                min-width: 280px;
-            }
-        </style>
     </head>
     <body>
-        <div class="control-panel">
-            <div class="control-title">Event-Driven Transitions</div>
-            <div class="slider-container">
-                <div class="slider-label">
-                    <span>Movement Speed:</span>
-                    <span id="speed-value">0.00</span>
+        <div class="main-panel">
+            <div class="control-section">
+                <div class="control-title">Event-Driven Transitions</div>
+                <div class="slider-container">
+                    <div class="slider-label">
+                        <span>Movement Speed:</span>
+                        <span id="speed-value">0.00</span>
+                    </div>
+                    <input
+                        type="range"
+                        id="speed-slider"
+                        class="slider"
+                        min="0"
+                        max="1"
+                        step="0.01"
+                        value="0"
+                    />
+                    <div class="animation-labels three-labels">
+                        <span>Idle</span>
+                        <span>Walk</span>
+                        <span>Run</span>
+                    </div>
                 </div>
-                <input
-                    type="range"
-                    id="speed-slider"
-                    class="slider"
-                    min="0"
-                    max="1"
-                    step="0.01"
-                    value="0"
-                />
-                <div class="animation-labels three-labels">
-                    <span>Idle</span>
-                    <span>Walk</span>
-                    <span>Run</span>
+                <div class="control-buttons">
+                    <button class="control-button" id="jump-button">
+                        JUMP
+                    </button>
                 </div>
             </div>
-            <div class="slider-container">
-                <button
-                    id="jump-button"
-                    style="
-                        background: #4caf50;
-                        color: white;
-                        border: none;
-                        padding: 10px 20px;
-                        border-radius: 4px;
-                        cursor: pointer;
-                        font-size: 12px;
-                        width: 100%;
-                    "
-                >
-                    JUMP
-                </button>
+
+            <div class="description-section">
+                <div class="description-title">What's happening here?</div>
+                <div class="description-text">
+                    This example demonstrates
+                    <strong>Event-Driven Transitions</strong> and
+                    <strong>Automatic Transitions</strong> - the state machine
+                    responds to events and automatically returns to previous
+                    states.
+                </div>
+                <div class="description-text">
+                    • <strong>Speed Slider</strong>: Controls LinearBlendTree
+                    (idle→walk→run)<br />
+                    • <strong>Jump Button</strong>: Triggers event transition to
+                    jump<br />
+                    • <strong>Auto Return</strong>: Jump automatically returns
+                    to movement<br />
+                    • <strong>Smart Selection</strong>: Different jump
+                    animations based on current speed
+                </div>
+                <div class="description-text">
+                    Perfect for action games, interactive characters, or any
+                    system requiring temporary state changes with automatic
+                    cleanup.
+                </div>
             </div>
         </div>
         <div class="nav-buttons">
@@ -76,44 +81,6 @@
             >
         </div>
 
-        <div
-            class="description-panel"
-            style="
-                position: fixed;
-                top: 50%;
-                left: 20px;
-                transform: translateY(-50%);
-                max-width: 350px;
-                background: rgba(0, 0, 0, 0.8);
-                border-radius: 8px;
-                padding: 16px;
-                color: white;
-                font-size: 12px;
-                line-height: 1.4;
-                backdrop-filter: blur(10px);
-            "
-        >
-            <div style="font-weight: 600; margin-bottom: 8px; color: #4caf50">
-                What's happening here?
-            </div>
-            <div style="margin-bottom: 8px">
-                This example demonstrates
-                <strong>Event-Driven Transitions</strong> and
-                <strong>Automatic Transitions</strong> - the state machine
-                responds to events and automatically returns to previous states.
-            </div>
-            <div style="margin-bottom: 8px">
-                • <strong>Speed Slider</strong>: Controls LinearBlendTree
-                (idle→walk→run) <br />• <strong>Jump Button</strong>: Triggers
-                event transition to jump <br />• <strong>Auto Return</strong>:
-                Jump automatically returns to movement <br />• Different jump
-                animations based on current speed
-            </div>
-            <div style="opacity: 0.7">
-                Perfect for action games, interactive characters, or any system
-                requiring temporary state changes with automatic cleanup.
-            </div>
-        </div>
         <script type="module">
             import * as THREE from "https://esm.sh/three@0.175";
             import { OrbitControls } from "https://esm.sh/three@0.175/examples/jsm/controls/OrbitControls";
