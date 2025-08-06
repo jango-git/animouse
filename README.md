@@ -8,9 +8,10 @@
 
 <p align="center">
 <a href="https://www.npmjs.com/package/animouse"><img src="https://img.shields.io/npm/v/animouse.svg" alt="npm version"></a>
+<a href="https://bundlephobia.com/package/animouse"><img src="https://badgen.net/bundlephobia/min/animouse" alt="bundle size (min)"></a>
 <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License: MIT"></a>
 <a href="https://www.typescriptlang.org/"><img src="https://img.shields.io/badge/TypeScript-%5E5.8.0-blue" alt="TypeScript"></a>
-<a href="https://threejs.org/"><img src="https://img.shields.io/badge/Three.js-%5E0.175.0-blue" alt="TypeScript"></a>
+<a href="https://threejs.org/"><img src="https://img.shields.io/badge/Three.js-%5E0.175.0-green" alt="Three.js"></a>
 </p>
 
 ## Features
