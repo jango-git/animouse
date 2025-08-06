@@ -1,0 +1,266 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <title>Animouse Automatic Transitions</title>
+        <link rel="stylesheet" href="shared-styles.css" />
+        <style>
+            body {
+                user-select: none;
+                -webkit-user-select: none;
+                -moz-user-select: none;
+                -ms-user-select: none;
+            }
+            .control-panel {
+                min-width: 280px;
+            }
+            .dance-indicator {
+                margin: 16px 0;
+                padding: 12px;
+                background: rgba(255, 255, 255, 0.05);
+                border-radius: 6px;
+                text-align: center;
+            }
+            .current-dance {
+                font-size: 16px;
+                font-weight: 600;
+                color: #4caf50;
+                margin-bottom: 8px;
+            }
+            .dance-list {
+                margin: 12px 0;
+                font-size: 12px;
+                color: rgba(255, 255, 255, 0.8);
+            }
+            .dance-item {
+                padding: 6px 0;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+            .dance-item.active {
+                color: #4caf50;
+                font-weight: 600;
+                background: rgba(76, 175, 80, 0.1);
+                padding: 6px 8px;
+                border-radius: 4px;
+            }
+            .dance-number {
+                opacity: 0.7;
+                font-size: 10px;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="control-panel">
+            <div class="control-title">Automatic Transitions</div>
+
+            <div class="dance-indicator">
+                <div class="current-dance" id="current-dance">Animation 0</div>
+            </div>
+
+            <div class="dance-list">
+                <div class="dance-item active" id="dance-0">
+                    <span>Animation 0</span>
+                    <span class="dance-number">#0</span>
+                </div>
+                <div class="dance-item" id="dance-1">
+                    <span>Animation 1</span>
+                    <span class="dance-number">#1</span>
+                </div>
+                <div class="dance-item" id="dance-2">
+                    <span>Animation 2</span>
+                    <span class="dance-number">#2</span>
+                </div>
+                <div class="dance-item" id="dance-3">
+                    <span>Animation 3</span>
+                    <span class="dance-number">#3</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="nav-buttons">
+            <div class="nav-button previous">
+                <a href="04_event_driven_transitions.html">Previous</a>
+            </div>
+            <div class="nav-button examples">
+                <a href="index.html">Examples</a>
+            </div>
+        </div>
+
+        <div class="source-link">
+            <a
+                href="https://github.com/jango-git/animouse/blob/gh-pages/05_automatic_transitions.html"
+                target="_blank"
+                >source</a
+            >
+        </div>
+
+        <div
+            class="description-panel"
+            style="
+                position: fixed;
+                top: 50%;
+                left: 20px;
+                transform: translateY(-50%);
+                max-width: 350px;
+                background: rgba(0, 0, 0, 0.8);
+                border-radius: 8px;
+                padding: 16px;
+                color: white;
+                font-size: 12px;
+                line-height: 1.4;
+                backdrop-filter: blur(10px);
+            "
+        >
+            <div style="font-weight: 600; margin-bottom: 8px; color: #4caf50">
+                What's happening here?
+            </div>
+            <div style="margin-bottom: 8px">
+                This example demonstrates <strong>Automatic Transitions</strong>
+                that occur when animations naturally complete their cycles. The
+                character continuously cycles through 4 different animations.
+            </div>
+            <div style="margin-bottom: 8px">
+                • <strong>Natural Cycling</strong>: Transitions happen when
+                animations finish <br />• <strong>Smooth Transitions</strong>:
+                0.5s blend between states <br />• <strong>No Timers</strong>:
+                Pure automatic behavior
+            </div>
+        </div>
+
+        <script type="module">
+            import * as THREE from "https://esm.sh/three@0.175";
+            import { OrbitControls } from "https://esm.sh/three@0.175/examples/jsm/controls/OrbitControls";
+            import { GLTFLoader } from "https://esm.sh/three@0.175/examples/jsm/loaders/GLTFLoader";
+            import { DRACOLoader } from "https://esm.sh/three@0.175.0/examples/jsm/loaders/DRACOLoader.js";
+            import * as ANIMOUSE from "https://esm.sh/animouse@0.7.5?deps=three@0.175";
+
+            const scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x222222);
+
+            const camera = new THREE.PerspectiveCamera(
+                45,
+                innerWidth / innerHeight,
+                0.1,
+                100,
+            );
+            camera.position.set(2, 2, 2);
+
+            const renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(innerWidth, innerHeight);
+            document.body.appendChild(renderer.domElement);
+
+            const controls = new OrbitControls(camera, renderer.domElement);
+            controls.target.set(0, 1, 0);
+            controls.update();
+
+            scene.add(new THREE.HemisphereLight(0x87ceeb, 0x8b4513, 1));
+            const dirLight = new THREE.DirectionalLight(0xffffff, 2);
+            dirLight.position.set(5, 10, 5);
+            scene.add(dirLight);
+
+            // GLB load
+            const loader = new GLTFLoader();
+            const clock = new THREE.Clock();
+            let mixer;
+            let machine;
+            let danceStates = [];
+
+            const dracoLoader = new DRACOLoader();
+            dracoLoader.setDecoderPath(
+                "https://www.gstatic.com/draco/v1/decoders/",
+            );
+            loader.setDRACOLoader(dracoLoader);
+
+            loader.setPath("assets/").load("SK_Character.glb", (gltf) => {
+                const model = gltf.scene;
+                scene.add(model);
+
+                mixer = new THREE.AnimationMixer(model);
+
+                // Parse animations by name
+                const clips = gltf.animations;
+                const clipMap = new Map();
+                for (const clip of clips) {
+                    const action = mixer.clipAction(clip);
+                    action.loop = THREE.LoopRepeat;
+                    clipMap.set(clip.name, action);
+                }
+
+                // Create individual dance states
+                danceStates = [
+                    new ANIMOUSE.ClipState(clipMap.get("A_Dance_0")),
+                    new ANIMOUSE.ClipState(clipMap.get("A_Dance_1")),
+                    new ANIMOUSE.ClipState(clipMap.get("A_Dance_2")),
+                    new ANIMOUSE.ClipState(clipMap.get("A_Dance_3")),
+                ];
+
+                // Create machine starting with first dance
+                machine = new ANIMOUSE.AnimationMachine(danceStates[0], mixer);
+
+                // Setup automatic transitions between all dances
+                for (let i = 0; i < danceStates.length; i++) {
+                    const currentState = danceStates[i];
+                    const nextIndex = (i + 1) % danceStates.length;
+                    const nextState = danceStates[nextIndex];
+
+                    machine.addAutomaticTransition(currentState, {
+                        to: nextState,
+                        duration: 0.5,
+                    });
+                }
+            });
+
+            function updateUI() {
+                if (!machine || danceStates.length === 0) return;
+
+                const currentState = machine.currentState;
+                let currentDanceIndex = -1;
+
+                // Find which dance state is currently active
+                for (let i = 0; i < danceStates.length; i++) {
+                    if (currentState === danceStates[i]) {
+                        currentDanceIndex = i;
+                        break;
+                    }
+                }
+
+                if (currentDanceIndex >= 0) {
+                    // Update current animation display
+                    const currentDanceElement =
+                        document.getElementById("current-dance");
+                    currentDanceElement.textContent = `Animation ${currentDanceIndex}`;
+
+                    // Update dance list highlighting
+                    for (let i = 0; i < 4; i++) {
+                        const danceItem = document.getElementById(`dance-${i}`);
+                        if (i === currentDanceIndex) {
+                            danceItem.classList.add("active");
+                        } else {
+                            danceItem.classList.remove("active");
+                        }
+                    }
+                }
+            }
+
+            // Render loop
+            window.addEventListener("resize", () => {
+                camera.aspect = innerWidth / innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(innerWidth, innerHeight);
+            });
+
+            renderer.setAnimationLoop(() => {
+                const deltaTime = clock.getDelta();
+
+                if (machine) {
+                    machine.update(deltaTime);
+                    updateUI();
+                }
+
+                renderer.render(scene, camera);
+            });
+        </script>
+    </body>
+</html>
