@@ -5,7 +5,11 @@ import {
   assertValidNumber,
   assertValidPositiveNumber,
 } from "../mescellaneous/assertions";
-import { EPSILON, type Anchor } from "../mescellaneous/miscellaneous";
+import {
+  EPSILON,
+  getNextAnchorIndex,
+  type Anchor,
+} from "../mescellaneous/miscellaneous";
 import { AnimationTree } from "./AnimationTree";
 
 /**
@@ -121,16 +125,21 @@ export class LinearBlendTree extends AnimationTree {
       const duration = animationAction.getClip().duration;
       assertValidPositiveNumber(duration, "Clip duration");
 
-      this.anchors.push({
+      const anchor = {
+        index: getNextAnchorIndex(),
         action: animationAction,
         weight: 0,
         duration,
+        invDuration: 1 / duration,
         iterationEventType:
           animationAction.loop === LoopOnce
             ? AnimationStateEvent.FINISH
             : AnimationStateEvent.ITERATE,
         value: linearAction.value,
-      });
+      };
+
+      this.anchors.push(anchor);
+      this.actionToAnchor.set(animationAction, anchor);
     }
 
     this.anchors.sort((a, b) => a.value - b.value);
@@ -176,9 +185,11 @@ export class LinearBlendTree extends AnimationTree {
     }
 
     if (this.lastLeftAnchor?.weight) {
+      this.processTimeEvents(this.lastLeftAnchor, deltaTime);
       this.updateAnchorTime(this.lastLeftAnchor, deltaTime);
     }
     if (this.lastRightAnchor?.weight) {
+      this.processTimeEvents(this.lastRightAnchor, deltaTime);
       this.updateAnchorTime(this.lastRightAnchor, deltaTime);
     }
   }

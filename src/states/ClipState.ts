@@ -1,10 +1,14 @@
+import type { Callback } from "eventail";
 import { LoopOnce, type AnimationAction } from "three";
 import { AnimationStateEvent } from "../mescellaneous/AnimationStateEvent";
 import {
   assertValidPositiveNumber,
   assertValidUnitRange,
 } from "../mescellaneous/assertions";
-import type { Anchor } from "../mescellaneous/miscellaneous";
+import {
+  getNextAnchorIndex,
+  type Anchor,
+} from "../mescellaneous/miscellaneous";
 import { AnimationState } from "./AnimationState";
 
 /**
@@ -43,16 +47,51 @@ export class ClipState extends AnimationState {
     animationAction.enabled = false;
 
     this.anchor = {
+      index: getNextAnchorIndex(),
       action: animationAction,
       get weight(): number {
         throw new Error("ClipState weight is not accessible");
       },
       duration,
+      invDuration: 1 / duration,
       iterationEventType:
         animationAction.loop === LoopOnce
           ? AnimationStateEvent.FINISH
           : AnimationStateEvent.ITERATE,
     };
+  }
+
+  /**
+   * Registers a callback to be called when the animation reaches a specific time.
+   * The callback will be invoked every time the animation crosses the specified time threshold.
+   *
+   * @param unitTime - Time in unit range [0, 1] when the callback should be invoked
+   * @param callback - Function to call when the time event occurs, receives the action and state as parameters
+   */
+  public onTimeEvent(unitTime: number, callback: Callback): void {
+    this.onTimeEventInternal(this.anchor, unitTime, callback, false);
+  }
+
+  /**
+   * Registers a callback to be called once when the animation reaches a specific time.
+   * The callback will be invoked only the first time the animation crosses the specified time threshold.
+   *
+   * @param unitTime - Time in unit range [0, 1] when the callback should be invoked
+   * @param callback - Function to call when the time event occurs, receives the action and state as parameters
+   */
+  public onceTimeEvent(unitTime: number, callback: Callback): void {
+    this.onTimeEventInternal(this.anchor, unitTime, callback, true);
+  }
+
+  /**
+   * Removes a previously registered time event callback.
+   * Unregisters the callback from the specified time point and cleans up associated resources.
+   *
+   * @param unitTime - Time in unit range [0, 1] where the callback was registered
+   * @param callback - The callback function to remove
+   */
+  public offTimeEvent(unitTime: number, callback: Callback): void {
+    this.offTimeEventInternal(this.anchor, unitTime, callback);
   }
 
   /**
@@ -109,6 +148,7 @@ export class ClipState extends AnimationState {
         `${this.name}: cannot update anchor time because the animation influence is zero`,
       );
     }
+    this.processTimeEvents(this.anchor, deltaTime);
     this.updateAnchorTime(this.anchor, deltaTime);
   }
 

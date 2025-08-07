@@ -1,3 +1,5 @@
+import type { Callback } from "eventail";
+import type { AnimationAction } from "three";
 import { AnimationStateEvent } from "../mescellaneous/AnimationStateEvent";
 import { assertValidUnitRange } from "../mescellaneous/assertions";
 import type { Anchor } from "../mescellaneous/miscellaneous";
@@ -12,6 +14,78 @@ import { AnimationState } from "./AnimationState";
  * a hierarchical structure, automatically managing playback and weight distribution.
  */
 export abstract class AnimationTree extends AnimationState {
+  /**
+   * Map linking animation actions to their corresponding anchors.
+   * Used to look up anchor information when registering time-based events.
+   */
+  protected readonly actionToAnchor = new Map<AnimationAction, Anchor>();
+
+  /**
+   * Registers a callback to be called when the specified animation action reaches a specific time.
+   * The callback will be invoked every time the animation crosses the specified time threshold.
+   *
+   * @param action - The animation action to monitor for time events
+   * @param unitTime - Time in unit range [0, 1] when the callback should be invoked
+   * @param callback - Function to call when the time event occurs, receives the action and state as parameters
+   * @throws {Error} When the action is not registered in this animation tree
+   */
+  public onTimeEvent(
+    action: AnimationAction,
+    unitTime: number,
+    callback: Callback,
+  ): void {
+    const anchor = this.actionToAnchor.get(action);
+    if (!anchor) {
+      throw new Error(`Action is not registered`);
+    }
+
+    this.onTimeEventInternal(anchor, unitTime, callback, false);
+  }
+
+  /**
+   * Registers a callback to be called once when the specified animation action reaches a specific time.
+   * The callback will be invoked only the first time the animation crosses the specified time threshold.
+   *
+   * @param action - The animation action to monitor for time events
+   * @param unitTime - Time in unit range [0, 1] when the callback should be invoked
+   * @param callback - Function to call when the time event occurs, receives the action and state as parameters
+   * @throws {Error} When the action is not registered in this animation tree
+   */
+  public onceTimeEvent(
+    action: AnimationAction,
+    unitTime: number,
+    callback: Callback,
+  ): void {
+    const anchor = this.actionToAnchor.get(action);
+    if (!anchor) {
+      throw new Error(`Action is not registered`);
+    }
+
+    this.onTimeEventInternal(anchor, unitTime, callback, true);
+  }
+
+  /**
+   * Removes a previously registered time event callback for the specified animation action.
+   * Unregisters the callback from the specified time point and cleans up associated resources.
+   *
+   * @param action - The animation action to remove the time event from
+   * @param unitTime - Time in unit range [0, 1] where the callback was registered
+   * @param callback - The callback function to remove
+   * @throws {Error} When the action is not registered in this animation tree
+   */
+  public offTimeEvent(
+    action: AnimationAction,
+    unitTime: number,
+    callback: Callback,
+  ): void {
+    const anchor = this.actionToAnchor.get(action);
+    if (!anchor) {
+      throw new Error(`Action is not registered`);
+    }
+
+    this.offTimeEventInternal(anchor, unitTime, callback);
+  }
+
   /**
    * Internal method to set the influence of this animation tree.
    * When influence changes, triggers an update of anchor influences while

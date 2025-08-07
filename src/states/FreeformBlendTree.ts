@@ -10,7 +10,11 @@ import {
   calculateDistanceToEdgeSquared,
   calculateTriangleCentroid,
 } from "../mescellaneous/math";
-import { EPSILON, type Anchor } from "../mescellaneous/miscellaneous";
+import {
+  EPSILON,
+  getNextAnchorIndex,
+  type Anchor,
+} from "../mescellaneous/miscellaneous";
 import { AnimationTree } from "./AnimationTree";
 
 /** Minimum number of actions required for freeform blend tree triangulation */
@@ -174,17 +178,22 @@ export class FreeformBlendTree extends AnimationTree {
         throw new Error("Action duration must be greater than zero");
       }
 
-      anchors.push({
+      const anchor = {
+        index: getNextAnchorIndex(),
         action: animationAction,
         weight: 0,
         duration,
+        invDuration: 1 / duration,
         iterationEventType:
           animationAction.loop === LoopOnce
             ? AnimationStateEvent.FINISH
             : AnimationStateEvent.ITERATE,
         x: freeformAction.x,
         y: freeformAction.y,
-      });
+      };
+
+      anchors.push(anchor);
+      this.actionToAnchor.set(animationAction, anchor);
     }
 
     const result = DelaunayTriangulator.triangulate(anchors);
@@ -258,6 +267,7 @@ export class FreeformBlendTree extends AnimationTree {
     }
 
     for (const anchor of this.trackableAnchors) {
+      this.processTimeEvents(anchor, deltaTime);
       this.updateAnchorTime(anchor, deltaTime);
     }
   }

@@ -6,7 +6,11 @@ import {
   assertValidNumber,
   assertValidPositiveNumber,
 } from "../mescellaneous/assertions";
-import { EPSILON, type Anchor } from "../mescellaneous/miscellaneous";
+import {
+  EPSILON,
+  getNextAnchorIndex,
+  type Anchor,
+} from "../mescellaneous/miscellaneous";
 
 import {
   calculateAngularDistanceForward,
@@ -250,9 +254,11 @@ export class PolarBlendTree extends AnimationTree {
       animationAction.enabled = false;
 
       const anchor: PolarAnchor = {
+        index: getNextAnchorIndex(),
         action: animationAction,
         weight: 0,
         duration,
+        invDuration: 1 / duration,
         iterationEventType:
           animationAction.loop === LoopOnce
             ? AnimationStateEvent.FINISH
@@ -276,6 +282,8 @@ export class PolarBlendTree extends AnimationTree {
       ring
         ? ring.anchors.push(anchor)
         : this.rings.push({ radius: anchor.radius, anchors: [anchor] });
+
+      this.actionToAnchor.set(animationAction, anchor);
     }
 
     if (this.rays.length < 2) {
@@ -308,9 +316,11 @@ export class PolarBlendTree extends AnimationTree {
       centerAction.enabled = false;
 
       this.centerAnchor = {
+        index: getNextAnchorIndex(),
         action: centerAction,
         weight: 1,
         duration,
+        invDuration: 1 / duration,
         iterationEventType:
           centerAction.loop === LoopOnce
             ? AnimationStateEvent.FINISH
@@ -328,6 +338,7 @@ export class PolarBlendTree extends AnimationTree {
       };
 
       this.trackableAnchors.push(this.centerAnchor);
+      this.actionToAnchor.set(centerAction, this.centerAnchor);
     } else {
       this.updateAnchors();
     }
@@ -399,6 +410,7 @@ export class PolarBlendTree extends AnimationTree {
     }
 
     for (const anchor of this.trackableAnchors) {
+      this.processTimeEvents(anchor, deltaTime);
       this.updateAnchorTime(anchor, deltaTime);
     }
   }

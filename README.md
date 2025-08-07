@@ -290,6 +290,63 @@ state.on(AnimationStateEvent.FINISH, (action, state) => {
 });
 ```
 
+## Time Events
+
+Animouse supports time-based events that trigger callbacks at specific points during animation playback. This is useful for synchronizing sound effects, particle systems, or other game events with animation frames.
+
+### ClipState Time Events
+
+For single animation clips, register time events directly on the state:
+
+```typescript
+import { ClipState } from 'animouse';
+
+const walkState = new ClipState(walkAction);
+
+// Trigger footstep sound at 25% and 75% of the walk cycle
+walkState.onTimeEvent(0.25, (action, state) => {
+  playSound('footstep-left');
+});
+
+walkState.onTimeEvent(0.75, (action, state) => {
+  playSound('footstep-right');
+});
+
+// One-time event for attack impact
+const attackState = new ClipState(attackAction);
+attackState.onceTimeEvent(0.6, (action, state) => {
+  dealDamage();
+  showImpactEffect();
+});
+```
+
+### Blend Tree Time Events
+
+For blend trees, specify which action to monitor:
+
+```typescript
+import { LinearBlendTree } from 'animouse';
+
+const movementTree = new LinearBlendTree([
+  { action: walkAction, value: 1 },
+  { action: runAction, value: 2 }
+]);
+
+// Add footstep events to specific actions
+movementTree.onTimeEvent(walkAction, 0.5, (action, state) => {
+  playSound('walk-footstep');
+});
+
+movementTree.onTimeEvent(runAction, 0.3, (action, state) => {
+  playSound('run-footstep');
+});
+
+// Remove events when no longer needed
+movementTree.offTimeEvent(walkAction, 0.5, footstepCallback);
+```
+
+Time events fire when the animation crosses the specified time threshold (0.0 to 1.0), making them perfect for frame-accurate synchronization with animation content.
+
 ## Performance Considerations
 
 - Blend trees automatically optimize by only updating active animations
