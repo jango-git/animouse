@@ -51,16 +51,29 @@
             >
         </div>
         <script type="module">
-            import * as THREE from "https://esm.sh/three@0.175";
+            import {
+                Scene,
+                Color,
+                PerspectiveCamera,
+                WebGLRenderer,
+                HemisphereLight,
+                DirectionalLight,
+                Clock,
+                AnimationMixer,
+                LoopRepeat,
+            } from "https://esm.sh/three@0.175?min";
             import { OrbitControls } from "https://esm.sh/three@0.175/examples/jsm/controls/OrbitControls";
             import { GLTFLoader } from "https://esm.sh/three@0.175/examples/jsm/loaders/GLTFLoader";
             import { DRACOLoader } from "https://esm.sh/three@0.175.0/examples/jsm/loaders/DRACOLoader.js";
-            import * as ANIMOUSE from "https://esm.sh/animouse@0.7.5?deps=three@0.175";
+            import {
+                ClipState,
+                AnimationMachine,
+            } from "https://esm.sh/animouse@0.7.7?deps=three@0.175&min";
 
-            const scene = new THREE.Scene();
-            scene.background = new THREE.Color(0x222222);
+            const scene = new Scene();
+            scene.background = new Color(0x222222);
 
-            const camera = new THREE.PerspectiveCamera(
+            const camera = new PerspectiveCamera(
                 45,
                 innerWidth / innerHeight,
                 0.1,
@@ -68,7 +81,7 @@
             );
             camera.position.set(2, 2, 2);
 
-            const renderer = new THREE.WebGLRenderer({ antialias: true });
+            const renderer = new WebGLRenderer({ antialias: true });
             renderer.setSize(innerWidth, innerHeight);
             document.body.appendChild(renderer.domElement);
 
@@ -76,14 +89,14 @@
             controls.target.set(0, 1, 0);
             controls.update();
 
-            scene.add(new THREE.HemisphereLight(0x87ceeb, 0x8b4513, 1));
-            const dirLight = new THREE.DirectionalLight(0xffffff, 2);
+            scene.add(new HemisphereLight(0x87ceeb, 0x8b4513, 1));
+            const dirLight = new DirectionalLight(0xffffff, 2);
             dirLight.position.set(5, 10, 5);
             scene.add(dirLight);
 
             // GLB load
             const loader = new GLTFLoader();
-            const clock = new THREE.Clock();
+            const clock = new Clock();
             let mixer;
             let clipState;
             let machine;
@@ -98,21 +111,21 @@
                 const model = gltf.scene;
                 scene.add(model);
 
-                mixer = new THREE.AnimationMixer(model);
+                mixer = new AnimationMixer(model);
 
                 // Parse animations by name
                 const clips = gltf.animations;
                 const clipMap = new Map();
                 for (const clip of clips) {
                     const action = mixer.clipAction(clip);
-                    action.loop = THREE.LoopRepeat;
+                    action.loop = LoopRepeat;
                     clipMap.set(clip.name, action);
                 }
 
                 // Create ClipState with idle animation
-                clipState = new ANIMOUSE.ClipState(clipMap.get("A_Idle"));
+                clipState = new ClipState(clipMap.get("A_Idle"));
 
-                machine = new ANIMOUSE.AnimationMachine(clipState, mixer);
+                machine = new AnimationMachine(clipState, mixer);
             });
 
             // render loop
