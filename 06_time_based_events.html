@@ -1,0 +1,303 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <title>Animouse Time-Based Events</title>
+        <link rel="stylesheet" href="shared-styles.css" />
+        <style>
+            .step-indicators {
+                margin: 16px 0;
+                padding: 16px;
+                background: rgba(255, 255, 255, 0.05);
+                border-radius: 8px;
+                border: 1px solid var(--border-color);
+                text-align: center;
+            }
+
+            .step-title {
+                font-size: 12px;
+                color: var(--text-secondary);
+                margin-bottom: 12px;
+                font-weight: 500;
+            }
+
+            .step-container {
+                display: flex;
+                justify-content: space-around;
+                align-items: center;
+                gap: 20px;
+            }
+
+            .step-indicator {
+                width: 40px;
+                height: 40px;
+                border-radius: 50%;
+                background: rgba(255, 255, 255, 0.1);
+                border: 2px solid rgba(255, 255, 255, 0.2);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 12px;
+                font-weight: 600;
+                color: var(--text-muted);
+                transition: all 0.3s ease;
+                position: relative;
+                overflow: hidden;
+            }
+
+            .step-indicator.active {
+                background: var(--primary-color);
+                border-color: var(--primary-color);
+                color: white;
+                box-shadow: 0 0 20px rgba(76, 175, 80, 0.6);
+                transform: scale(1.1);
+            }
+
+            .step-indicator::before {
+                content: "";
+                position: absolute;
+                top: 0;
+                left: -100%;
+                width: 100%;
+                height: 100%;
+                background: linear-gradient(
+                    90deg,
+                    transparent,
+                    rgba(255, 255, 255, 0.3),
+                    transparent
+                );
+                transition: left 0.5s ease;
+            }
+
+            .step-indicator.active::before {
+                left: 100%;
+            }
+
+            .step-label {
+                font-size: 10px;
+                color: var(--text-muted);
+                margin-top: 8px;
+                font-weight: 500;
+            }
+
+            .step-group {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="main-panel">
+            <div class="control-section">
+                <div class="control-title">Time-Based Events</div>
+                <div class="slider-container">
+                    <div class="slider-label">
+                        <span>Movement Speed:</span>
+                        <span id="speed-value">0.00</span>
+                    </div>
+                    <input
+                        type="range"
+                        id="speed-slider"
+                        class="slider"
+                        min="0"
+                        max="1"
+                        step="0.01"
+                        value="0"
+                    />
+                    <div class="animation-labels three-labels">
+                        <span>Idle</span>
+                        <span>Walk</span>
+                    </div>
+                </div>
+
+                <div class="step-indicators">
+                    <div class="step-title">Footstep Events</div>
+                    <div class="step-container">
+                        <div class="step-group">
+                            <div class="step-indicator" id="left-step">L</div>
+                            <div class="step-label">Left Foot</div>
+                        </div>
+                        <div class="step-group">
+                            <div class="step-indicator" id="right-step">R</div>
+                            <div class="step-label">Right Foot</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="description-section">
+                <div class="description-title">What's happening here?</div>
+                <div class="description-text">
+                    This example demonstrates
+                    <strong>Time-Based Events</strong> - callbacks that fire at
+                    specific time points during animation playback for
+                    frame-accurate synchronization.
+                </div>
+                <div class="description-text">
+                    • <strong>Footstep Events</strong>: Left foot at 33.3%
+                    (8/24), right foot at 83.3% (20/24)<br />
+                    • <strong>Visual Feedback</strong>: Step indicators glow
+                    when events fire<br />
+                    • <strong>Simple Blending</strong>: Smooth transition
+                    between idle and walk<br />
+                    • <strong>Frame Accuracy</strong>: Events fire at precise
+                    animation timings
+                </div>
+                <div class="description-text">
+                    Perfect for synchronizing sound effects, particle systems,
+                    damage dealing, or any game logic that needs to align with
+                    specific animation frames.
+                </div>
+            </div>
+        </div>
+
+        <div class="nav-buttons">
+            <div class="nav-button previous">
+                <a href="05_automatic_transitions.html">Previous</a>
+            </div>
+            <div class="nav-button examples">
+                <a href="index.html">Examples</a>
+            </div>
+        </div>
+
+        <div class="source-link">
+            <a
+                href="https://github.com/jango-git/animouse/blob/gh-pages/06_time_based_events.html"
+                target="_blank"
+                >&lt;/&gt;</a
+            >
+        </div>
+
+        <script type="module">
+            import * as THREE from "https://esm.sh/three@0.175";
+            import { OrbitControls } from "https://esm.sh/three@0.175/examples/jsm/controls/OrbitControls";
+            import { GLTFLoader } from "https://esm.sh/three@0.175/examples/jsm/loaders/GLTFLoader";
+            import { DRACOLoader } from "https://esm.sh/three@0.175.0/examples/jsm/loaders/DRACOLoader.js";
+            import * as ANIMOUSE from "https://esm.sh/animouse@0.7.7?deps=three@0.175";
+
+            const scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x222222);
+
+            const camera = new THREE.PerspectiveCamera(
+                45,
+                innerWidth / innerHeight,
+                0.1,
+                100,
+            );
+            camera.position.set(2, 2, 2);
+
+            const renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(innerWidth, innerHeight);
+            document.body.appendChild(renderer.domElement);
+
+            const controls = new OrbitControls(camera, renderer.domElement);
+            controls.target.set(0, 1, 0);
+            controls.update();
+
+            scene.add(new THREE.HemisphereLight(0x87ceeb, 0x8b4513, 1));
+            const dirLight = new THREE.DirectionalLight(0xffffff, 2);
+            dirLight.position.set(5, 10, 5);
+            scene.add(dirLight);
+
+            // GLB load
+            const loader = new GLTFLoader();
+            const clock = new THREE.Clock();
+            let mixer;
+            let linearBlendTree;
+            let machine;
+            let walkAction;
+
+            // UI elements
+            const slider = document.getElementById("speed-slider");
+            const valueDisplay = document.getElementById("speed-value");
+            const leftStepIndicator = document.getElementById("left-step");
+            const rightStepIndicator = document.getElementById("right-step");
+
+            // Step indicator flash effect
+            function flashStepIndicator(indicator, foot) {
+                indicator.classList.add("active");
+
+                setTimeout(() => {
+                    indicator.classList.remove("active");
+                }, 300);
+            }
+
+            const dracoLoader = new DRACOLoader();
+            dracoLoader.setDecoderPath(
+                "https://www.gstatic.com/draco/v1/decoders/",
+            );
+            loader.setDRACOLoader(dracoLoader);
+
+            loader.setPath("assets/").load("SK_Character.glb", (gltf) => {
+                const model = gltf.scene;
+                scene.add(model);
+
+                mixer = new THREE.AnimationMixer(model);
+
+                // Parse animations by name
+                const clips = gltf.animations;
+                const clipMap = new Map();
+                for (const clip of clips) {
+                    const action = mixer.clipAction(clip);
+                    action.loop = THREE.LoopRepeat;
+                    clipMap.set(clip.name, action);
+                }
+
+                // Store reference to walk action for time events
+                walkAction = clipMap.get("A_Walk_Forward");
+
+                linearBlendTree = new ANIMOUSE.LinearBlendTree([
+                    { action: clipMap.get("A_Idle"), value: 0 },
+                    { action: walkAction, value: 1 },
+                ]);
+
+                machine = new ANIMOUSE.AnimationMachine(linearBlendTree, mixer);
+
+                // Set up time-based events for footsteps
+                // Left foot at 8/24 frames (33.33%) and Right foot at 20/24 frames (83.33%)
+
+                // Walk animation events
+                linearBlendTree.onTimeEvent(
+                    walkAction,
+                    8 / 24,
+                    (action, state) => {
+                        flashStepIndicator(leftStepIndicator, "Left");
+                    },
+                );
+
+                linearBlendTree.onTimeEvent(
+                    walkAction,
+                    20 / 24,
+                    (action, state) => {
+                        flashStepIndicator(rightStepIndicator, "Right");
+                    },
+                );
+
+                // Setup slider control
+                slider.addEventListener("input", (e) => {
+                    const value = parseFloat(e.target.value);
+                    valueDisplay.textContent = value.toFixed(2);
+                    if (linearBlendTree) {
+                        linearBlendTree.setBlend(value);
+                    }
+                });
+            });
+
+            // Render loop
+            window.addEventListener("resize", () => {
+                camera.aspect = innerWidth / innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(innerWidth, innerHeight);
+            });
+
+            renderer.setAnimationLoop(() => {
+                const deltaTime = clock.getDelta();
+                if (machine) {
+                    machine.update(deltaTime);
+                }
+                renderer.render(scene, camera);
+            });
+        </script>
+    </body>
+</html>
