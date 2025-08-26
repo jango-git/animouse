@@ -2,7 +2,7 @@
   <img src="https://raw.githubusercontent.com/jango-git/animouse/main/assets/logotype.svg" width="200" alt="Animouse logo"><br/>
   <h1 align="center">Animouse</h1>
   <p align="center">
-      A powerful animation state machine and blending system for Three.js that makes complex animation workflows simple and intuitive.
+      An animation state machine and blending system for Three.js that I use in my daily work with 3D development.
   </p>
 </p>
 
@@ -14,15 +14,15 @@
 <a href="https://threejs.org/"><img src="https://img.shields.io/badge/Three.js-%5E0.175.0-green" alt="Three.js"></a>
 </p>
 
-## Features
+## What's included
 
-- 🎬 **Animation State Machine** - Event-driven, automatic, and data-driven transitions
-- 🎯 **Single Clip States** - Simple animation control with lifecycle events
-- 📊 **Linear Blend Trees** - 1D blending for speed/intensity variations
-- 🧭 **Polar Blend Trees** - 2D blending in polar coordinates (radius/direction)
-- 🎨 **Freeform Blend Trees** - Arbitrary 2D blending using Delaunay triangulation
-- 🔄 **Smooth Transitions** - Configurable blend durations between states
-- 📦 **Full TypeScript Support** - Complete type safety and IntelliSense
+- 🎬 **Animation State Machine** - Event-driven and data-driven transitions
+- 🎯 **Single Clip States** - Animation control with lifecycle events
+- 📊 **Linear Blend Trees** - 1D blending for speed variations
+- 🧭 **Polar Blend Trees** - 2D blending in polar coordinates
+- 🎨 **Freeform Blend Trees** - 2D blending using Delaunay triangulation
+- 🔄 **Transitions** - Configurable blend durations between states
+- 📦 **TypeScript Support** - Type safety and IntelliSense
 
 ## Installation
 
@@ -89,20 +89,20 @@ function animate() {
 }
 ```
 
-## Core Concepts
+## How it works
 
 ### Animation States
 
-Animation states are the building blocks of the system. Each state manages one or more Three.js AnimationActions and handles their lifecycle:
+Animation states manage one or more Three.js AnimationActions:
 
 - **ClipState** - Wraps a single AnimationAction
 - **LinearBlendTree** - Blends multiple actions along a 1D axis
 - **PolarBlendTree** - Blends actions in 2D polar coordinates
-- **FreeformBlendTree** - Blends actions in arbitrary 2D space
+- **FreeformBlendTree** - Blends actions in 2D space
 
 ### Animation Machine
 
-The AnimationMachine orchestrates state transitions and manages the overall animation flow. It supports three types of transitions:
+The AnimationMachine handles state transitions. It supports three types:
 
 1. **Event Transitions** - Triggered by specific events
 2. **Automatic Transitions** - Triggered when animations complete
@@ -112,12 +112,13 @@ The AnimationMachine orchestrates state transitions and manages the overall anim
 
 ### ClipState - Single Animation Control
 
-Control individual animation clips with automatic event handling:
+Control individual animation clips with event handling:
 
 ```typescript
 import { ClipState, AnimationStateEvent } from 'animouse';
 
 const jumpState = new ClipState(jumpAction);
+jumpState.name = 'jump'; // Optional: name states for debugging
 
 // Listen for animation events
 jumpState.on(AnimationStateEvent.PLAY, (action, state) => {
@@ -131,7 +132,7 @@ jumpState.on(AnimationStateEvent.FINISH, (action, state) => {
 
 ### LinearBlendTree - 1D Animation Blending
 
-Perfect for speed variations, intensity levels, or any linear progression:
+For speed variations or linear progressions:
 
 ```typescript
 import { LinearBlendTree } from 'animouse';
@@ -147,11 +148,14 @@ const movementTree = new LinearBlendTree([
 
 // Blend based on movement speed
 movementTree.setBlend(2.5); // Blend between jog and run
+
+// Get current blend value
+console.log('Current speed:', movementTree.blendValue); // 2.5
 ```
 
 ### PolarBlendTree - 2D Polar Blending
 
-Ideal for directional movement with varying intensities:
+For directional movement with varying intensities:
 
 ```typescript
 import { PolarBlendTree } from 'animouse';
@@ -174,11 +178,15 @@ const directionTree = new PolarBlendTree([
 
 // Blend to northeast at medium speed
 directionTree.setBlend(MathUtils.degToRad(45), 1.5);
+
+// Get current blend values
+console.log('Current direction:', directionTree.blendValue);
+// { azimuth: 0.785, radius: 1.5 }
 ```
 
-### FreeformBlendTree - Arbitrary 2D Blending
+### FreeformBlendTree - 2D Blending
 
-For complex animation spaces with irregular layouts:
+For irregular animation spaces:
 
 ```typescript
 import { FreeformBlendTree } from 'animouse';
@@ -186,22 +194,25 @@ import { FreeformBlendTree } from 'animouse';
 // Create emotion-based facial animation system
 const emotionTree = new FreeformBlendTree([
   { action: neutralAction, x: 0, y: 0 },       // Center: neutral
-  { action: happyAction, x: 1, y: 1 },         // Happy (positive valence/arousal)
-  { action: sadAction, x: -1, y: -0.5 },       // Sad (negative valence, low arousal)
-  { action: angryAction, x: -0.8, y: 0.9 },    // Angry (negative valence, high arousal)
-  { action: surprisedAction, x: 0.2, y: 1.2 }, // Surprised (slight positive, very high arousal)
-  { action: disgustAction, x: -1.2, y: 0.1 }   // Disgust (very negative, medium arousal)
+  { action: happyAction, x: 1, y: 1 },         // Happy
+  { action: sadAction, x: -1, y: -0.5 },       // Sad
+  { action: angryAction, x: -0.8, y: 0.9 },    // Angry
+  { action: surprisedAction, x: 0.2, y: 1.2 }, // Surprised
+  { action: disgustAction, x: -1.2, y: 0.1 }   // Disgust
 ]);
 
 // Blend to slightly happy and excited
 emotionTree.setBlend(0.6, 0.8);
+
+// Get current blend position
+console.log('Current emotion:', emotionTree.blendValue); // { x: 0.6, y: 0.8 }
 ```
 
 ## State Machine Transitions
 
 ### Event-Driven Transitions
 
-Respond to specific game events or user input:
+Respond to game events or user input:
 
 ```typescript
 // Basic transition
@@ -225,7 +236,7 @@ machine.handleEvent('attack', 'sword');
 
 ### Automatic Transitions
 
-Automatically transition when animations complete:
+Transition when animations complete:
 
 ```typescript
 // Transition to falling after jump completes
@@ -243,21 +254,22 @@ machine.addAutomaticTransition(landState, {
 
 ### Data-Driven Transitions
 
-Continuously evaluate conditions for seamless state changes:
+Evaluate conditions for state changes:
 
 ```typescript
 // Transition based on health
 machine.addDataTransition(combatState, {
   to: deathState,
   duration: 0.5,
-  condition: (from, to, health) => health <= 0,
+  condition: (from, to, health) => health <=
+ 0,
   data: [character.health]
 });
 ```
 
 ## Animation Events
 
-All animation states emit lifecycle events:
+Animation states emit lifecycle events:
 
 ```typescript
 import { AnimationStateEvent } from 'animouse';
@@ -292,7 +304,7 @@ state.on(AnimationStateEvent.FINISH, (action, state) => {
 
 ## Time Events
 
-Animouse supports time-based events that trigger callbacks at specific points during animation playback. This is useful for synchronizing sound effects, particle systems, or other game events with animation frames.
+Time-based events that trigger callbacks at specific points during animation playback. Useful for synchronizing sound effects or other events with animation frames.
 
 ### ClipState Time Events
 
@@ -345,17 +357,19 @@ movementTree.onTimeEvent(runAction, 0.3, (action, state) => {
 movementTree.offTimeEvent(walkAction, 0.5, footstepCallback);
 ```
 
-Time events fire when the animation crosses the specified time threshold (0.0 to 1.0), making them perfect for frame-accurate synchronization with animation content.
+Time events fire when the animation crosses the specified time threshold (0.0 to 1.0).
 
-## Performance Considerations
+## Performance Notes
 
-- Blend trees automatically optimize by only updating active animations
-- Use data transitions sparingly for frequently evaluated conditions
-- Prefer event transitions for user input and game events
+- Blend trees update only active animations (weight > 0)
+- Animation actions are automatically started/stopped based on weights
+- Use data transitions carefully for frequently evaluated conditions
+- Event transitions work well for user input and game events
+- States can be named for easier debugging and identification
 
 ## Contributing
 
-Contributions are welcome! Please feel free to submit issues and pull requests.
+Feel free to submit issues and pull requests if you find this library helpful.
 
 1. Fork the repository
 2. Create a feature branch
@@ -370,5 +384,5 @@ MIT © [jango](https://github.com/jango-git)
 
 - Built with [Three.js](https://threejs.org/) for 3D animation support
 - Event system powered by [eventail](https://www.npmjs.com/package/eventail)
-- Mathematical utilities for robust geometric calculations
+- Mathematical utilities for geometric calculations
 - Delaunay triangulation for freeform blend spaces

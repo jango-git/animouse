@@ -80,17 +80,15 @@ export interface DataTransition {
 }
 
 /**
- * Animation state machine for managing complex state transitions and blending.
+ * Animation state machine for managing state transitions and blending.
  *
- * Provides a comprehensive system for controlling animation states with support for:
+ * Controls animation states with support for:
  * - **Event-based transitions**: Triggered by specific events with optional conditions
  * - **Automatic transitions**: Triggered when animations complete (ITERATE/FINISH events)
  * - **Data-driven transitions**: Evaluated continuously based on condition functions
  *
- * The state machine handles smooth blending between states using configurable transition
- * durations, automatically managing animation weights and ensuring proper lifecycle events.
- * Multiple states can be active simultaneously during transitions, with weights smoothly
- * interpolated using linear interpolation.
+ * Handles blending between states using configurable transition durations.
+ * Multiple states can be active during transitions, with weights interpolated linearly.
  */
 export class AnimationMachine {
   /** Internal storage for the currently active animation state */
@@ -121,7 +119,7 @@ export class AnimationMachine {
 
   /**
    * Creates a new animation state machine with the specified initial state.
-   * Immediately activates the initial state with full influence and enters it.
+   * Activates the initial state with full influence.
    *
    * @param initialState - The starting animation state to activate
    * @param mixer - The THREE.js animation mixer for updating animations
@@ -147,16 +145,15 @@ export class AnimationMachine {
   }
 
   /**
-   * Adds a new event-triggered transition to the state machine.
+   * Adds an event-triggered transition to the state machine.
    * Multiple transitions can be registered for the same event with different source states.
-   * When an event is handled, the first matching transition will be executed.
+   * When an event is handled, the first matching transition is executed.
    *
    * @param event - The event name or identifier that triggers this transition
    * @param transition - The transition configuration with target state and duration
    * @throws {Error} When transition duration is not a finite non-negative number
    * @throws {Error} When transition creates a recursive loop (from === to)
    * @throws {Error} When transition already exists for the same event and source state
-   * @see {@link assertValidNonNegativeNumber} for duration validation details
    */
   public addEventTransition(
     event: string | number,
@@ -200,9 +197,6 @@ export class AnimationMachine {
    * @throws {Error} When transition duration is not a finite non-negative number
    * @throws {Error} When transition creates a recursive loop (from === to)
    * @throws {Error} When an automatic transition already exists for the source state
-   * @see {@link assertValidNonNegativeNumber} for duration validation details
-   * @see {@link AnimationStateEvent.ITERATE} for iteration event details
-   * @see {@link AnimationStateEvent.FINISH} for completion event details
    */
   public addAutomaticTransition(
     from: AnimationState,
@@ -229,7 +223,7 @@ export class AnimationMachine {
   }
 
   /**
-   * Adds a data-driven transition that is evaluated continuously during updates.
+   * Adds a data-driven transition evaluated continuously during updates.
    * The condition function is called each frame when the source state is active.
    * Multiple data transitions can be registered per state, but only one per target.
    *
@@ -238,7 +232,6 @@ export class AnimationMachine {
    * @throws {Error} When transition duration is not a finite non-negative number
    * @throws {Error} When transition creates a recursive loop (from === to)
    * @throws {Error} When a data transition to the same target already exists
-   * @see {@link assertValidNonNegativeNumber} for duration validation details
    */
   public addDataTransition(
     from: AnimationState,
@@ -262,9 +255,8 @@ export class AnimationMachine {
   }
 
   /**
-   * Handles an event by checking and executing the first matching transition.
-   * Evaluates all registered transitions for the event in registration order,
-   * executing the first one that matches the current state and passes conditions.
+   * Handles an event by executing the first matching transition.
+   * Evaluates registered transitions for the event in registration order.
    *
    * @param event - The event name or identifier to handle
    * @param args - Additional arguments passed to transition condition functions
@@ -292,16 +284,12 @@ export class AnimationMachine {
   /**
    * Updates the animation state machine and all animations for one frame.
    *
-   * The update process:
-   * 1. Updates current state and all fading states with frame timing
-   * 2. Evaluates data-driven transitions for potential state changes
-   * 3. Progresses active transitions by interpolating state influences
-   * 4. Cleans up completed transitions and resets influences
-   * 5. Updates the THREE.js animation mixer
+   * Updates current state and fading states, evaluates data-driven transitions,
+   * progresses active transitions by interpolating state influences, and updates
+   * the animation mixer.
    *
-   * @param deltaTime - Time elapsed since last update in seconds (finite non-negative number)
+   * @param deltaTime - Time elapsed since last update in seconds
    * @throws {Error} When deltaTime is not a finite non-negative number
-   * @see {@link assertValidNonNegativeNumber} for deltaTime validation details
    */
   public update(deltaTime: number): void {
     assertValidNonNegativeNumber(deltaTime, "Delta time");

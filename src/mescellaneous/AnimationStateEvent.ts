@@ -1,43 +1,39 @@
 /**
- * Defines events related to a blend state and its internal AnimationActions.
+ * Events related to animation states and their internal AnimationActions.
  *
- * - ENTER and EXIT describe when the blend state itself becomes active or inactive in the state machine.
- * - PLAY, STOP, ITERATE, and FINISH describe the lifecycle of individual AnimationActions inside this blend state.
+ * ENTER and EXIT describe when the state becomes active or inactive.
+ * PLAY, STOP, ITERATE, and FINISH describe the lifecycle of individual AnimationActions.
  */
 export enum AnimationStateEvent {
   /**
-   * Fired when the blend state itself becomes active.
-   * Indicates that a transition into this state has started.
+   * Fired when the state becomes active.
    */
   ENTER = "enter",
 
   /**
-   * Fired when the blend state itself becomes inactive.
-   * Indicates that a transition away from this state has started.
+   * Fired when the state becomes inactive.
    */
   EXIT = "exit",
 
   /**
-   * Fired when an individual AnimationAction inside this blend state starts playing.
-   * For example, when a walk or run action becomes active due to weights.
+   * Fired when an AnimationAction starts playing.
    */
   PLAY = "play",
 
   /**
-   * Fired when an individual AnimationAction inside this blend state stops playing.
-   * For example, when a walk or run action stops as its weights reach zero.
+   * Fired when an AnimationAction stops playing.
    */
   STOP = "stop",
 
   /**
-   * Fired when an individual AnimationAction inside this blend state completes one full loop.
-   * Fires every cycle for looping actions (LoopRepeat, LoopPingPong).
+   * Fired when an AnimationAction completes one full loop.
+   * Fires every cycle for looping actions.
    */
   ITERATE = "iterate",
 
   /**
-   * Fired when an individual AnimationAction inside this blend state reaches its natural end.
-   * This applies to non-looping actions (LoopOnce) that finish playing completely.
+   * Fired when an AnimationAction reaches its natural end.
+   * Applies to non-looping actions that finish playing completely.
    */
   FINISH = "finish",
 }

@@ -9,8 +9,7 @@ import type { Anchor } from "../mescellaneous/miscellaneous";
  * Abstract base class for animation states in the animation state machine.
  * Manages state influence (weight) and provides lifecycle event handling.
  *
- * This class is designed to be extended by concrete animation states and
- * controlled by the animation state machine.
+ * Extended by concrete animation states and controlled by the animation state machine.
  */
 export abstract class AnimationState extends Eventail {
   /**
@@ -43,27 +42,27 @@ export abstract class AnimationState extends Eventail {
   }
 
   /**
-   * Internal method called by the animation state machine when entering this state.
+   * Called by the animation state machine when entering this state.
    * Emits the ENTER event with this state instance as data.
    *
-   * @internal This method is intended to be called only by the animation state machine
+   * @internal Called only by the animation state machine
    */
   protected ["onEnterInternal"](): void {
     this.emit(AnimationStateEvent.ENTER, this);
   }
 
   /**
-   * Internal method called by the animation state machine when exiting this state.
+   * Called by the animation state machine when exiting this state.
    * Emits the EXIT event with this state instance as data.
    *
-   * @internal This method is intended to be called only by the animation state machine
+   * @internal Called only by the animation state machine
    */
   protected ["onExitInternal"](): void {
     this.emit(AnimationStateEvent.EXIT, this);
   }
 
   /**
-   * Internal method to register a time-based event callback for an anchor.
+   * Registers a time-based event callback for an anchor.
    * Normalizes the unit time to avoid floating-point precision issues and
    * creates a unique event identifier for the time/anchor combination.
    *
@@ -71,7 +70,7 @@ export abstract class AnimationState extends Eventail {
    * @param unitTime - Time in unit range [0, 1] when the event should fire
    * @param callback - Function to call when the time event occurs
    * @param isOnce - Whether the event should fire only once or repeatedly
-   * @internal This method is intended to be called only by concrete animation state implementations
+   * @internal Called only by concrete animation state implementations
    */
   protected onTimeEventInternal(
     anchor: Anchor,
@@ -90,14 +89,14 @@ export abstract class AnimationState extends Eventail {
   }
 
   /**
-   * Internal method to unregister a time-based event callback for an anchor.
+   * Unregisters a time-based event callback for an anchor.
    * Removes the callback from the specified time point and cleans up empty
    * time event maps to prevent memory leaks.
    *
    * @param anchor - The animation anchor to remove the time event from
    * @param unitTime - Time in unit range [0, 1] where the event was registered
    * @param callback - The callback function to remove
-   * @internal This method is intended to be called only by concrete animation state implementations
+   * @internal Called only by concrete animation state implementations
    */
   protected offTimeEventInternal(
     anchor: Anchor,
@@ -111,7 +110,7 @@ export abstract class AnimationState extends Eventail {
       return;
     }
     const event = events.get(roundedTime);
-    if (!event) {
+    if (event === undefined) {
       return;
     }
     this.off(event, callback);
@@ -183,21 +182,21 @@ export abstract class AnimationState extends Eventail {
   }
 
   /**
-   * Internal method called by the animation state machine on each frame update.
+   * Called by the animation state machine on each frame update.
    * Concrete implementations should handle per-frame state updates here.
    *
    * @param deltaTime - Time elapsed since the last frame, in milliseconds
-   * @internal This method is intended to be called only by the animation state machine
+   * @internal Called only by the animation state machine
    */
   protected abstract ["onTickInternal"](deltaTime: number): void;
 
   /**
-   * Internal method called by the animation state machine to set the state's influence.
+   * Called by the animation state machine to set the state's influence.
    * Concrete implementations should update the influenceInternal property and handle
    * any influence-related logic here.
    *
    * @param influence - The new influence value to set
-   * @internal This method is intended to be called only by the animation state machine
+   * @internal Called only by the animation state machine
    */
   protected abstract ["setInfluenceInternal"](influence: number): void;
 }

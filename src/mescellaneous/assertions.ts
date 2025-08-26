@@ -1,7 +1,7 @@
 import { EPSILON, PI2 } from "./miscellaneous";
 
 /**
- * Asserts that a number is valid (finite and does not exceed safe integer range).
+ * Asserts that a number is valid (finite and within safe integer range).
  *
  * @param value - The number to validate
  * @param subject - Custom error message for validation failure
@@ -18,12 +18,11 @@ export function assertValidNumber(value: number, subject: string): void {
 }
 
 /**
- * Asserts that an azimuth angle is valid (finite, within safe range, and between 0 and 2π).
+ * Asserts that an azimuth angle is valid (finite and between 0 and 2π).
  *
  * @param value - The azimuth angle in radians to validate
  * @param subject - Custom error message for validation failure
- * @throws {Error} When the value is not finite, exceeds MAX_SAFE_INTEGER, or is not between 0 and 2π radians
- * @see {@link assertValidNumber} for base number validation
+ * @throws {Error} When the value is not finite or is not between 0 and 2π radians
  */
 export function assertValidAzimuth(value: number, subject: string): void {
   assertValidNumber(value, subject);
@@ -39,7 +38,6 @@ export function assertValidAzimuth(value: number, subject: string): void {
  * @param value - The number to validate
  * @param subject - Custom error message for validation failure
  * @throws {Error} When the value is not within the range [0, 1]
- * @see {@link assertValidNumber} for base number validation
  */
 export function assertValidUnitRange(value: number, subject: string): void {
   assertValidNumber(value, subject);
@@ -50,13 +48,12 @@ export function assertValidUnitRange(value: number, subject: string): void {
 }
 
 /**
- * Asserts that a number is positive (greater than or equal to EPSILON).
+ * Asserts that a number is positive (greater than EPSILON).
  * Uses EPSILON to account for floating-point precision errors.
  *
  * @param value - The number to validate
  * @param subject - Custom error message for validation failure
  * @throws {Error} When the value is less than EPSILON
- * @see {@link assertValidNumber} for base number validation
  */
 export function assertValidPositiveNumber(
   value: number,
@@ -77,7 +74,6 @@ export function assertValidPositiveNumber(
  * @param value - The number to validate
  * @param subject - Custom error message for validation failure
  * @throws {Error} When the value is negative
- * @see {@link assertValidNumber} for base number validation
  */
 export function assertValidNonNegativeNumber(
   value: number,

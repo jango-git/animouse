@@ -13,11 +13,10 @@ import { AnimationState } from "./AnimationState";
 
 /**
  * Animation state that wraps a single Three.js AnimationAction.
- * Manages the lifecycle of a single animation clip, handling playback,
- * weight control, and iteration events.
+ * Manages playback, weight control, and iteration events for a single animation clip.
  *
- * This state automatically detects animation completion and restart events,
- * emitting appropriate state events based on the animation's loop type.
+ * Detects animation completion and restart events, emitting appropriate
+ * state events based on the animation's loop type.
  */
 export class ClipState extends AnimationState {
   /**
@@ -28,12 +27,10 @@ export class ClipState extends AnimationState {
   /**
    * Creates a new ClipState from a Three.js AnimationAction.
    * Initializes the animation to a stopped state and configures iteration events
-   * based on the animation's loop type. Sets up anchor with duration tracking
-   * and event state management.
+   * based on the animation's loop type.
    *
-   * @param animationAction - The Three.js AnimationAction to wrap (finite duration required)
+   * @param animationAction - The Three.js AnimationAction to wrap
    * @throws {Error} When the animation clip duration is not a positive finite number
-   * @see {@link assertValidPositiveNumber} for duration validation details
    */
   constructor(animationAction: AnimationAction) {
     super();
@@ -95,16 +92,13 @@ export class ClipState extends AnimationState {
   }
 
   /**
-   * Internal method to set the influence of this animation state.
-   * Controls animation playback: starts animation when influence becomes positive,
-   * stops when influence becomes zero, and adjusts weight for intermediate values.
-   * Resets animation time and event tracking state on playback transitions.
+   * Sets the influence of this animation state.
+   * Starts animation when influence becomes positive, stops when zero.
+   * Resets animation time on playback transitions.
    *
-   * @param influence - The new influence value in range [0, 1] (finite number)
+   * @param influence - The new influence value in range [0, 1]
    * @throws {Error} When influence is not a finite number or is outside the range [0, 1]
-   * @internal This method is intended to be called only by the animation state machine
-   * @see {@link AnimationStateEvent.PLAY} for play event details
-   * @see {@link AnimationStateEvent.STOP} for stop event details
+   * @internal Called only by the animation state machine
    */
   protected ["setInfluenceInternal"](influence: number): void {
     assertValidUnitRange(influence, "Influence");
@@ -135,12 +129,10 @@ export class ClipState extends AnimationState {
   }
 
   /**
-   * Internal method called on each frame to update animation state.
-   * Delegates to the inherited updateAnchorTime method to handle time tracking
-   * and iteration event emission based on animation progress.
+   * Called on each frame to update animation state.
+   * Handles time tracking and iteration event emission.
    *
-   * @internal This method is intended to be called only by the animation state machine
-   * @see {@link updateAnchorTime} for time tracking and event emission details
+   * @internal Called only by the animation state machine
    */
   protected ["onTickInternal"](deltaTime: number): void {
     if (this.influence === 0) {

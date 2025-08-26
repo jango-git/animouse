@@ -14,8 +14,7 @@ export const PI2 = Math.PI * 2;
 let lastAnchorIndex = 0;
 
 /**
- * Gets the next unique anchor index for animation anchors.
- * Each call returns an incrementing integer starting from 0.
+ * Gets the next unique anchor index.
  * @returns The next available anchor index
  */
 export function getNextAnchorIndex(): number {
@@ -23,12 +22,12 @@ export function getNextAnchorIndex(): number {
 }
 
 /**
- * Represents an animation anchor with timing and state information.
+ * Animation anchor with timing and state information.
  */
 export interface Anchor {
   /** The index of the anchor */
   index: number;
-  /** The animation action associated with this anchor */
+  /** The animation action */
   action: AnimationAction;
   /** The weight of the animation action */
   weight: number;
@@ -36,6 +35,6 @@ export interface Anchor {
   duration: number;
   /** The inverse duration of the animation */
   invDuration: number;
-  /** The type of iteration event associated with this anchor */
+  /** The iteration event type for this anchor */
   iterationEventType: AnimationStateEvent;
 }
