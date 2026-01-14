@@ -1,6 +1,6 @@
 {
   "name": "animouse",
-  "version": "0.7.8",
+  "version": "0.7.9",
   "description": "lightweight animation state machine for three js",
   "scripts": {
     "clean": "rm -rf dist",
@@ -70,6 +70,6 @@
     "uvu": "^0.5.6"
   },
   "dependencies": {
-    "eventail": "^0.2.7"
+    "eventail": "^0.2.11"
   }
 }
