@@ -4,6 +4,8 @@
     "target": "ES2015",
     "module": "ESNext",
     "moduleResolution": "bundler",
+    "useDefineForClassFields": false,
+    "downlevelIteration": true,
     "strict": true,
     "noImplicitAny": true,
     "strictNullChecks": true,
