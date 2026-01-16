@@ -1,6 +1,6 @@
-import { Vector2, type Vector2Like } from "three";
+import { Vector2 } from "three";
 import { assertValidNumber } from "./assertions";
-import type { TriangleCache } from "./math";
+import type { TriangleCache, Vector2Like } from "./math";
 import {
   isPointInsideCircle,
   precomputeTriangle,
@@ -82,12 +82,12 @@ export class DelaunayTriangulator {
 
     {
       const [a, b, ...rest] = points;
-      const direction = new Vector2().subVectors(b, a).normalize();
+      const direction = new Vector2(b.x - a.x, b.y - a.y).normalize();
       const temp = new Vector2();
 
       if (
         rest.every(
-          (p) => Math.abs(direction.cross(temp.subVectors(p, a))) < EPSILON,
+          (p) => Math.abs(direction.cross(temp.set(p.x - a.x, p.y - a.y))) < EPSILON,
         )
       ) {
         throw new Error("All points are collinear - cannot run triangulation");

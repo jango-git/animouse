@@ -1,9 +1,9 @@
-import type { Vector2Like } from "three";
 import * as assert from "uvu/assert";
 import {
   calculateAngularDistanceForward,
   calculateNormalizedAzimuth,
   isAzimuthBetween,
+  Vector2Like,
 } from "../../src/mescellaneous/math";
 
 export const EPSILON = 1e-6;

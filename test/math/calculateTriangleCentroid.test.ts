@@ -1,6 +1,5 @@
-import type { Vector2Like } from "three";
 import { test } from "uvu";
-import { calculateTriangleCentroid } from "../../src/mescellaneous/math";
+import { calculateTriangleCentroid, Vector2Like } from "../../src/mescellaneous/math";
 import { assertEqualWithTolerance } from "../miscellaneous/miscellaneous";
 
 export function triangleCentroid(

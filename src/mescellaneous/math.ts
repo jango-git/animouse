@@ -1,10 +1,14 @@
-import type { Vector2Like } from "three";
 import {
   assertValidAzimuth,
   assertValidNumber,
   assertValidPositiveNumber,
 } from "./assertions";
 import { EPSILON, PI2 } from "./miscellaneous";
+
+export interface Vector2Like {
+  readonly x: number;
+  readonly y: number;
+}
 
 /** The number of vertices in a triangle. */
 export const TRIANGLE_VERTEX_COUNT = 3;

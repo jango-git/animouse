@@ -1,4 +1,4 @@
-import type { AnimationAction, Vector2Like } from "three";
+import type { AnimationAction } from "three";
 import { LoopOnce } from "three";
 import { AnimationStateEvent } from "../mescellaneous/AnimationStateEvent";
 import { assertValidNumber } from "../mescellaneous/assertions";
@@ -9,6 +9,7 @@ import {
   calculateDistanceSquared,
   calculateDistanceToEdgeSquared,
   calculateTriangleCentroid,
+  Vector2Like,
 } from "../mescellaneous/math";
 import {
   EPSILON,
