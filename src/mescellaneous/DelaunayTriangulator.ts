@@ -1,11 +1,7 @@
 import { Vector2 } from "three";
 import { assertValidNumber } from "./assertions";
 import type { TriangleCache, Vector2Like } from "./math";
-import {
-  isPointInsideCircle,
-  precomputeTriangle,
-  TRIANGLE_VERTEX_COUNT,
-} from "./math";
+import { isPointInsideCircle, precomputeTriangle, TRIANGLE_VERTEX_COUNT } from "./math";
 import { EPSILON } from "./miscellaneous";
 
 /** Scale factor for generating the super triangle that encompasses all input points. */
@@ -50,9 +46,7 @@ export class DelaunayTriangulator {
    * @throws {Error} When fewer than 3 points provided, points contain invalid coordinates,
    *                 duplicate points exist, or all points are collinear
    */
-  public static triangulate<T extends Vector2Like>(
-    points: T[],
-  ): TriangulationResult<T> {
+  public static triangulate<T extends Vector2Like>(points: T[]): TriangulationResult<T> {
     if (points.length < TRIANGLE_VERTEX_COUNT) {
       throw new Error(
         `At least ${TRIANGLE_VERTEX_COUNT} points are required for triangulation, but got ${points.length}`,
@@ -69,13 +63,8 @@ export class DelaunayTriangulator {
       const y = points[i].y;
 
       for (let j = i + 1; j < points.length; j++) {
-        if (
-          Math.abs(x - points[j].x) < EPSILON &&
-          Math.abs(y - points[j].y) < EPSILON
-        ) {
-          throw new Error(
-            `Duplicate points found at indices ${i} and ${j}: (${x}, ${y})`,
-          );
+        if (Math.abs(x - points[j].x) < EPSILON && Math.abs(y - points[j].y) < EPSILON) {
+          throw new Error(`Duplicate points found at indices ${i} and ${j}: (${x}, ${y})`);
         }
       }
     }
@@ -85,11 +74,7 @@ export class DelaunayTriangulator {
       const direction = new Vector2(b.x - a.x, b.y - a.y).normalize();
       const temp = new Vector2();
 
-      if (
-        rest.every(
-          (p) => Math.abs(direction.cross(temp.set(p.x - a.x, p.y - a.y))) < EPSILON,
-        )
-      ) {
+      if (rest.every((p) => Math.abs(direction.cross(temp.set(p.x - a.x, p.y - a.y))) < EPSILON)) {
         throw new Error("All points are collinear - cannot run triangulation");
       }
     }
@@ -98,10 +83,7 @@ export class DelaunayTriangulator {
     let triangles: Triangle<T>[] = [superTriangle];
 
     for (const point of points) {
-      const badTriangles = DelaunayTriangulator.filterBadTriangles(
-        triangles,
-        point,
-      );
+      const badTriangles = DelaunayTriangulator.filterBadTriangles(triangles, point);
 
       for (const edge of DelaunayTriangulator.buildPolygon(badTriangles)) {
         triangles.push({
@@ -177,9 +159,7 @@ export class DelaunayTriangulator {
    * @param triangles - Array of triangles forming the cavity
    * @returns Array of edges [vertex1, vertex2] that form the polygon boundary
    */
-  private static buildPolygon<T extends Vector2Like>(
-    triangles: Triangle<T>[],
-  ): [T, T][] {
+  private static buildPolygon<T extends Vector2Like>(triangles: Triangle<T>[]): [T, T][] {
     const polygonOuterEdges: [T, T][] = [];
 
     for (const triangle of triangles) {
@@ -199,8 +179,7 @@ export class DelaunayTriangulator {
               [t.c, t.a],
             ].every(
               (e) =>
-                (edge[0] !== e[0] || edge[1] !== e[1]) &&
-                (edge[1] !== e[0] || edge[0] !== e[1]),
+                (edge[0] !== e[0] || edge[1] !== e[1]) && (edge[1] !== e[0] || edge[0] !== e[1]),
             ),
         );
 
@@ -274,9 +253,7 @@ export class DelaunayTriangulator {
    * @param points - Array of input points to encompass
    * @returns Triangle that contains all input points with precomputed properties
    */
-  private static buildSuperTriangle<T extends Vector2Like>(
-    points: T[],
-  ): Triangle<T> {
+  private static buildSuperTriangle<T extends Vector2Like>(points: T[]): Triangle<T> {
     let minX = Infinity;
     let minY = Infinity;
     let maxX = -Infinity;
@@ -289,8 +266,7 @@ export class DelaunayTriangulator {
       maxY = Math.max(maxY, point.y);
     }
 
-    const delta =
-      Math.max(maxX - minX, maxY - minY) * SUPER_TRIANGLE_SCALE_FACTOR;
+    const delta = Math.max(maxX - minX, maxY - minY) * SUPER_TRIANGLE_SCALE_FACTOR;
 
     const a = { x: minX - delta, y: minY - delta } as T;
     const b = { x: minX + 2 * delta, y: minY - delta } as T;
@@ -311,8 +287,6 @@ export class DelaunayTriangulator {
     vertex: T,
     triangle: Triangle<T>,
   ): boolean {
-    return (
-      vertex === triangle.a || vertex === triangle.b || vertex === triangle.c
-    );
+    return vertex === triangle.a || vertex === triangle.b || vertex === triangle.c;
   }
 }

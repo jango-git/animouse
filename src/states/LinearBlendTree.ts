@@ -1,15 +1,8 @@
 import type { AnimationAction } from "three";
 import { LoopOnce } from "three";
 import { AnimationStateEvent } from "../mescellaneous/AnimationStateEvent";
-import {
-  assertValidNumber,
-  assertValidPositiveNumber,
-} from "../mescellaneous/assertions";
-import {
-  EPSILON,
-  getNextAnchorIndex,
-  type Anchor,
-} from "../mescellaneous/miscellaneous";
+import { assertValidNumber, assertValidPositiveNumber } from "../mescellaneous/assertions";
+import { EPSILON, getNextAnchorIndex, type Anchor } from "../mescellaneous/miscellaneous";
 import { AnimationTree } from "./AnimationTree";
 
 /**
@@ -264,8 +257,7 @@ export class LinearBlendTree extends AnimationTree {
         this.updateAnchorWeight(this.lastRightAnchor, 0);
       }
 
-      const difference =
-        (this.currentBlend - lAnchor.value) / (rAnchor.value - lAnchor.value);
+      const difference = (this.currentBlend - lAnchor.value) / (rAnchor.value - lAnchor.value);
       this.updateAnchorWeight(lAnchor, 1 - difference);
       this.updateAnchorWeight(rAnchor, difference);
 

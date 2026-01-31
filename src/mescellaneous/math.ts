@@ -1,8 +1,4 @@
-import {
-  assertValidAzimuth,
-  assertValidNumber,
-  assertValidPositiveNumber,
-} from "./assertions";
+import { assertValidAzimuth, assertValidNumber, assertValidPositiveNumber } from "./assertions";
 import { EPSILON, PI2 } from "./miscellaneous";
 
 export interface Vector2Like {
@@ -51,11 +47,7 @@ export interface TriangleCache {
  * @returns Precomputed triangle data cache
  * @throws {Error} When triangle is degenerate or coordinates are invalid
  */
-export function precomputeTriangle(
-  a: Vector2Like,
-  b: Vector2Like,
-  c: Vector2Like,
-): TriangleCache {
+export function precomputeTriangle(a: Vector2Like, b: Vector2Like, c: Vector2Like): TriangleCache {
   assertValidNumber(a.x, "a.x");
   assertValidNumber(a.y, "a.y");
   assertValidNumber(b.x, "b.x");
@@ -87,8 +79,7 @@ export function precomputeTriangle(
   return {
     origin: a,
     circumcenter,
-    circumradiusSquared:
-      (a.x - circumcenter.x) ** 2 + (a.y - circumcenter.y) ** 2,
+    circumradiusSquared: (a.x - circumcenter.x) ** 2 + (a.y - circumcenter.y) ** 2,
     u,
     v,
     d00,
@@ -234,10 +225,7 @@ export function isPointInsideCircle(
   assertValidNumber(point.x, "point.x");
   assertValidNumber(point.y, "point.y");
 
-  return (
-    (point.x - origin.x) ** 2 + (point.y - origin.y) ** 2 <
-    radiusSquared - EPSILON
-  );
+  return (point.x - origin.x) ** 2 + (point.y - origin.y) ** 2 < radiusSquared - EPSILON;
 }
 
 /**
@@ -263,10 +251,7 @@ export function calculateNormalizedAzimuth(azimuth: number): number {
  * @returns The forward angular distance in radians [0, 2π)
  * @throws {Error} When either azimuth value is invalid
  */
-export function calculateAngularDistanceForward(
-  from: number,
-  to: number,
-): number {
+export function calculateAngularDistanceForward(from: number, to: number): number {
   assertValidAzimuth(from, "Azimuth 'from'");
   assertValidAzimuth(to, "Azimuth 'to'");
 
@@ -284,18 +269,12 @@ export function calculateAngularDistanceForward(
  * @returns True if the azimuth is within the range (inclusive), false otherwise
  * @throws {Error} When any azimuth value is invalid
  */
-export function isAzimuthBetween(
-  value: number,
-  from: number,
-  to: number,
-): boolean {
+export function isAzimuthBetween(value: number, from: number, to: number): boolean {
   assertValidAzimuth(value, "Azimuth value");
   assertValidAzimuth(from, "Azimuth 'from'");
   assertValidAzimuth(to, "Azimuth 'to'");
 
-  return from <= to
-    ? value >= from && value <= to
-    : value >= from || value <= to;
+  return from <= to ? value >= from && value <= to : value >= from || value <= to;
 }
 
 /**
@@ -309,12 +288,7 @@ export function isAzimuthBetween(
  * @returns The squared distance between the two points
  * @throws {Error} When any coordinate value is invalid
  */
-export function calculateDistanceSquared(
-  x1: number,
-  y1: number,
-  x2: number,
-  y2: number,
-): number {
+export function calculateDistanceSquared(x1: number, y1: number, x2: number, y2: number): number {
   assertValidNumber(x1, "Coordinate 'x1'");
   assertValidNumber(y1, "Coordinate 'y1'");
   assertValidNumber(x2, "Coordinate 'x2'");

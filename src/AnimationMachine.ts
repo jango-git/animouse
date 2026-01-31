@@ -32,11 +32,7 @@ type EventCondition = (
  * @returns True if the transition should occur, false otherwise
  */
 /* eslint-disable @typescript-eslint/no-explicit-any -- Using any here for generic condition function arguments */
-type DataCondition = (
-  from: AnimationState,
-  to: AnimationState,
-  ...args: any[]
-) => boolean;
+type DataCondition = (from: AnimationState, to: AnimationState, ...args: any[]) => boolean;
 
 /**
  * Configuration for event-triggered transitions between animation states.
@@ -101,18 +97,13 @@ export class AnimationMachine {
   private readonly mixer: AnimationMixer;
 
   /** Map of event names to their possible transitions */
-  private readonly eventTransitions: Map<string | number, EventTransition[]> =
-    new Map();
+  private readonly eventTransitions: Map<string | number, EventTransition[]> = new Map();
 
   /** Map of states to their automatic transitions that occur at animation end */
-  private readonly automaticTransitions: Map<
-    AnimationState,
-    AutomaticTransition
-  > = new Map();
+  private readonly automaticTransitions: Map<AnimationState, AutomaticTransition> = new Map();
 
   /** Map of states to their data-driven transitions */
-  private readonly dataTransitions: Map<AnimationState, DataTransition[]> =
-    new Map();
+  private readonly dataTransitions: Map<AnimationState, DataTransition[]> = new Map();
 
   /** Time remaining in the current transition */
   private transitionElapsedTime?: number;
@@ -155,29 +146,18 @@ export class AnimationMachine {
    * @throws {Error} When transition creates a recursive loop (from === to)
    * @throws {Error} When transition already exists for the same event and source state
    */
-  public addEventTransition(
-    event: string | number,
-    transition: EventTransition,
-  ): void {
-    assertValidNonNegativeNumber(
-      transition.duration,
-      "Event transition duration",
-    );
+  public addEventTransition(event: string | number, transition: EventTransition): void {
+    assertValidNonNegativeNumber(transition.duration, "Event transition duration");
 
     if (transition.from === transition.to) {
-      throw new Error(
-        "Event animation transition can't create a recursive loop to itself",
-      );
+      throw new Error("Event animation transition can't create a recursive loop to itself");
     }
 
     const transitions = this.eventTransitions.get(event) ?? [];
 
     if (!transition.condition) {
       for (const someTransition of transitions) {
-        if (
-          !someTransition.condition &&
-          someTransition.from === transition.from
-        ) {
+        if (!someTransition.condition && someTransition.from === transition.from) {
           throw new Error("Event animation transition already exists");
         }
       }
@@ -198,19 +178,11 @@ export class AnimationMachine {
    * @throws {Error} When transition creates a recursive loop (from === to)
    * @throws {Error} When an automatic transition already exists for the source state
    */
-  public addAutomaticTransition(
-    from: AnimationState,
-    transition: AutomaticTransition,
-  ): void {
-    assertValidNonNegativeNumber(
-      transition.duration,
-      "Automatic transition duration",
-    );
+  public addAutomaticTransition(from: AnimationState, transition: AutomaticTransition): void {
+    assertValidNonNegativeNumber(transition.duration, "Automatic transition duration");
 
     if (from === transition.to) {
-      throw new Error(
-        "Automatic animation transition can't create a recursive loop to itself",
-      );
+      throw new Error("Automatic animation transition can't create a recursive loop to itself");
     }
 
     if (this.automaticTransitions.has(from)) {
@@ -233,19 +205,11 @@ export class AnimationMachine {
    * @throws {Error} When transition creates a recursive loop (from === to)
    * @throws {Error} When a data transition to the same target already exists
    */
-  public addDataTransition(
-    from: AnimationState,
-    transition: DataTransition,
-  ): void {
-    assertValidNonNegativeNumber(
-      transition.duration,
-      "Data transition duration",
-    );
+  public addDataTransition(from: AnimationState, transition: DataTransition): void {
+    assertValidNonNegativeNumber(transition.duration, "Data transition duration");
 
     if (from === transition.to) {
-      throw new Error(
-        "Automatic animation transition can't create a recursive loop to itself",
-      );
+      throw new Error("Automatic animation transition can't create a recursive loop to itself");
     }
 
     const transitions = this.dataTransitions.get(from) ?? [];
@@ -270,8 +234,7 @@ export class AnimationMachine {
 
     for (const { from, to, duration, condition } of transitions) {
       const isValidFromState = !from || from === this.currentStateInternal;
-      const isValidCondition =
-        !condition || condition(from, to, event, ...args);
+      const isValidCondition = !condition || condition(from, to, event, ...args);
 
       if (isValidFromState && isValidCondition) {
         return this.transitionTo(to, duration);
@@ -309,11 +272,7 @@ export class AnimationMachine {
     const transition = this.dataTransitions
       .get(this.currentStateInternal)
       ?.find((transition) =>
-        transition.condition(
-          this.currentStateInternal,
-          transition.to,
-          ...(transition.data ?? []),
-        ),
+        transition.condition(this.currentStateInternal, transition.to, ...(transition.data ?? [])),
       );
 
     if (transition) {
@@ -322,9 +281,7 @@ export class AnimationMachine {
 
     if (this.transitionElapsedTime !== undefined) {
       const t =
-        this.transitionElapsedTime === 0
-          ? 1
-          : Math.min(1, deltaTime / this.transitionElapsedTime);
+        this.transitionElapsedTime === 0 ? 1 : Math.min(1, deltaTime / this.transitionElapsedTime);
 
       for (const state of this.fadingStates) {
         state["setInfluenceInternal"](MathUtils.lerp(state.influence, 0, t));
@@ -333,10 +290,7 @@ export class AnimationMachine {
       this.currentStateInternal["setInfluenceInternal"](
         MathUtils.lerp(this.currentStateInternal.influence, 1, t),
       );
-      this.transitionElapsedTime = Math.max(
-        0,
-        this.transitionElapsedTime - deltaTime,
-      );
+      this.transitionElapsedTime = Math.max(0, this.transitionElapsedTime - deltaTime);
 
       if (this.transitionElapsedTime === 0) {
         for (const state of this.fadingStates) {
@@ -382,14 +336,9 @@ export class AnimationMachine {
    * @private
    * @param {AnimationState} state - The state that completed an iteration
    */
-  private onStateIteration(
-    action: AnimationAction,
-    state: AnimationState,
-  ): void {
+  private onStateIteration(action: AnimationAction, state: AnimationState): void {
     if (state === this.currentStateInternal) {
-      const transition = this.automaticTransitions.get(
-        this.currentStateInternal,
-      );
+      const transition = this.automaticTransitions.get(this.currentStateInternal);
       if (transition) {
         this.transitionTo(transition.to, transition.duration);
       }

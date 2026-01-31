@@ -1,14 +1,8 @@
 import type { Callback } from "eventail";
 import { LoopOnce, type AnimationAction } from "three";
 import { AnimationStateEvent } from "../mescellaneous/AnimationStateEvent";
-import {
-  assertValidPositiveNumber,
-  assertValidUnitRange,
-} from "../mescellaneous/assertions";
-import {
-  getNextAnchorIndex,
-  type Anchor,
-} from "../mescellaneous/miscellaneous";
+import { assertValidPositiveNumber, assertValidUnitRange } from "../mescellaneous/assertions";
+import { getNextAnchorIndex, type Anchor } from "../mescellaneous/miscellaneous";
 import { AnimationState } from "./AnimationState";
 
 /**

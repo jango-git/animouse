@@ -27,11 +27,7 @@ export abstract class AnimationTree extends AnimationState {
    * @param callback - Function to call when the time event occurs, receives the action and state as parameters
    * @throws {Error} When the action is not registered in this animation tree
    */
-  public onTimeEvent(
-    action: AnimationAction,
-    unitTime: number,
-    callback: Callback,
-  ): void {
+  public onTimeEvent(action: AnimationAction, unitTime: number, callback: Callback): void {
     const anchor = this.actionToAnchor.get(action);
     if (!anchor) {
       throw new Error(`Action is not registered`);
@@ -49,11 +45,7 @@ export abstract class AnimationTree extends AnimationState {
    * @param callback - Function to call when the time event occurs, receives the action and state as parameters
    * @throws {Error} When the action is not registered in this animation tree
    */
-  public onceTimeEvent(
-    action: AnimationAction,
-    unitTime: number,
-    callback: Callback,
-  ): void {
+  public onceTimeEvent(action: AnimationAction, unitTime: number, callback: Callback): void {
     const anchor = this.actionToAnchor.get(action);
     if (!anchor) {
       throw new Error(`Action is not registered`);
@@ -71,11 +63,7 @@ export abstract class AnimationTree extends AnimationState {
    * @param callback - The callback function to remove
    * @throws {Error} When the action is not registered in this animation tree
    */
-  public offTimeEvent(
-    action: AnimationAction,
-    unitTime: number,
-    callback: Callback,
-  ): void {
+  public offTimeEvent(action: AnimationAction, unitTime: number, callback: Callback): void {
     const anchor = this.actionToAnchor.get(action);
     if (!anchor) {
       throw new Error(`Action is not registered`);
@@ -113,10 +101,7 @@ export abstract class AnimationTree extends AnimationState {
    * @param weight - The raw weight value before applying tree influence. If not provided, uses the anchor's current weight
    * @throws {Error} When weight is not a finite number or is outside the range [0, 1]
    */
-  protected updateAnchorWeight(
-    anchor: Anchor,
-    weight: number = anchor.weight,
-  ): void {
+  protected updateAnchorWeight(anchor: Anchor, weight: number = anchor.weight): void {
     assertValidUnitRange(weight, "Anchor weight");
     anchor.weight = weight;
 

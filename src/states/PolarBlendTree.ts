@@ -6,11 +6,7 @@ import {
   assertValidNumber,
   assertValidPositiveNumber,
 } from "../mescellaneous/assertions";
-import {
-  EPSILON,
-  getNextAnchorIndex,
-  type Anchor,
-} from "../mescellaneous/miscellaneous";
+import { EPSILON, getNextAnchorIndex, type Anchor } from "../mescellaneous/miscellaneous";
 
 import {
   calculateAngularDistanceForward,
@@ -145,9 +141,7 @@ export class PolarBlendTree extends AnimationTree {
     super();
 
     if (polarActions.length < MIN_POLAR_ACTIONS) {
-      throw new Error(
-        `At least ${MIN_POLAR_ACTIONS} actions are required for polar blend tree`,
-      );
+      throw new Error(`At least ${MIN_POLAR_ACTIONS} actions are required for polar blend tree`);
     }
 
     for (let i = 0; i < polarActions.length; i++) {
@@ -204,13 +198,9 @@ export class PolarBlendTree extends AnimationTree {
         azimuth: polarAction.azimuth,
       };
 
-      const ray = this.rays.find(
-        (r) => Math.abs(r.azimuth - polarAction.azimuth) < EPSILON,
-      );
+      const ray = this.rays.find((r) => Math.abs(r.azimuth - polarAction.azimuth) < EPSILON);
 
-      const ring = this.rings.find(
-        (r) => Math.abs(r.radius - polarAction.radius) < EPSILON,
-      );
+      const ring = this.rings.find((r) => Math.abs(r.radius - polarAction.radius) < EPSILON);
 
       ray
         ? ray.anchors.push(anchor)
@@ -259,18 +249,12 @@ export class PolarBlendTree extends AnimationTree {
         duration,
         invDuration: 1 / duration,
         iterationEventType:
-          centerAction.loop === LoopOnce
-            ? AnimationStateEvent.FINISH
-            : AnimationStateEvent.ITERATE,
+          centerAction.loop === LoopOnce ? AnimationStateEvent.FINISH : AnimationStateEvent.ITERATE,
         get radius(): number {
-          throw new Error(
-            "PolarBlendTree central anchor radius is not accessible",
-          );
+          throw new Error("PolarBlendTree central anchor radius is not accessible");
         },
         get azimuth(): number {
-          throw new Error(
-            "PolarBlendTree central anchor azimuth is not accessible",
-          );
+          throw new Error("PolarBlendTree central anchor azimuth is not accessible");
         },
       };
 
@@ -301,10 +285,7 @@ export class PolarBlendTree extends AnimationTree {
 
     const normalizedAzimuth = calculateNormalizedAzimuth(azimuth);
 
-    if (
-      this.currentRadius !== radius ||
-      this.currentAzimuth !== normalizedAzimuth
-    ) {
+    if (this.currentRadius !== radius || this.currentAzimuth !== normalizedAzimuth) {
       this.currentRadius = radius;
       this.currentAzimuth = normalizedAzimuth;
       this.updateAnchors();
@@ -369,15 +350,9 @@ export class PolarBlendTree extends AnimationTree {
       const rAzimuth = rRay.azimuth;
 
       if (isAzimuthBetween(this.currentAzimuth, lAzimuth, rAzimuth)) {
-        const angularDistance = calculateAngularDistanceForward(
-          lAzimuth,
-          rAzimuth,
-        );
+        const angularDistance = calculateAngularDistanceForward(lAzimuth, rAzimuth);
 
-        const leftDistance = calculateAngularDistanceForward(
-          lAzimuth,
-          this.currentAzimuth,
-        );
+        const leftDistance = calculateAngularDistanceForward(lAzimuth, this.currentAzimuth);
 
         const rRayT = leftDistance / angularDistance;
         const lRayT = 1 - rRayT;
@@ -395,28 +370,14 @@ export class PolarBlendTree extends AnimationTree {
 
           this.tempAnchorMap.set(lRay.anchors[0], lWeight);
           this.tempAnchorMap.set(rRay.anchors[0], rWeight);
-        } else if (
-          this.currentRadius >= this.rings[this.rings.length - 1].radius
-        ) {
+        } else if (this.currentRadius >= this.rings[this.rings.length - 1].radius) {
           let lWeight = lRayT;
           let rWeight = rRayT;
 
-          this.tempAnchorMap.set(
-            lRay.anchors[lRay.anchors.length - 1],
-            lWeight,
-          );
-          this.tempAnchorMap.set(
-            rRay.anchors[rRay.anchors.length - 1],
-            rWeight,
-          );
+          this.tempAnchorMap.set(lRay.anchors[lRay.anchors.length - 1], lWeight);
+          this.tempAnchorMap.set(rRay.anchors[rRay.anchors.length - 1], rWeight);
         } else {
-          this.calculateBilinearWeights(
-            this.tempAnchorMap,
-            lRayT,
-            rRayT,
-            lRayIndex,
-            rRayIndex,
-          );
+          this.calculateBilinearWeights(this.tempAnchorMap, lRayT, rRayT, lRayIndex, rRayIndex);
         }
         break;
       }
@@ -454,12 +415,8 @@ export class PolarBlendTree extends AnimationTree {
       const innerRadius = innerRing.radius;
       const outerRadius = outerRing.radius;
 
-      if (
-        this.currentRadius >= innerRadius &&
-        this.currentRadius <= outerRadius
-      ) {
-        const outerRingT =
-          (this.currentRadius - innerRadius) / (outerRadius - innerRadius);
+      if (this.currentRadius >= innerRadius && this.currentRadius <= outerRadius) {
+        const outerRingT = (this.currentRadius - innerRadius) / (outerRadius - innerRadius);
         const innerRingT = 1 - outerRingT;
 
         weights.set(outerRing.anchors[lRayIndex], outerRingT * lRayT);

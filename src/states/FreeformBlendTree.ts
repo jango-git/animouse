@@ -11,11 +11,7 @@ import {
   calculateTriangleCentroid,
   Vector2Like,
 } from "../mescellaneous/math";
-import {
-  EPSILON,
-  getNextAnchorIndex,
-  type Anchor,
-} from "../mescellaneous/miscellaneous";
+import { EPSILON, getNextAnchorIndex, type Anchor } from "../mescellaneous/miscellaneous";
 import { AnimationTree } from "./AnimationTree";
 
 /** Minimum number of actions required for freeform blend tree triangulation */
@@ -55,11 +51,10 @@ interface FreeformAnchor extends Anchor {
  *
  * @internal
  */
-interface FreeformTriangle
-  extends Omit<
-    Triangle<FreeformAnchor>,
-    "circumcenter" | "circumradiusSquared"
-  > {
+interface FreeformTriangle extends Omit<
+  Triangle<FreeformAnchor>,
+  "circumcenter" | "circumradiusSquared"
+> {
   /** Precomputed geometric center point of the triangle */
   centroid: Vector2Like;
 }
@@ -88,10 +83,7 @@ export class FreeformBlendTree extends AnimationTree {
   private readonly tempAnchorMap = new Map<FreeformAnchor, number>();
   private readonly trackableAnchors: FreeformAnchor[] = [];
   private readonly triangles: FreeformTriangle[] = [];
-  private readonly boundaryEdgeMap = new Map<
-    FreeformAnchor,
-    [FreeformAnchor, FreeformAnchor]
-  >();
+  private readonly boundaryEdgeMap = new Map<FreeformAnchor, [FreeformAnchor, FreeformAnchor]>();
 
   private currentX = 0;
   private currentY = 0;
@@ -111,20 +103,12 @@ export class FreeformBlendTree extends AnimationTree {
     super();
 
     if (freeformActions.length < MIN_ACTION_COUNT) {
-      throw new Error(
-        "FreeformBlendTree requires at least 3 actions for triangulation",
-      );
+      throw new Error("FreeformBlendTree requires at least 3 actions for triangulation");
     }
 
     for (let i = 0; i < freeformActions.length; i++) {
-      assertValidNumber(
-        freeformActions[i].x,
-        `Freeform action at index ${i} x value`,
-      );
-      assertValidNumber(
-        freeformActions[i].y,
-        `Freeform action at index ${i} y value`,
-      );
+      assertValidNumber(freeformActions[i].x, `Freeform action at index ${i} x value`);
+      assertValidNumber(freeformActions[i].y, `Freeform action at index ${i} y value`);
     }
 
     for (let i = 0; i < freeformActions.length - 1; i++) {
@@ -287,9 +271,7 @@ export class FreeformBlendTree extends AnimationTree {
    * @param result - Map to store calculated weights for each anchor
    * @returns True if barycentric interpolation was applied, false if point is outside all triangles
    */
-  private applyBarycentricWeights(
-    result: Map<FreeformAnchor, number>,
-  ): boolean {
+  private applyBarycentricWeights(result: Map<FreeformAnchor, number>): boolean {
     const point = { x: this.currentX, y: this.currentY };
 
     for (const triangle of this.triangles) {
@@ -311,19 +293,14 @@ export class FreeformBlendTree extends AnimationTree {
    *
    * @param result - Map to store calculated weights for each anchor
    */
-  private applyNearestNeighborWeight(
-    result: Map<FreeformAnchor, number>,
-  ): void {
+  private applyNearestNeighborWeight(result: Map<FreeformAnchor, number>): void {
     const nearestTriangle = this.triangles[0];
-    const closestAnchor = [
-      nearestTriangle.a,
-      nearestTriangle.b,
-      nearestTriangle.c,
-    ].reduce((a, b) =>
-      calculateDistanceSquared(a.x, a.y, this.currentX, this.currentY) <
-      calculateDistanceSquared(b.x, b.y, this.currentX, this.currentY)
-        ? a
-        : b,
+    const closestAnchor = [nearestTriangle.a, nearestTriangle.b, nearestTriangle.c].reduce(
+      (a, b) =>
+        calculateDistanceSquared(a.x, a.y, this.currentX, this.currentY) <
+        calculateDistanceSquared(b.x, b.y, this.currentX, this.currentY)
+          ? a
+          : b,
     );
 
     const edgeData = this.boundaryEdgeMap.get(closestAnchor);
@@ -339,14 +316,8 @@ export class FreeformBlendTree extends AnimationTree {
       );
     }
 
-    const edge0: [FreeformAnchor, FreeformAnchor] = [
-      closestAnchor,
-      edgeData[0],
-    ];
-    const edge1: [FreeformAnchor, FreeformAnchor] = [
-      closestAnchor,
-      edgeData[1],
-    ];
+    const edge0: [FreeformAnchor, FreeformAnchor] = [closestAnchor, edgeData[0]];
+    const edge1: [FreeformAnchor, FreeformAnchor] = [closestAnchor, edgeData[1]];
     const closestEdge =
       calculateDistanceToEdgeSquared(edge0, this.currentX, this.currentY) <
       calculateDistanceToEdgeSquared(edge1, this.currentX, this.currentY)
@@ -359,8 +330,7 @@ export class FreeformBlendTree extends AnimationTree {
     const dy = b.y - a.y;
     const lengthSquared = dx * dx + dy * dy;
 
-    const value =
-      ((this.currentX - a.x) * dx + (this.currentY - a.y) * dy) / lengthSquared;
+    const value = ((this.currentX - a.x) * dx + (this.currentY - a.y) * dy) / lengthSquared;
     const t = Math.max(0, Math.min(1, value));
 
     result.set(a, 1 - t);
@@ -374,18 +344,8 @@ export class FreeformBlendTree extends AnimationTree {
   private sortTriangles(): void {
     this.triangles.sort(
       (a, b) =>
-        calculateDistanceSquared(
-          a.centroid.x,
-          a.centroid.y,
-          this.currentX,
-          this.currentY,
-        ) -
-        calculateDistanceSquared(
-          b.centroid.x,
-          b.centroid.y,
-          this.currentX,
-          this.currentY,
-        ),
+        calculateDistanceSquared(a.centroid.x, a.centroid.y, this.currentX, this.currentY) -
+        calculateDistanceSquared(b.centroid.x, b.centroid.y, this.currentX, this.currentY),
     );
   }
 }

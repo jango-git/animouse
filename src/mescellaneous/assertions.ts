@@ -55,16 +55,11 @@ export function assertValidUnitRange(value: number, subject: string): void {
  * @param subject - Custom error message for validation failure
  * @throws {Error} When the value is less than EPSILON
  */
-export function assertValidPositiveNumber(
-  value: number,
-  subject: string,
-): void {
+export function assertValidPositiveNumber(value: number, subject: string): void {
   assertValidNumber(value, subject);
 
   if (value < EPSILON) {
-    throw new Error(
-      `${subject}: value must be greater than or equal to ${EPSILON}`,
-    );
+    throw new Error(`${subject}: value must be greater than or equal to ${EPSILON}`);
   }
 }
 
@@ -75,10 +70,7 @@ export function assertValidPositiveNumber(
  * @param subject - Custom error message for validation failure
  * @throws {Error} When the value is negative
  */
-export function assertValidNonNegativeNumber(
-  value: number,
-  subject: string,
-): void {
+export function assertValidNonNegativeNumber(value: number, subject: string): void {
   assertValidNumber(value, subject);
 
   if (value < 0) {

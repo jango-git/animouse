@@ -98,11 +98,7 @@ export abstract class AnimationState extends Eventail {
    * @param callback - The callback function to remove
    * @internal Called only by concrete animation state implementations
    */
-  protected offTimeEventInternal(
-    anchor: Anchor,
-    unitTime: number,
-    callback: Callback,
-  ): void {
+  protected offTimeEventInternal(anchor: Anchor, unitTime: number, callback: Callback): void {
     assertValidUnitRange(unitTime, "Unit time");
     const roundedTime = Math.round(unitTime * 100) / 100;
     const events = this.timeEvents.get(anchor);
@@ -134,9 +130,7 @@ export abstract class AnimationState extends Eventail {
     const action = anchor.action;
 
     if (anchor.action.weight === 0) {
-      throw new Error(
-        `Cannot update anchor time for a non-running action: ${this.name}`,
-      );
+      throw new Error(`Cannot update anchor time for a non-running action: ${this.name}`);
     }
 
     const time = action.time;
