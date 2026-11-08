@@ -1,0 +1,135 @@
+import { expect, test } from "vitest";
+import { assertEqualWithTolerance } from "../miscellaneous/miscellaneous";
+import { MIXER } from "../mocks/buildMockAnimationAction";
+import { AnimationMachineProxy } from "../proxies/AnimationMachineProxy";
+import { AnimationTreeProxy } from "../proxies/AnimationTreeProxy";
+
+test("addDataTransition: should transition when condition returns true with zero duration", () => {
+  const from = new AnimationTreeProxy();
+  const to = new AnimationTreeProxy();
+  const machine = new AnimationMachineProxy(from, MIXER);
+
+  const duration = 0;
+  machine.addDataTransition(from, { to, duration, condition: () => true });
+  machine.update(duration);
+
+  assertEqualWithTolerance(from.influence, 0, "from state influence");
+  assertEqualWithTolerance(to.influence, 1, "to state influence");
+  expect(machine.currentState, "current state should be 'to' after transition").toEqual(to);
+});
+
+test("addDataTransition: should transition when condition returns true with full duration", () => {
+  const from = new AnimationTreeProxy();
+  const to = new AnimationTreeProxy();
+  const machine = new AnimationMachineProxy(from, MIXER);
+
+  const duration = 0.25;
+  machine.addDataTransition(from, { to, duration, condition: () => true });
+  machine.update(duration);
+
+  assertEqualWithTolerance(from.influence, 0, "from state influence");
+  assertEqualWithTolerance(to.influence, 1, "to state influence");
+  expect(machine.currentState, "current state should be 'to' after transition").toEqual(to);
+});
+
+test("addDataTransition: should have equal influence at half duration when condition returns true", () => {
+  const from = new AnimationTreeProxy();
+  const to = new AnimationTreeProxy();
+  const machine = new AnimationMachineProxy(from, MIXER);
+
+  const duration = 0.25;
+  machine.addDataTransition(from, { to, duration, condition: () => true });
+  machine.update(duration / 2);
+
+  assertEqualWithTolerance(from.influence, 0.5, "from state influence");
+  assertEqualWithTolerance(to.influence, 0.5, "to state influence");
+  expect(machine.currentState, "current state should be 'to' after transition").toEqual(to);
+});
+
+test("addDataTransition: should not transition when condition returns false with zero duration", () => {
+  const from = new AnimationTreeProxy();
+  const to = new AnimationTreeProxy();
+  const machine = new AnimationMachineProxy(from, MIXER);
+
+  const duration = 0;
+  machine.addDataTransition(from, { to, duration, condition: () => false });
+  machine.update(duration);
+
+  assertEqualWithTolerance(from.influence, 1, "from state influence");
+  assertEqualWithTolerance(to.influence, 0, "to state influence");
+  expect(
+    machine.currentState,
+    "current state should remain 'from' when condition is false",
+  ).toEqual(from);
+});
+
+test("addDataTransition: should not transition when condition returns false with full duration", () => {
+  const from = new AnimationTreeProxy();
+  const to = new AnimationTreeProxy();
+  const machine = new AnimationMachineProxy(from, MIXER);
+
+  const duration = 0.25;
+  machine.addDataTransition(from, { to, duration, condition: () => false });
+  machine.update(duration);
+
+  assertEqualWithTolerance(from.influence, 1, "from state influence");
+  assertEqualWithTolerance(to.influence, 0, "to state influence");
+  expect(
+    machine.currentState,
+    "current state should remain 'from' when condition is false",
+  ).toEqual(from);
+});
+
+test("addDataTransition: should not transition when condition returns false at half duration", () => {
+  const from = new AnimationTreeProxy();
+  const to = new AnimationTreeProxy();
+  const machine = new AnimationMachineProxy(from, MIXER);
+
+  const duration = 0.25;
+  machine.addDataTransition(from, { to, duration, condition: () => false });
+  machine.update(duration / 2);
+
+  assertEqualWithTolerance(from.influence, 1, "from state influence");
+  assertEqualWithTolerance(to.influence, 0, "to state influence");
+  expect(
+    machine.currentState,
+    "current state should remain 'from' when condition is false",
+  ).toEqual(from);
+});
+
+test("addDataTransition: should pass correct parameters to condition function", () => {
+  const from = new AnimationTreeProxy();
+  const to = new AnimationTreeProxy();
+  const machine = new AnimationMachineProxy(from, MIXER);
+
+  const duration = 0.25;
+  const userData0 = 24;
+  const userData1 = 42;
+
+  let conditionCalled = false;
+  let receivedFromState: any = null;
+  let receivedToState: any = null;
+  let receivedUserData0: any = null;
+  let receivedUserData1: any = null;
+
+  machine.addDataTransition(from, {
+    to,
+    duration,
+    data: [userData0, userData1],
+    condition: (from, to, userData0, userData1) => {
+      conditionCalled = true;
+      receivedFromState = from;
+      receivedToState = to;
+      receivedUserData0 = userData0;
+      receivedUserData1 = userData1;
+      return true;
+    },
+  });
+  machine.update(duration);
+
+  expect(conditionCalled, "condition function should be called").toBeTruthy();
+  expect(receivedFromState, "condition should receive correct from state").toEqual(from);
+  expect(receivedToState, "condition should receive correct to state").toEqual(to);
+  expect(receivedUserData0, "condition should receive correct user data").toEqual(userData0);
+  expect(receivedUserData1, "condition should receive correct user data").toEqual(userData1);
+});

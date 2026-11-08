@@ -1,9 +1,9 @@
 import type { Callback } from "eventail";
 import { LoopOnce, type AnimationAction } from "three";
-import { AnimationStateEvent } from "../mescellaneous/AnimationStateEvent";
-import { assertValidPositiveNumber, assertValidUnitRange } from "../mescellaneous/assertions";
-import { getNextAnchorIndex, type Anchor } from "../mescellaneous/miscellaneous";
-import { AnimationState } from "./AnimationState";
+import { AnimationStateEvent } from "../miscellaneous/AnimationStateEvent.js";
+import { assertValidPositiveNumber, assertValidUnitRange } from "../miscellaneous/assertions.js";
+import { getNextAnchorIndex, type Anchor } from "../miscellaneous/miscellaneous.js";
+import { AnimationState } from "./AnimationState.js";
 
 /**
  * Animation state that wraps a single Three.js AnimationAction.

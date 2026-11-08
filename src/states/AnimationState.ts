@@ -1,9 +1,9 @@
 import type { Callback } from "eventail";
 import { Eventail } from "eventail";
 import { LoopOnce } from "three";
-import { AnimationStateEvent } from "../mescellaneous/AnimationStateEvent";
-import { assertValidUnitRange } from "../mescellaneous/assertions";
-import type { Anchor } from "../mescellaneous/miscellaneous";
+import { AnimationStateEvent } from "../miscellaneous/AnimationStateEvent.js";
+import { assertValidUnitRange } from "../miscellaneous/assertions.js";
+import type { Anchor } from "../miscellaneous/miscellaneous.js";
 
 /**
  * Abstract base class for animation states in the animation state machine.

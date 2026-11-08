@@ -1,9 +1,9 @@
 import type { Callback } from "eventail";
 import type { AnimationAction } from "three";
-import { AnimationStateEvent } from "../mescellaneous/AnimationStateEvent";
-import { assertValidUnitRange } from "../mescellaneous/assertions";
-import type { Anchor } from "../mescellaneous/miscellaneous";
-import { AnimationState } from "./AnimationState";
+import { AnimationStateEvent } from "../miscellaneous/AnimationStateEvent.js";
+import { assertValidUnitRange } from "../miscellaneous/assertions.js";
+import type { Anchor } from "../miscellaneous/miscellaneous.js";
+import { AnimationState } from "./AnimationState.js";
 
 /**
  * Abstract base class for animation trees in the animation state machine.

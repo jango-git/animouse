@@ -1,18 +1,18 @@
 import type { AnimationAction } from "three";
 import { LoopOnce } from "three";
-import { AnimationStateEvent } from "../mescellaneous/AnimationStateEvent";
-import { assertValidNumber } from "../mescellaneous/assertions";
-import type { Triangle } from "../mescellaneous/DelaunayTriangulator";
-import { DelaunayTriangulator } from "../mescellaneous/DelaunayTriangulator";
+import { AnimationStateEvent } from "../miscellaneous/AnimationStateEvent.js";
+import { assertValidNumber } from "../miscellaneous/assertions.js";
+import type { Triangle } from "../miscellaneous/DelaunayTriangulator.js";
+import { DelaunayTriangulator } from "../miscellaneous/DelaunayTriangulator.js";
 import {
   calculateBarycentricWeights,
   calculateDistanceSquared,
   calculateDistanceToEdgeSquared,
   calculateTriangleCentroid,
-  Vector2Like,
-} from "../mescellaneous/math";
-import { EPSILON, getNextAnchorIndex, type Anchor } from "../mescellaneous/miscellaneous";
-import { AnimationTree } from "./AnimationTree";
+  type Vector2Like,
+} from "../miscellaneous/math.js";
+import { EPSILON, getNextAnchorIndex, type Anchor } from "../miscellaneous/miscellaneous.js";
+import { AnimationTree } from "./AnimationTree.js";
 
 /** Minimum number of actions required for freeform blend tree triangulation */
 const MIN_ACTION_COUNT = 3;

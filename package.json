@@ -1,42 +1,7 @@
 {
   "name": "animouse",
-  "version": "0.8.0",
-  "description": "lightweight animation state machine for three js",
-  "scripts": {
-    "clean": "rm -rf dist",
-    "build": "npm run clean && rollup -c",
-    "build:prod": "npm run clean && NODE_ENV=production rollup -c",
-    "test": "npx --node-options='--import=tsx/esm' uvu test",
-    "test:machine": "npx --node-options='--import=tsx/esm' uvu test/AnimationMachine",
-    "test:tree": "npx --node-options='--import=tsx/esm' uvu test/AnimationTree",
-    "test:clip": "npx --node-options='--import=tsx/esm' uvu test/ClipState",
-    "test:delaunay": "npx --node-options='--import=tsx/esm' uvu test/DelaunayTriangulator",
-    "test:freeform": "npx --node-options='--import=tsx/esm' uvu test/FreeformBlendTree",
-    "test:linear": "npx --node-options='--import=tsx/esm' uvu test/LinearBlendTree",
-    "test:math": "npx --node-options='--import=tsx/esm' uvu test/math",
-    "test:polar": "npx --node-options='--import=tsx/esm' uvu test/PolarBlendTree",
-    "coverage": "c8 --include=src --reporter=text npm test",
-    "prepublishOnly": "npm run build:prod && npm test"
-  },
-  "main": "dist/index.js",
-  "module": "dist/index.js",
-  "types": "dist/index.d.ts",
-  "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "import": {
-        "development": "./dist/index.js",
-        "production": "./dist/index.min.js",
-        "default": "./dist/index.min.js"
-      },
-      "require": "./dist/index.min.js"
-    },
-    "./package.json": "./package.json"
-  },
-  "files": [
-    "dist"
-  ],
-  "sideEffects": false,
+  "version": "0.9.0",
+  "description": "Lightweight animation state machine for Three.js",
   "keywords": [
     "animation",
     "three.js",
@@ -48,28 +13,54 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/jango-git/animouse.git"
+    "url": "git+https://github.com/jango-git/animouse.git"
   },
+  "bugs": {
+    "url": "https://github.com/jango-git/animouse/issues"
+  },
+  "homepage": "https://github.com/jango-git/animouse#readme",
   "type": "module",
+  "sideEffects": false,
+  "scripts": {
+    "clean": "rm -rf dist",
+    "build": "npm run clean && tsc -p tsconfig.json",
+    "lint": "eslint src tests",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "format": "prettier --write . && eslint src tests --fix",
+    "prepublishOnly": "npm run build && npm test"
+  },
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
   "peerDependencies": {
     "three": ">=0.157.0 <0.180.0"
   },
-  "devDependencies": {
-    "@rollup/plugin-node-resolve": "^16.0.1",
-    "@rollup/plugin-terser": "^0.4.4",
-    "@types/three": "^0.157.0",
-    "@typescript-eslint/eslint-plugin": "^8.32.0",
-    "@typescript-eslint/parser": "^8.32.0",
-    "c8": "^10.1.3",
-    "eslint": "^9.26.0",
-    "rollup": "^4.40.2",
-    "rollup-plugin-typescript2": "^0.36.0",
-    "ts-transformer-minify-privates": "^1.0.0",
-    "tsx": "^4.20.3",
-    "typescript": "^5.8.3",
-    "uvu": "^0.5.6"
-  },
   "dependencies": {
     "eventail": "^0.2.11"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/three": "^0.157.0",
+    "@typescript-eslint/eslint-plugin": "^8.72.1",
+    "@typescript-eslint/parser": "^8.72.1",
+    "@vitest/coverage-v8": "^4.1.9",
+    "eslint": "^10.14.0",
+    "prettier": "^3.9.10",
+    "typescript": "^5.8.3",
+    "vitest": "^4.1.9"
   }
 }

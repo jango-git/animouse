@@ -1,8 +1,8 @@
 import type { AnimationAction, AnimationMixer } from "three";
 import { MathUtils } from "three";
-import { AnimationStateEvent } from "./mescellaneous/AnimationStateEvent";
-import { assertValidNonNegativeNumber } from "./mescellaneous/assertions";
-import type { AnimationState } from "./states/AnimationState";
+import { AnimationStateEvent } from "./miscellaneous/AnimationStateEvent.js";
+import { assertValidNonNegativeNumber } from "./miscellaneous/assertions.js";
+import type { AnimationState } from "./states/AnimationState.js";
 
 /**
  * Condition function for event-triggered transitions.

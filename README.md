@@ -11,7 +11,7 @@
 <a href="https://bundlephobia.com/package/animouse"><img src="https://badgen.net/bundlephobia/min/animouse" alt="bundle size (min)"></a>
 <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License: MIT"></a>
 <a href="https://www.typescriptlang.org/"><img src="https://img.shields.io/badge/TypeScript-%5E5.8.0-blue" alt="TypeScript"></a>
-<a href="https://threejs.org/"><img src="https://img.shields.io/badge/Three.js-%5E0.175.0-green" alt="Three.js"></a>
+<a href="https://threejs.org/"><img src="https://img.shields.io/badge/Three.js-0.157.0--0.180.0-green" alt="Three.js"></a>
 </p>
 
 ## What's included
@@ -32,7 +32,7 @@ npm install animouse
 
 ## Requirements
 
-- Three.js ^0.175.0 (peer dependency)
+- Three.js >=0.157.0 <0.180.0 (peer dependency)
 - Modern JavaScript environment with ES2020+ support
 
 ## Examples
@@ -40,6 +40,7 @@ npm install animouse
 🎮 **[Live Examples](https://jango-git.github.io/animouse/)** - Interactive demos showing Animouse in action
 
 Browse working examples that demonstrate:
+
 - Basic GLB character animation loading and playback
 - Integration with Three.js scene setup
 - Real-time animation control
@@ -49,17 +50,17 @@ Visit the examples page to see the library in action!
 ## Quick Start
 
 ```typescript
-import { LinearBlendTree, AnimationMachine } from 'animouse';
-import { AnimationMixer, Vector2 } from 'three';
+import { LinearBlendTree, AnimationMachine } from "animouse";
+import { AnimationMixer, Vector2 } from "three";
 
 // Setup Three.js animation mixer with your loaded character
 const mixer = new AnimationMixer(character);
 
 // Create linear blend tree for movement speed
 const movementTree = new LinearBlendTree([
-  { action: mixer.clipAction(idleClip), value: 0 },    // Idle
-  { action: mixer.clipAction(walkClip), value: 0.5 },  // Walk
-  { action: mixer.clipAction(runClip), value: 1 }      // Run
+  { action: mixer.clipAction(idleClip), value: 0 }, // Idle
+  { action: mixer.clipAction(walkClip), value: 0.5 }, // Walk
+  { action: mixer.clipAction(runClip), value: 1 }, // Run
 ]);
 
 // Create state machine
@@ -81,7 +82,7 @@ function handleInput() {
 function animate() {
   const deltaTime = clock.getDelta();
 
-  handleInput();             // Update input and blend values
+  handleInput(); // Update input and blend values
   machine.update(deltaTime); // Update state machine and animations
 
   renderer.render(scene, camera);
@@ -115,18 +116,18 @@ The AnimationMachine handles state transitions. It supports three types:
 Control individual animation clips with event handling:
 
 ```typescript
-import { ClipState, AnimationStateEvent } from 'animouse';
+import { ClipState, AnimationStateEvent } from "animouse";
 
 const jumpState = new ClipState(jumpAction);
-jumpState.name = 'jump'; // Optional: name states for debugging
+jumpState.name = "jump"; // Optional: name states for debugging
 
 // Listen for animation events
 jumpState.on(AnimationStateEvent.PLAY, (action, state) => {
-  console.log('Jump animation started');
+  console.log("Jump animation started");
 });
 
 jumpState.on(AnimationStateEvent.FINISH, (action, state) => {
-  console.log('Jump animation completed');
+  console.log("Jump animation completed");
 });
 ```
 
@@ -135,22 +136,22 @@ jumpState.on(AnimationStateEvent.FINISH, (action, state) => {
 For speed variations or linear progressions:
 
 ```typescript
-import { LinearBlendTree } from 'animouse';
+import { LinearBlendTree } from "animouse";
 
 // Create speed-based movement blend tree
 const movementTree = new LinearBlendTree([
-  { action: idleAction, value: 0 },     // Stationary
-  { action: walkAction, value: 1 },     // Slow movement
-  { action: jogAction, value: 2 },      // Medium movement
-  { action: runAction, value: 3 },      // Fast movement
-  { action: sprintAction, value: 4 }    // Maximum speed
+  { action: idleAction, value: 0 }, // Stationary
+  { action: walkAction, value: 1 }, // Slow movement
+  { action: jogAction, value: 2 }, // Medium movement
+  { action: runAction, value: 3 }, // Fast movement
+  { action: sprintAction, value: 4 }, // Maximum speed
 ]);
 
 // Blend based on movement speed
 movementTree.setBlend(2.5); // Blend between jog and run
 
 // Get current blend value
-console.log('Current speed:', movementTree.blendValue); // 2.5
+console.log("Current speed:", movementTree.blendValue); // 2.5
 ```
 
 ### PolarBlendTree - 2D Polar Blending
@@ -189,23 +190,23 @@ console.log('Current direction:', directionTree.blendValue);
 For irregular animation spaces:
 
 ```typescript
-import { FreeformBlendTree } from 'animouse';
+import { FreeformBlendTree } from "animouse";
 
 // Create emotion-based facial animation system
 const emotionTree = new FreeformBlendTree([
-  { action: neutralAction, x: 0, y: 0 },       // Center: neutral
-  { action: happyAction, x: 1, y: 1 },         // Happy
-  { action: sadAction, x: -1, y: -0.5 },       // Sad
-  { action: angryAction, x: -0.8, y: 0.9 },    // Angry
+  { action: neutralAction, x: 0, y: 0 }, // Center: neutral
+  { action: happyAction, x: 1, y: 1 }, // Happy
+  { action: sadAction, x: -1, y: -0.5 }, // Sad
+  { action: angryAction, x: -0.8, y: 0.9 }, // Angry
   { action: surprisedAction, x: 0.2, y: 1.2 }, // Surprised
-  { action: disgustAction, x: -1.2, y: 0.1 }   // Disgust
+  { action: disgustAction, x: -1.2, y: 0.1 }, // Disgust
 ]);
 
 // Blend to slightly happy and excited
 emotionTree.setBlend(0.6, 0.8);
 
 // Get current blend position
-console.log('Current emotion:', emotionTree.blendValue); // { x: 0.6, y: 0.8 }
+console.log("Current emotion:", emotionTree.blendValue); // { x: 0.6, y: 0.8 }
 ```
 
 ## State Machine Transitions
@@ -216,22 +217,22 @@ Respond to game events or user input:
 
 ```typescript
 // Basic transition
-machine.addEventTransition('jump', {
+machine.addEventTransition("jump", {
   from: idleState,
   to: jumpState,
-  duration: 0.2
+  duration: 0.2,
 });
 
 // Conditional transition
-machine.addEventTransition('attack', {
+machine.addEventTransition("attack", {
   to: attackState,
   duration: 0.1,
-  condition: (from, to, event, weaponType) => weaponType === 'sword'
+  condition: (from, to, event, weaponType) => weaponType === "sword",
 });
 
 // Trigger transitions
-machine.handleEvent('jump');
-machine.handleEvent('attack', 'sword');
+machine.handleEvent("jump");
+machine.handleEvent("attack", "sword");
 ```
 
 ### Automatic Transitions
@@ -242,13 +243,13 @@ Transition when animations complete:
 // Transition to falling after jump completes
 machine.addAutomaticTransition(jumpState, {
   to: fallState,
-  duration: 0.1
+  duration: 0.1,
 });
 
 // Chain multiple animations
 machine.addAutomaticTransition(landState, {
   to: idleState,
-  duration: 0.3
+  duration: 0.3,
 });
 ```
 
@@ -261,9 +262,8 @@ Evaluate conditions for state changes:
 machine.addDataTransition(combatState, {
   to: deathState,
   duration: 0.5,
-  condition: (from, to, health) => health <=
- 0,
-  data: [character.health]
+  condition: (from, to, health) => health <= 0,
+  data: [character.health],
 });
 ```
 
@@ -272,33 +272,33 @@ machine.addDataTransition(combatState, {
 Animation states emit lifecycle events:
 
 ```typescript
-import { AnimationStateEvent } from 'animouse';
+import { AnimationStateEvent } from "animouse";
 
 // State lifecycle events
 state.on(AnimationStateEvent.ENTER, (state) => {
-  console.log('State activated');
+  console.log("State activated");
 });
 
 state.on(AnimationStateEvent.EXIT, (state) => {
-  console.log('State deactivated');
+  console.log("State deactivated");
 });
 
 // Animation playback events
 state.on(AnimationStateEvent.PLAY, (action, state) => {
-  console.log('Animation started playing');
+  console.log("Animation started playing");
 });
 
 state.on(AnimationStateEvent.STOP, (action, state) => {
-  console.log('Animation stopped');
+  console.log("Animation stopped");
 });
 
 // Animation completion events
 state.on(AnimationStateEvent.ITERATE, (action, state) => {
-  console.log('Looped animation completed a cycle');
+  console.log("Looped animation completed a cycle");
 });
 
 state.on(AnimationStateEvent.FINISH, (action, state) => {
-  console.log('Non-looped animation finished');
+  console.log("Non-looped animation finished");
 });
 ```
 
@@ -311,17 +311,17 @@ Time-based events that trigger callbacks at specific points during animation pla
 For single animation clips, register time events directly on the state:
 
 ```typescript
-import { ClipState } from 'animouse';
+import { ClipState } from "animouse";
 
 const walkState = new ClipState(walkAction);
 
 // Trigger footstep sound at 25% and 75% of the walk cycle
 walkState.onTimeEvent(0.25, (action, state) => {
-  playSound('footstep-left');
+  playSound("footstep-left");
 });
 
 walkState.onTimeEvent(0.75, (action, state) => {
-  playSound('footstep-right');
+  playSound("footstep-right");
 });
 
 // One-time event for attack impact
@@ -337,20 +337,20 @@ attackState.onceTimeEvent(0.6, (action, state) => {
 For blend trees, specify which action to monitor:
 
 ```typescript
-import { LinearBlendTree } from 'animouse';
+import { LinearBlendTree } from "animouse";
 
 const movementTree = new LinearBlendTree([
   { action: walkAction, value: 1 },
-  { action: runAction, value: 2 }
+  { action: runAction, value: 2 },
 ]);
 
 // Add footstep events to specific actions
 movementTree.onTimeEvent(walkAction, 0.5, (action, state) => {
-  playSound('walk-footstep');
+  playSound("walk-footstep");
 });
 
 movementTree.onTimeEvent(runAction, 0.3, (action, state) => {
-  playSound('run-footstep');
+  playSound("run-footstep");
 });
 
 // Remove events when no longer needed

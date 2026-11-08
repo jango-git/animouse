@@ -1,9 +1,9 @@
 import type { AnimationAction } from "three";
 import { LoopOnce } from "three";
-import { AnimationStateEvent } from "../mescellaneous/AnimationStateEvent";
-import { assertValidNumber, assertValidPositiveNumber } from "../mescellaneous/assertions";
-import { EPSILON, getNextAnchorIndex, type Anchor } from "../mescellaneous/miscellaneous";
-import { AnimationTree } from "./AnimationTree";
+import { AnimationStateEvent } from "../miscellaneous/AnimationStateEvent.js";
+import { assertValidNumber, assertValidPositiveNumber } from "../miscellaneous/assertions.js";
+import { EPSILON, getNextAnchorIndex, type Anchor } from "../miscellaneous/miscellaneous.js";
+import { AnimationTree } from "./AnimationTree.js";
 
 /**
  * Configuration for a linear animation action in the blend tree.

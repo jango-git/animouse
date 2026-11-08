@@ -1,19 +1,19 @@
 import type { AnimationAction } from "three";
 import { LoopOnce } from "three";
-import { AnimationStateEvent } from "../mescellaneous/AnimationStateEvent";
+import { AnimationStateEvent } from "../miscellaneous/AnimationStateEvent.js";
 import {
   assertValidNonNegativeNumber,
   assertValidNumber,
   assertValidPositiveNumber,
-} from "../mescellaneous/assertions";
-import { EPSILON, getNextAnchorIndex, type Anchor } from "../mescellaneous/miscellaneous";
+} from "../miscellaneous/assertions.js";
+import { EPSILON, getNextAnchorIndex, type Anchor } from "../miscellaneous/miscellaneous.js";
 
 import {
   calculateAngularDistanceForward,
   calculateNormalizedAzimuth,
   isAzimuthBetween,
-} from "../mescellaneous/math";
-import { AnimationTree } from "./AnimationTree";
+} from "../miscellaneous/math.js";
+import { AnimationTree } from "./AnimationTree.js";
 
 /** Minimum number of actions required for polar blend tree triangulation */
 const MIN_POLAR_ACTIONS = 2;
