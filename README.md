@@ -11,7 +11,7 @@
 <a href="https://bundlephobia.com/package/animouse"><img src="https://badgen.net/bundlephobia/min/animouse" alt="bundle size (min)"></a>
 <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License: MIT"></a>
 <a href="https://www.typescriptlang.org/"><img src="https://img.shields.io/badge/TypeScript-%5E5.8.0-blue" alt="TypeScript"></a>
-<a href="https://threejs.org/"><img src="https://img.shields.io/badge/Three.js-0.157.0--0.180.0-green" alt="Three.js"></a>
+<a href="https://threejs.org/"><img src="https://img.shields.io/badge/Three.js-0.157.0--0.187.0-green" alt="Three.js"></a>
 </p>
 
 ## What's included
@@ -21,6 +21,7 @@
 - 📊 **Linear Blend Trees** - 1D blending for speed variations
 - 🧭 **Polar Blend Trees** - 2D blending in polar coordinates
 - 🎨 **Freeform Blend Trees** - 2D blending using Delaunay triangulation
+- 🦶 **Phase Synchronization** - Clips of different length keep one cycle, also across transitions
 - 🔄 **Transitions** - Configurable blend durations between states
 - 📦 **TypeScript Support** - Type safety and IntelliSense
 
@@ -32,7 +33,7 @@ npm install animouse
 
 ## Requirements
 
-- Three.js >=0.157.0 <0.180.0 (peer dependency)
+- Three.js >=0.157.0 <0.188.0 (peer dependency)
 - Modern JavaScript environment with ES2020+ support
 
 ## Examples
@@ -116,17 +117,17 @@ The AnimationMachine handles state transitions. It supports three types:
 Control individual animation clips with event handling:
 
 ```typescript
-import { ClipState, AnimationStateEvent } from "animouse";
+import { ClipState } from "animouse";
 
 const jumpState = new ClipState(jumpAction);
 jumpState.name = "jump"; // Optional: name states for debugging
 
 // Listen for animation events
-jumpState.on(AnimationStateEvent.PLAY, (action, state) => {
+jumpState.signalPlay.on((action, state) => {
   console.log("Jump animation started");
 });
 
-jumpState.on(AnimationStateEvent.FINISH, (action, state) => {
+jumpState.signalFinish.on((action, state) => {
   console.log("Jump animation completed");
 });
 ```
@@ -140,7 +141,7 @@ import { LinearBlendTree } from "animouse";
 
 // Create speed-based movement blend tree
 const movementTree = new LinearBlendTree([
-  { action: idleAction, value: 0 }, // Stationary
+  { action: idleAction, value: 0, isSynchronized: false }, // Stationary
   { action: walkAction, value: 1 }, // Slow movement
   { action: jogAction, value: 2 }, // Medium movement
   { action: runAction, value: 3 }, // Fast movement
@@ -159,29 +160,32 @@ console.log("Current speed:", movementTree.blendValue); // 2.5
 For directional movement with varying intensities:
 
 ```typescript
-import { PolarBlendTree } from 'animouse';
-import { MathUtils } from 'three';
+import { PolarBlendTree } from "animouse";
+import { MathUtils } from "three";
 
 // Create directional movement system
-const directionTree = new PolarBlendTree([
-  // Walk speed (radius = 1)
-  { action: walkForwardAction, radius: 1, azimuth: MathUtils.degToRad(0) },
-  { action: walkLeftAction, radius: 1, azimuth: MathUtils.degToRad(-90) },
-  { action: walkRightAction, radius: 1, azimuth: MathUtils.degToRad(90) },
-  { action: walkBackAction, radius: 1, azimuth: MathUtils.degToRad(180) },
+const directionTree = new PolarBlendTree(
+  [
+    // Walk speed (radius = 1)
+    { action: walkForwardAction, radius: 1, azimuth: MathUtils.degToRad(0) },
+    { action: walkLeftAction, radius: 1, azimuth: MathUtils.degToRad(-90) },
+    { action: walkRightAction, radius: 1, azimuth: MathUtils.degToRad(90) },
+    { action: walkBackAction, radius: 1, azimuth: MathUtils.degToRad(180) },
 
-  // Run speed (radius = 2)
-  { action: runForwardAction, radius: 2, azimuth: MathUtils.degToRad(0) },
-  { action: runLeftAction, radius: 2, azimuth: MathUtils.degToRad(-90) }
-  { action: runRightAction, radius: 2, azimuth: MathUtils.degToRad(90) },
-  { action: runBackAction, radius: 2, azimuth: MathUtils.degToRad(180) },
-], idleAction); // Optional center action
+    // Run speed (radius = 2)
+    { action: runForwardAction, radius: 2, azimuth: MathUtils.degToRad(0) },
+    { action: runLeftAction, radius: 2, azimuth: MathUtils.degToRad(-90) },
+    { action: runRightAction, radius: 2, azimuth: MathUtils.degToRad(90) },
+    { action: runBackAction, radius: 2, azimuth: MathUtils.degToRad(180) },
+  ],
+  { action: idleAction, isSynchronized: false }, // Optional center action
+);
 
 // Blend to northeast at medium speed
 directionTree.setBlend(MathUtils.degToRad(45), 1.5);
 
 // Get current blend values
-console.log('Current direction:', directionTree.blendValue);
+console.log("Current direction:", directionTree.blendValue);
 // { azimuth: 0.785, radius: 1.5 }
 ```
 
@@ -208,6 +212,71 @@ emotionTree.setBlend(0.6, 0.8);
 // Get current blend position
 console.log("Current emotion:", emotionTree.blendValue); // { x: 0.6, y: 0.8 }
 ```
+
+### Synchronization
+
+The synchronized actions of a state share one phase, the position in the cycle from 0 to 1. Each
+frame the phase advances by the frame time divided by the weighted mean duration of the blended
+clips, and every clip plays at `phase * duration`. A 1 s walk forward and a 0.96 s walk right
+stay in step this way, and a clip that starts blending in joins at the current phase instead of
+its first frame.
+
+```typescript
+const strafeTree = new PolarBlendTree(
+  [
+    { action: walkForwardAction, radius: 1, azimuth: 0 },
+    { action: walkRightAction, radius: 1, azimuth: Math.PI / 2, phaseOffset: 0.1 },
+    { action: walkBackAction, radius: 1, azimuth: Math.PI },
+    { action: walkLeftAction, radius: 1, azimuth: -Math.PI / 2 },
+  ],
+  { action: idleAction, isSynchronized: false },
+);
+```
+
+- The clips need the same cycle layout. A walk cycle has the same number of steps in every clip,
+  and the same foot touches the ground at the same phase. `phaseOffset` shifts a clip whose cycle
+  starts at another point, in cycles of that clip.
+- Blend trees synchronize `LoopRepeat` actions by default, a `ClipState` does not. With
+  `isSynchronized: false` an action plays at its own time, which suits idle and clips without a
+  cycle. `isSynchronized: true` on an action that does not use `LoopRepeat` throws.
+- A state sets `time` and `timeScale` of its actions every frame, so values set by hand are
+  overwritten. The playback speed is set on the state, see [Playback Speed](#playback-speed).
+
+#### Sync Groups
+
+The phase belongs to a `SyncGroup`. Every state has its own group, and states that share one keep
+their steps in step through a transition between them.
+
+```typescript
+import { ClipState, SyncGroup } from "animouse";
+
+const locomotion = new SyncGroup();
+strafeTree.syncGroup = locomotion;
+
+const sprintState = new ClipState(sprintAction, { isSynchronized: true });
+sprintState.syncGroup = locomotion;
+```
+
+- While both states play, the phase advances once per frame from the actions of both, weighted
+  by the influence of their state. A state that enters the group joins at the current phase.
+- The phase restarts from 0 when a state of the group starts playing while no other state of it
+  plays.
+- The group of a state can be changed only while the state does not play, otherwise the setter
+  throws.
+
+### Playback Speed
+
+`timeScale` of a state, 1 by default, scales the playback of all its actions. It can follow the
+speed of the character, so the feet do not slide when the character moves faster or slower than
+the clips were authored for.
+
+```typescript
+strafeTree.timeScale = characterSpeed / authoredSpeed;
+```
+
+- For synchronized actions it scales the phase rate. In a shared group each action counts with
+  the time scale of its own state, weighted like its duration.
+- `mixer.timeScale` scales every state of the mixer on top of that.
 
 ## State Machine Transitions
 
@@ -269,37 +338,39 @@ machine.addDataTransition(combatState, {
 
 ## Animation Events
 
-Animation states emit lifecycle events:
+Each animation state exposes its lifecycle events as typed
+[ferrsign](https://www.npmjs.com/package/ferrsign) signals. `on` and `once` return a function that
+removes the callback.
 
 ```typescript
-import { AnimationStateEvent } from "animouse";
-
-// State lifecycle events
-state.on(AnimationStateEvent.ENTER, (state) => {
+// State lifecycle events, called with the state
+state.signalEnter.on((state) => {
   console.log("State activated");
 });
 
-state.on(AnimationStateEvent.EXIT, (state) => {
+state.signalExit.on((state) => {
   console.log("State deactivated");
 });
 
-// Animation playback events
-state.on(AnimationStateEvent.PLAY, (action, state) => {
+// Animation playback events, called with the action and the state
+const unsubscribe = state.signalPlay.on((action, state) => {
   console.log("Animation started playing");
 });
 
-state.on(AnimationStateEvent.STOP, (action, state) => {
+state.signalStop.on((action, state) => {
   console.log("Animation stopped");
 });
 
 // Animation completion events
-state.on(AnimationStateEvent.ITERATE, (action, state) => {
+state.signalIterate.on((action, state) => {
   console.log("Looped animation completed a cycle");
 });
 
-state.on(AnimationStateEvent.FINISH, (action, state) => {
+state.signalFinish.on((action, state) => {
   console.log("Non-looped animation finished");
 });
+
+unsubscribe();
 ```
 
 ## Time Events
@@ -337,7 +408,8 @@ attackState.onceTimeEvent(0.6, (action, state) => {
 For blend trees, specify which action to monitor:
 
 ```typescript
-import { LinearBlendTree } from "animouse";
+import { type AnimationState, LinearBlendTree } from "animouse";
+import type { AnimationAction } from "three";
 
 const movementTree = new LinearBlendTree([
   { action: walkAction, value: 1 },
@@ -345,9 +417,10 @@ const movementTree = new LinearBlendTree([
 ]);
 
 // Add footstep events to specific actions
-movementTree.onTimeEvent(walkAction, 0.5, (action, state) => {
+const footstepCallback = (action: AnimationAction, state: AnimationState): void => {
   playSound("walk-footstep");
-});
+};
+movementTree.onTimeEvent(walkAction, 0.5, footstepCallback);
 
 movementTree.onTimeEvent(runAction, 0.3, (action, state) => {
   playSound("run-footstep");
@@ -357,7 +430,11 @@ movementTree.onTimeEvent(runAction, 0.3, (action, state) => {
 movementTree.offTimeEvent(walkAction, 0.5, footstepCallback);
 ```
 
-Time events fire when the animation crosses the specified time threshold (0.0 to 1.0).
+Time events fire when the animation crosses the specified time threshold (0.0 to 1.0). Times are
+rounded to hundredths. A looping action that passes the end of its cycle in one frame also fires
+the events at the start of the next cycle. The crossing follows the state `timeScale` and
+`mixer.timeScale`, and for a synchronized action it follows the phase. `offTimeEvent` removes only the given callback, and does nothing if it is
+not registered at that time.
 
 ## Performance Notes
 
@@ -383,6 +460,5 @@ MIT © [jango](https://github.com/jango-git)
 ## Credits
 
 - Built with [Three.js](https://threejs.org/) for 3D animation support
-- Event system powered by [eventail](https://www.npmjs.com/package/eventail)
-- Mathematical utilities for geometric calculations
-- Delaunay triangulation for freeform blend spaces
+- Events use [ferrsign](https://www.npmjs.com/package/ferrsign) signals
+- Freeform blend spaces are triangulated with [delaunator](https://www.npmjs.com/package/delaunator)

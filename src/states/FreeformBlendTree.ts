@@ -1,18 +1,17 @@
-import type { AnimationAction } from "three";
-import { LoopOnce } from "three";
-import { AnimationStateEvent } from "../miscellaneous/AnimationStateEvent.js";
+import delaunator from "delaunator";
+
 import { assertValidNumber } from "../miscellaneous/assertions.js";
-import type { Triangle } from "../miscellaneous/DelaunayTriangulator.js";
-import { DelaunayTriangulator } from "../miscellaneous/DelaunayTriangulator.js";
 import {
   calculateBarycentricWeights,
   calculateDistanceSquared,
   calculateDistanceToEdgeSquared,
   calculateTriangleCentroid,
+  precomputeTriangle,
+  type TriangleCache,
   type Vector2Like,
 } from "../miscellaneous/math.js";
-import { EPSILON, getNextAnchorIndex, type Anchor } from "../miscellaneous/miscellaneous.js";
-import { AnimationTree } from "./AnimationTree.js";
+import { type Anchor, EPSILON } from "../miscellaneous/miscellaneous.js";
+import { AnimationTree, type BlendAction } from "./AnimationTree.js";
 
 /** Minimum number of actions required for freeform blend tree triangulation */
 const MIN_ACTION_COUNT = 3;
@@ -21,9 +20,7 @@ const MIN_ACTION_COUNT = 3;
  * Configuration for a freeform animation action in the blend tree.
  * Associates an animation action with Cartesian coordinates in 2D space.
  */
-export interface FreeformAction {
-  /** The Three.js animation action to be played */
-  action: AnimationAction;
+export interface FreeformAction extends BlendAction {
   /** X coordinate in 2D space (finite number) */
   x: number;
   /** Y coordinate in 2D space (finite number) */
@@ -37,8 +34,6 @@ export interface FreeformAction {
  * @internal
  */
 interface FreeformAnchor extends Anchor {
-  /** The Three.js animation action wrapped by this anchor */
-  action: AnimationAction;
   /** X coordinate in 2D space */
   x: number;
   /** Y coordinate in 2D space */
@@ -46,17 +41,16 @@ interface FreeformAnchor extends Anchor {
 }
 
 /**
- * Triangle structure for freeform blending with precomputed centroid.
- * Omits circumcenter and circumradius data not needed for barycentric interpolation.
+ * Triangle of the freeform mesh with precomputed barycentric data and centroid.
  *
  * @internal
  */
-interface FreeformTriangle extends Omit<
-  Triangle<FreeformAnchor>,
-  "circumcenter" | "circumradiusSquared"
-> {
+interface FreeformTriangle extends TriangleCache {
+  readonly a: FreeformAnchor;
+  readonly b: FreeformAnchor;
+  readonly c: FreeformAnchor;
   /** Precomputed geometric center point of the triangle */
-  centroid: Vector2Like;
+  readonly centroid: Vector2Like;
 }
 
 /**
@@ -81,7 +75,6 @@ interface FreeformTriangle extends Omit<
  */
 export class FreeformBlendTree extends AnimationTree {
   private readonly tempAnchorMap = new Map<FreeformAnchor, number>();
-  private readonly trackableAnchors: FreeformAnchor[] = [];
   private readonly triangles: FreeformTriangle[] = [];
   private readonly boundaryEdgeMap = new Map<FreeformAnchor, [FreeformAnchor, FreeformAnchor]>();
 
@@ -97,6 +90,7 @@ export class FreeformBlendTree extends AnimationTree {
    * @throws {Error} When fewer than 3 actions are provided
    * @throws {Error} When any action has non-finite coordinates
    * @throws {Error} When multiple actions have the same coordinates
+   * @throws {Error} When all actions lie on one line
    * @throws {Error} When any animation clip duration is not positive
    */
   constructor(freeformActions: FreeformAction[]) {
@@ -130,48 +124,45 @@ export class FreeformBlendTree extends AnimationTree {
     const anchors: FreeformAnchor[] = [];
 
     for (const freeformAction of freeformActions) {
-      const animationAction = freeformAction.action;
-
-      animationAction.stop();
-      animationAction.time = 0;
-      animationAction.weight = 0;
-      animationAction.paused = false;
-      animationAction.enabled = false;
-
-      const duration = animationAction.getClip().duration;
-      if (duration <= 0) {
-        throw new Error("Action duration must be greater than zero");
-      }
-
-      const anchor = {
-        index: getNextAnchorIndex(),
-        action: animationAction,
-        weight: 0,
-        duration,
-        invDuration: 1 / duration,
-        iterationEventType:
-          animationAction.loop === LoopOnce
-            ? AnimationStateEvent.FINISH
-            : AnimationStateEvent.ITERATE,
-        x: freeformAction.x,
-        y: freeformAction.y,
-      };
-
-      anchors.push(anchor);
-      this.actionToAnchor.set(animationAction, anchor);
+      anchors.push(
+        Object.assign(this.buildBlendAnchor(freeformAction), {
+          x: freeformAction.x,
+          y: freeformAction.y,
+        }),
+      );
     }
 
-    const result = DelaunayTriangulator.triangulate(anchors);
-    this.triangles = result.triangles.map((t) => {
-      // Exclude 'circumcenter' and 'circumradiusSquared' from 't' — we don't need them in the result.
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { circumcenter, circumradiusSquared, ...rest } = t;
-      return {
-        ...rest,
-        centroid: calculateTriangleCentroid(t.a, t.b, t.c),
-      };
-    });
-    this.boundaryEdgeMap = result.boundaryEdgeMap;
+    const delaunay = delaunator.from(
+      anchors,
+      (anchor) => anchor.x,
+      (anchor) => anchor.y,
+    );
+    if (delaunay.triangles.length === 0) {
+      throw new Error("All actions are collinear, the blend space cannot be triangulated");
+    }
+
+    const indices = delaunay.triangles;
+    for (let i = 0; i < indices.length; i += 3) {
+      const a = anchors[indices[i]];
+      const b = anchors[indices[i + 1]];
+      const c = anchors[indices[i + 2]];
+      this.triangles.push({
+        a,
+        b,
+        c,
+        ...precomputeTriangle(a, b, c),
+        centroid: calculateTriangleCentroid(a, b, c),
+      });
+    }
+
+    const hull = delaunay.hull;
+    for (let i = 0; i < hull.length; i++) {
+      this.boundaryEdgeMap.set(anchors[hull[i]], [
+        anchors[hull[(i + hull.length - 1) % hull.length]],
+        anchors[hull[(i + 1) % hull.length]],
+      ]);
+    }
+
     this.sortTriangles();
     this.updateAnchors();
   }
@@ -203,66 +194,16 @@ export class FreeformBlendTree extends AnimationTree {
   }
 
   /**
-   * Called by the animation state machine on each frame update.
-   * Tracks animation progress and emits iteration events for active actions.
-   *
-   * @internal Called only by the animation state machine
-   */
-  protected ["onTickInternal"](deltaTime: number): void {
-    if (this.influence === 0) {
-      throw new Error(
-        `${this.name}: cannot update anchor time because the animation influence is zero`,
-      );
-    }
-
-    for (const anchor of this.trackableAnchors) {
-      this.processTimeEvents(anchor, deltaTime);
-      this.updateAnchorTime(anchor, deltaTime);
-    }
-  }
-
-  protected override ["onEnterInternal"](): void {
-    super.onEnterInternal();
-    if (this.influence > 0) {
-      for (const anchor of this.trackableAnchors) {
-        this.resetFinishedAction(anchor);
-      }
-    }
-  }
-
-  /**
-   * Updates the influence for all anchors in the freeform blend tree.
-   * Called when the tree's influence changes but relative weights remain the same.
-   */
-  protected updateAnchorsInfluence(): void {
-    for (const anchor of this.trackableAnchors) {
-      this.updateAnchorWeight(anchor);
-    }
-  }
-
-  /**
    * Recalculates and updates animation weights based on current blend position.
    *
    * Attempts barycentric interpolation if point lies within any triangle.
    * Falls back to nearest boundary edge interpolation for external points.
    */
   private updateAnchors(): void {
-    this.tempAnchorMap.clear();
-    for (const anchor of this.trackableAnchors) {
-      this.tempAnchorMap.set(anchor, 0);
-    }
-
     if (!this.applyBarycentricWeights(this.tempAnchorMap)) {
       this.applyNearestNeighborWeight(this.tempAnchorMap);
     }
-
-    this.trackableAnchors.length = 0;
-    for (const [anchor, weight] of this.tempAnchorMap) {
-      this.updateAnchorWeight(anchor, weight);
-      if (weight > 0) {
-        this.trackableAnchors.push(anchor);
-      }
-    }
+    this.commitWeights(this.tempAnchorMap);
   }
 
   /**

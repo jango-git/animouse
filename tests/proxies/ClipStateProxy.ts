@@ -1,4 +1,5 @@
 import { ClipState } from "../../src/states/ClipState";
+import { tickState } from "./tickState";
 
 export class ClipStateProxy extends ClipState {
   public invokeSetInfluence(influence: number): void {
@@ -6,7 +7,7 @@ export class ClipStateProxy extends ClipState {
   }
 
   public invokeOnTick(deltaTime: number): void {
-    this.onTickInternal(deltaTime);
+    tickState(this, deltaTime);
   }
 
   public invokeOnEnter(): void {

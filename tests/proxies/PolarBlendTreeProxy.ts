@@ -1,4 +1,5 @@
 import { PolarBlendTree } from "../../src/states/PolarBlendTree";
+import { tickState } from "./tickState";
 
 export class PolarBlendTreeProxy extends PolarBlendTree {
   public invokeSetInfluence(influence: number): void {
@@ -6,7 +7,7 @@ export class PolarBlendTreeProxy extends PolarBlendTree {
   }
 
   public invokeOnTick(deltaTime: number): void {
-    this.onTickInternal(deltaTime);
+    tickState(this, deltaTime);
   }
 
   public invokeOnEnter(): void {

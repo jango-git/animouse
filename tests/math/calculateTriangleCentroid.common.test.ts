@@ -1,4 +1,5 @@
 import { expect, test } from "vitest";
+
 import { calculateTriangleCentroid } from "../../src/miscellaneous/math";
 
 test("calculateTriangleCentroid: should validate a.x parameter", () => {

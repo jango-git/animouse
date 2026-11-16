@@ -1,6 +1,6 @@
 {
   "name": "animouse",
-  "version": "0.9.0",
+  "version": "0.10.0",
   "description": "Lightweight animation state machine for Three.js",
   "keywords": [
     "animation",
@@ -9,17 +9,31 @@
     "typescript",
     "3d"
   ],
-  "author": "jango",
-  "license": "MIT",
+  "homepage": "https://github.com/jango-git/animouse#readme",
+  "bugs": {
+    "url": "https://github.com/jango-git/animouse/issues"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/jango-git/animouse.git"
   },
-  "bugs": {
-    "url": "https://github.com/jango-git/animouse/issues"
-  },
-  "homepage": "https://github.com/jango-git/animouse#readme",
+  "license": "MIT",
+  "author": "jango",
   "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
   "sideEffects": false,
   "scripts": {
     "clean": "rm -rf dist",
@@ -31,34 +45,21 @@
     "format": "prettier --write . && eslint src tests --fix",
     "prepublishOnly": "npm run build && npm test"
   },
-  "main": "./dist/index.js",
-  "module": "./dist/index.js",
-  "types": "./dist/index.d.ts",
-  "files": [
-    "dist",
-    "README.md",
-    "LICENSE"
-  ],
-  "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js"
-    },
-    "./package.json": "./package.json"
-  },
   "peerDependencies": {
-    "three": ">=0.157.0 <0.180.0"
+    "three": ">=0.157.0 <0.188.0"
   },
   "dependencies": {
-    "eventail": "^0.2.11"
+    "delaunator": "^5.1.0",
+    "ferrsign": "^0.0.6"
   },
   "devDependencies": {
-    "@types/node": "^20.0.0",
+    "@types/node": "^25.0.2",
     "@types/three": "^0.157.0",
     "@typescript-eslint/eslint-plugin": "^8.72.1",
     "@typescript-eslint/parser": "^8.72.1",
     "@vitest/coverage-v8": "^4.1.9",
     "eslint": "^10.14.0",
+    "eslint-plugin-simple-import-sort": "^12.1.1",
     "prettier": "^3.9.10",
     "typescript": "^5.8.3",
     "vitest": "^4.1.9"

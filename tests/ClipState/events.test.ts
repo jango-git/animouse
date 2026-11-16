@@ -1,6 +1,6 @@
 import { LoopOnce, LoopPingPong, LoopRepeat } from "three";
 import { expect, test } from "vitest";
-import { AnimationStateEvent } from "../../src/miscellaneous/AnimationStateEvent";
+
 import { buildMockAnimationAction, MIXER } from "../mocks/buildMockAnimationAction";
 import { ClipStateProxy } from "../proxies/ClipStateProxy";
 
@@ -14,7 +14,7 @@ test("events: should emit ENTER/EXIT events", () => {
   let exitEventFired = false;
   let exitState: any = null;
 
-  tree.on(AnimationStateEvent.ENTER, (state) => {
+  tree.signalEnter.on((state) => {
     enterEventFired = true;
     enterState = state;
   });
@@ -24,7 +24,7 @@ test("events: should emit ENTER/EXIT events", () => {
   expect(enterEventFired, "ENTER event should be fired after setting influence").toEqual(true);
   expect(enterState, "ENTER event should provide the state").toEqual(tree);
 
-  tree.on(AnimationStateEvent.EXIT, (state) => {
+  tree.signalExit.on((state) => {
     exitEventFired = true;
     exitState = state;
   });
@@ -53,27 +53,27 @@ test("events: should emit correct FINISH/ITERATE event based on animation loop m
   let loopPingPongFinishEventFired = false;
   let loopPingPongIterateEventFired = false;
 
-  loopOnceState.on(AnimationStateEvent.FINISH, () => {
+  loopOnceState.signalFinish.on(() => {
     loopOnceFinishEventFired = true;
   });
 
-  loopOnceState.on(AnimationStateEvent.ITERATE, () => {
+  loopOnceState.signalIterate.on(() => {
     loopOnceIterateEventFired = true;
   });
 
-  loopRepeatState.on(AnimationStateEvent.FINISH, () => {
+  loopRepeatState.signalFinish.on(() => {
     loopRepeatFinishEventFired = true;
   });
 
-  loopRepeatState.on(AnimationStateEvent.ITERATE, () => {
+  loopRepeatState.signalIterate.on(() => {
     loopRepeatIterateEventFired = true;
   });
 
-  loopPingPongState.on(AnimationStateEvent.FINISH, () => {
+  loopPingPongState.signalFinish.on(() => {
     loopPingPongFinishEventFired = true;
   });
 
-  loopPingPongState.on(AnimationStateEvent.ITERATE, () => {
+  loopPingPongState.signalIterate.on(() => {
     loopPingPongIterateEventFired = true;
   });
 
@@ -120,7 +120,7 @@ test("events: should prevent duplicate iteration events", () => {
   clipState.invokeSetInfluence(1.0);
 
   let eventCount = 0;
-  clipState.on(AnimationStateEvent.FINISH, () => {
+  clipState.signalFinish.on(() => {
     eventCount += 1;
   });
 
@@ -141,7 +141,7 @@ test("events: should start animation and emit PLAY when influence becomes positi
   let eventAction: any = null;
   let eventState: any = null;
 
-  clipState.on(AnimationStateEvent.PLAY, (action, state) => {
+  clipState.signalPlay.on((action, state) => {
     playEventFired = true;
     eventAction = action;
     eventState = state;
@@ -167,7 +167,7 @@ test("events: should stop animation and emit STOP when influence becomes zero", 
   let eventAction: any = null;
   let eventState: any = null;
 
-  clipState.on(AnimationStateEvent.STOP, (action, state) => {
+  clipState.signalStop.on((action, state) => {
     stopEventFired = true;
     eventAction = action;
     eventState = state;
@@ -195,7 +195,7 @@ test("events: should detect animation restart and emit iteration event", () => {
   }
 
   let eventFired = false;
-  clipState.on(AnimationStateEvent.ITERATE, () => {
+  clipState.signalIterate.on(() => {
     eventFired = true;
   });
 
@@ -226,7 +226,7 @@ test("events: should update internal tracking state on each tick", () => {
   }
 
   let eventFired = false;
-  clipState.once(AnimationStateEvent.ITERATE, () => {
+  clipState.signalIterate.once(() => {
     eventFired = true;
   });
 
@@ -248,7 +248,7 @@ test("events: should update internal tracking state on each tick", () => {
   }
 
   let secondEventFired = false;
-  clipState.once(AnimationStateEvent.ITERATE, () => {
+  clipState.signalIterate.once(() => {
     secondEventFired = true;
   });
 

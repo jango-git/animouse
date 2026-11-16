@@ -1,5 +1,6 @@
 import { LoopRepeat } from "three";
 import { expect, test } from "vitest";
+
 import { buildMockAnimationAction } from "../mocks/buildMockAnimationAction";
 import { ClipStateProxy } from "../proxies/ClipStateProxy";
 

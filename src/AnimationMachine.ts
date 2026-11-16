@@ -1,8 +1,9 @@
 import type { AnimationAction, AnimationMixer } from "three";
 import { MathUtils } from "three";
-import { AnimationStateEvent } from "./miscellaneous/AnimationStateEvent.js";
+
 import { assertValidNonNegativeNumber } from "./miscellaneous/assertions.js";
 import type { AnimationState } from "./states/AnimationState.js";
+import type { SyncGroup } from "./SyncGroup.js";
 
 /**
  * Condition function for event-triggered transitions.
@@ -108,6 +109,12 @@ export class AnimationMachine {
   /** Time remaining in the current transition */
   private transitionElapsedTime?: number;
 
+  /** States playing in the current frame, reused between frames */
+  private readonly tickStates: AnimationState[] = [];
+
+  /** Sync groups of the playing states, reused between frames */
+  private readonly tickGroups = new Set<SyncGroup>();
+
   /**
    * Creates a new animation state machine with the specified initial state.
    * Activates the initial state with full influence.
@@ -190,8 +197,8 @@ export class AnimationMachine {
     }
 
     this.automaticTransitions.set(from, transition);
-    from.on(AnimationStateEvent.ITERATE, this.onStateIteration, this);
-    from.on(AnimationStateEvent.FINISH, this.onStateIteration, this);
+    from.signalIterate.on(this.onStateIteration);
+    from.signalFinish.on(this.onStateIteration);
   }
 
   /**
@@ -247,9 +254,11 @@ export class AnimationMachine {
   /**
    * Updates the animation state machine and all animations for one frame.
    *
-   * Updates current state and fading states, evaluates data-driven transitions,
-   * progresses active transitions by interpolating state influences, and updates
-   * the animation mixer.
+   * Evaluates data-driven transitions, progresses active transitions by interpolating state
+   * influences, updates the playing states and then the animation mixer. Each sync group of the
+   * playing states advances once per frame, from all of its states, after the influences change
+   * and before the states update. States advance by `deltaTime * mixer.timeScale`, the time the mixer advances, while
+   * transitions fade over unscaled `deltaTime`.
    *
    * @param deltaTime - Time elapsed since last update in seconds
    * @throws {Error} When deltaTime is not a finite non-negative number
@@ -257,17 +266,9 @@ export class AnimationMachine {
   public update(deltaTime: number): void {
     assertValidNonNegativeNumber(deltaTime, "Delta time");
 
-    // Update current state
-    if (this.currentStateInternal.influence > 0) {
-      this.currentStateInternal["onTickInternal"](deltaTime);
-    }
-
-    // Update all fading states
-    for (const state of this.fadingStates) {
-      if (state.influence > 0) {
-        state["onTickInternal"](deltaTime);
-      }
-    }
+    const mixerDeltaTime = deltaTime * this.mixer.timeScale;
+    const states = this.tickStates;
+    const groups = this.tickGroups;
 
     const transition = this.dataTransitions
       .get(this.currentStateInternal)
@@ -300,6 +301,29 @@ export class AnimationMachine {
         this.currentStateInternal["setInfluenceInternal"](1);
         this.transitionElapsedTime = undefined;
       }
+    }
+
+    states.length = 0;
+    if (this.currentStateInternal.influence > 0) {
+      states.push(this.currentStateInternal);
+    }
+    for (const state of this.fadingStates) {
+      if (state.influence > 0) {
+        states.push(state);
+      }
+    }
+
+    for (const state of states) {
+      state["prepareTickInternal"]();
+      groups.add(state.syncGroup);
+    }
+    for (const group of groups) {
+      group["advanceInternal"](mixerDeltaTime);
+    }
+    groups.clear();
+
+    for (const state of states) {
+      state["onTickInternal"](mixerDeltaTime);
     }
 
     this.mixer.update(deltaTime);
@@ -336,12 +360,12 @@ export class AnimationMachine {
    * @private
    * @param {AnimationState} state - The state that completed an iteration
    */
-  private onStateIteration(action: AnimationAction, state: AnimationState): void {
+  private readonly onStateIteration = (action: AnimationAction, state: AnimationState): void => {
     if (state === this.currentStateInternal) {
       const transition = this.automaticTransitions.get(this.currentStateInternal);
       if (transition) {
         this.transitionTo(transition.to, transition.duration);
       }
     }
-  }
+  };
 }

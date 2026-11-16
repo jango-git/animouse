@@ -1,4 +1,5 @@
 import { LinearBlendTree } from "../../src/states/LinearBlendTree";
+import { tickState } from "./tickState";
 
 export class LinearBlendTreeProxy extends LinearBlendTree {
   public invokeSetInfluence(influence: number): void {
@@ -6,7 +7,7 @@ export class LinearBlendTreeProxy extends LinearBlendTree {
   }
 
   public invokeOnTick(deltaTime: number): void {
-    this.onTickInternal(deltaTime);
+    tickState(this, deltaTime);
   }
 
   public invokeOnEnter(): void {

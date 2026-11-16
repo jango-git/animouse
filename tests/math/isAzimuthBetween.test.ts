@@ -1,4 +1,5 @@
 import { expect, test } from "vitest";
+
 import { isAzimuthBetween } from "../../src/miscellaneous/math";
 
 test("isAzimuthBetween: should detect azimuth within normal range", () => {

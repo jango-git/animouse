@@ -1,4 +1,5 @@
 import { test } from "vitest";
+
 import { assertEqualWithTolerance, lerpAngular } from "../miscellaneous/miscellaneous";
 import { buildMockPolarAction } from "../mocks/buildMockAction";
 import { buildMockAnimationAction } from "../mocks/buildMockAnimationAction";
@@ -24,7 +25,7 @@ function testOneRingAndCenterBlending(azimuth: number, radius: number): void {
   const lAction = buildMockPolarAction(1, lValue);
   const rAction = buildMockPolarAction(1, rValue);
   const cAction = buildMockAnimationAction(1);
-  const tree = new PolarBlendTreeProxy([lAction, rAction], cAction);
+  const tree = new PolarBlendTreeProxy([lAction, rAction], { action: cAction });
 
   tree.invokeSetInfluence(1);
   tree.setBlend(azimuth, radius);

@@ -1,4 +1,5 @@
 import { expect, test } from "vitest";
+
 import { calculateNormalizedAzimuth } from "../../src/miscellaneous/math";
 
 test("calculateNormalizedAzimuth: should normalize values correctly", () => {

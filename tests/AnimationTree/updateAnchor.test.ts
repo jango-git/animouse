@@ -1,5 +1,5 @@
 import { expect, test } from "vitest";
-import { AnimationStateEvent } from "../../src/miscellaneous/AnimationStateEvent";
+
 import { buildMockAnchor } from "../mocks/buildMockAnchor";
 import { AnimationTreeProxy } from "../proxies/AnimationTreeProxy";
 
@@ -66,10 +66,10 @@ test("updateAnchor: should update weight without play/stop when animation is alr
   const initialPlayingState = anchor.action.isRunning();
 
   let anyEventFired = false;
-  tree.on(AnimationStateEvent.PLAY, () => {
+  tree.signalPlay.on(() => {
     anyEventFired = true;
   });
-  tree.on(AnimationStateEvent.STOP, () => {
+  tree.signalStop.on(() => {
     anyEventFired = true;
   });
 

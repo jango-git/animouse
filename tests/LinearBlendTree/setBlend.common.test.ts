@@ -1,4 +1,5 @@
 import { expect, test } from "vitest";
+
 import { assertEqualWithTolerance } from "../miscellaneous/miscellaneous";
 import { buildMockLinearAction } from "../mocks/buildMockAction";
 import { LinearBlendTreeProxy } from "../proxies/LinearBlendTreeProxy";

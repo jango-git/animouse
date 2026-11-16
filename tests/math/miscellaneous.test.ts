@@ -1,4 +1,5 @@
 import { expect, test } from "vitest";
+
 import { EPSILON, PI2 } from "../../src/miscellaneous/miscellaneous";
 
 test("constants: should have PI2 equal to 2π", () => {

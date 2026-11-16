@@ -1,5 +1,5 @@
 import { expect, test } from "vitest";
-import { AnimationStateEvent } from "../../src/miscellaneous/AnimationStateEvent";
+
 import { assertEqualWithTolerance } from "../miscellaneous/miscellaneous";
 import { MIXER } from "../mocks/buildMockAnimationAction";
 import { AnimationMachineProxy } from "../proxies/AnimationMachineProxy";
@@ -16,7 +16,7 @@ test("constructor: should fire ENTER event on initial state", () => {
   const tree = new AnimationTreeProxy();
 
   let isEventFired = false;
-  tree.on(AnimationStateEvent.ENTER, () => {
+  tree.signalEnter.on(() => {
     isEventFired = true;
   });
 

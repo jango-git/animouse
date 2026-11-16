@@ -1,4 +1,5 @@
 import { test } from "vitest";
+
 import { assertEqualWithTolerance, lerpBarycentric } from "../miscellaneous/miscellaneous";
 import { buildMockFreeformAction } from "../mocks/buildMockAction";
 import { FreeformBlendTreeProxy } from "../proxies/FreeformBlendTreeProxy";

@@ -1,4 +1,5 @@
 import { expect, test } from "vitest";
+
 import { buildMockFreeformAction } from "../mocks/buildMockAction";
 import { FreeformBlendTreeProxy } from "../proxies/FreeformBlendTreeProxy";
 

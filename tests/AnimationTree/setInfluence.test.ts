@@ -1,4 +1,5 @@
 import { expect, test } from "vitest";
+
 import { AnimationTreeProxy } from "../proxies/AnimationTreeProxy";
 
 test("setInfluence: should throw error for invalid influence values", () => {

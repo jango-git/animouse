@@ -1,4 +1,5 @@
 import { expect, test } from "vitest";
+
 import { calculateAngularDistanceForward } from "../../src/miscellaneous/math";
 
 test("calculateAngularDistanceForward: should throw for 'from' value", () => {

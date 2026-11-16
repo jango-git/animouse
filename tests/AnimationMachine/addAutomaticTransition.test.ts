@@ -1,4 +1,5 @@
 import { expect, test } from "vitest";
+
 import { assertEqualWithTolerance } from "../miscellaneous/miscellaneous";
 import { MIXER } from "../mocks/buildMockAnimationAction";
 import { AnimationMachineProxy } from "../proxies/AnimationMachineProxy";

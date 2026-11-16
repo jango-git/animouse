@@ -1,5 +1,4 @@
 import type { AnimationAction } from "three";
-import type { AnimationStateEvent } from "./AnimationStateEvent.js";
 
 /**
  * Small epsilon value used for floating-point comparisons.
@@ -35,6 +34,17 @@ export interface Anchor {
   duration: number;
   /** The inverse duration of the animation */
   invDuration: number;
-  /** The iteration event type for this anchor */
-  iterationEventType: AnimationStateEvent;
+  /** Whether the action plays once, so its end fires signalFinish instead of signalIterate */
+  isLoopOnce: boolean;
+  /** Whether the action plays at the phase of its blend tree instead of its own time */
+  isSynchronized: boolean;
+  /** Part of the cycle in [0, 1) added to the sync group phase before it is mapped to the clip time */
+  phaseOffset: number;
+}
+
+/**
+ * Returns the fractional part of a number, in [0, 1) for negative numbers too.
+ */
+export function fract(value: number): number {
+  return value - Math.floor(value);
 }

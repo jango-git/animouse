@@ -1,15 +1,24 @@
-import type { Callback } from "eventail";
-import type { AnimationAction } from "three";
-import { AnimationStateEvent } from "../miscellaneous/AnimationStateEvent.js";
-import { assertValidUnitRange } from "../miscellaneous/assertions.js";
+import { type AnimationAction, LoopRepeat } from "three";
+
+import { buildAnchor } from "../miscellaneous/buildAnchor.js";
 import type { Anchor } from "../miscellaneous/miscellaneous.js";
+import type { SyncOptions, TimeEventCallback } from "./AnimationState.js";
 import { AnimationState } from "./AnimationState.js";
 
 /**
- * Abstract base class for animation trees in the animation state machine.
- * Manages multiple animation actions with their weights.
+ * Animation action of a blend tree and how it follows the phase.
  *
- * Animation trees organize animation actions and handle playback and weight distribution.
+ * @public
+ */
+export interface BlendAction extends SyncOptions {
+  /** The Three.js animation action to be played */
+  action: AnimationAction;
+}
+
+/**
+ * Abstract base class for blend trees in the animation state machine.
+ * Concrete trees compute the weights of their actions from a blend position. AnimationState
+ * plays them.
  */
 export abstract class AnimationTree extends AnimationState {
   /**
@@ -27,7 +36,7 @@ export abstract class AnimationTree extends AnimationState {
    * @param callback - Function to call when the time event occurs, receives the action and state as parameters
    * @throws {Error} When the action is not registered in this animation tree
    */
-  public onTimeEvent(action: AnimationAction, unitTime: number, callback: Callback): void {
+  public onTimeEvent(action: AnimationAction, unitTime: number, callback: TimeEventCallback): void {
     const anchor = this.actionToAnchor.get(action);
     if (!anchor) {
       throw new Error(`Action is not registered`);
@@ -45,7 +54,11 @@ export abstract class AnimationTree extends AnimationState {
    * @param callback - Function to call when the time event occurs, receives the action and state as parameters
    * @throws {Error} When the action is not registered in this animation tree
    */
-  public onceTimeEvent(action: AnimationAction, unitTime: number, callback: Callback): void {
+  public onceTimeEvent(
+    action: AnimationAction,
+    unitTime: number,
+    callback: TimeEventCallback,
+  ): void {
     const anchor = this.actionToAnchor.get(action);
     if (!anchor) {
       throw new Error(`Action is not registered`);
@@ -63,7 +76,11 @@ export abstract class AnimationTree extends AnimationState {
    * @param callback - The callback function to remove
    * @throws {Error} When the action is not registered in this animation tree
    */
-  public offTimeEvent(action: AnimationAction, unitTime: number, callback: Callback): void {
+  public offTimeEvent(
+    action: AnimationAction,
+    unitTime: number,
+    callback: TimeEventCallback,
+  ): void {
     const anchor = this.actionToAnchor.get(action);
     if (!anchor) {
       throw new Error(`Action is not registered`);
@@ -73,67 +90,40 @@ export abstract class AnimationTree extends AnimationState {
   }
 
   /**
-   * Sets the influence of this animation tree.
-   * Updates anchor influences while maintaining their relative weights.
+   * Builds the anchor of a blend action and registers it for time events.
+   * LoopRepeat actions are synchronized unless the blend action says otherwise.
    *
-   * @param influence - The new influence value in range [0, 1]
-   * @throws {Error} When influence is not a finite number or is outside the range [0, 1]
-   * @internal Called only by the animation state machine
+   * @param blendAction - The action and its synchronization settings
+   * @throws {Error} When the clip duration is not a positive finite number
+   * @throws {Error} When the phase offset is not a finite number
+   * @throws {Error} When a synchronized action does not use LoopRepeat
    */
-  protected ["setInfluenceInternal"](influence: number): void {
-    assertValidUnitRange(influence, "Animation tree influence");
-
-    if (influence !== this.influenceInternal) {
-      this.influenceInternal = influence;
-      this.updateAnchorsInfluence();
-    }
+  protected buildBlendAnchor(blendAction: BlendAction): Anchor {
+    const action = blendAction.action;
+    const anchor = buildAnchor(
+      action,
+      blendAction.isSynchronized ?? action.loop === LoopRepeat,
+      blendAction.phaseOffset ?? 0,
+    );
+    this.actionToAnchor.set(action, anchor);
+    return anchor;
   }
 
   /**
-   * Updates the weight of a specific animation anchor.
-   * Handles animation lifecycle: starting, stopping, and weight adjustments.
-   * Combines the raw weight with the tree's influence to get the final action weight.
+   * Applies a new weight distribution. Active anchors missing from the map get zero weight.
+   * Clears the map afterwards.
    *
-   * Transitions from zero to non-zero weight start playback and emit PLAY event.
-   * Transitions from non-zero to zero weight stop playback and emit STOP event.
-   *
-   * @param anchor - The animation anchor containing the action and parameters to update
-   * @param weight - The raw weight value before applying tree influence. If not provided, uses the anchor's current weight
-   * @throws {Error} When weight is not a finite number or is outside the range [0, 1]
+   * @param weights - New weights of the anchors, before the tree influence is applied
    */
-  protected updateAnchorWeight(anchor: Anchor, weight: number = anchor.weight): void {
-    assertValidUnitRange(weight, "Anchor weight");
-    anchor.weight = weight;
-
-    const combinedWeight = weight * this.influenceInternal;
-    const animationAction = anchor.action;
-
-    if (combinedWeight === animationAction.weight) {
-      return;
+  protected commitWeights(weights: Map<Anchor, number>): void {
+    for (const anchor of this.activeAnchors) {
+      if (!weights.has(anchor)) {
+        this.updateAnchorWeight(anchor, 0);
+      }
     }
-
-    if (combinedWeight > 0 && animationAction.weight === 0) {
-      animationAction.enabled = true;
-      animationAction.paused = false;
-      animationAction.time = 0;
-      animationAction.play();
-      this.emit(AnimationStateEvent.PLAY, animationAction, this);
-    } else if (combinedWeight === 0 && animationAction.weight > 0) {
-      animationAction.stop();
-      animationAction.time = 0;
-      animationAction.paused = false;
-      animationAction.enabled = false;
-      this.emit(AnimationStateEvent.STOP, animationAction, this);
+    for (const [anchor, weight] of weights) {
+      this.updateAnchorWeight(anchor, weight);
     }
-
-    animationAction.weight = combinedWeight;
+    weights.clear();
   }
-
-  /**
-   * Updates influence for all anchors in the animation tree.
-   * Called when the tree's influence changes but relative weights remain the same.
-   * Implementations should apply the new influence to all anchors
-   * while maintaining their existing relative weight distribution.
-   */
-  protected abstract updateAnchorsInfluence(): void;
 }

@@ -1,4 +1,5 @@
 import type { AnimationActionLoopStyles } from "three";
+
 import type { FreeformAction } from "../../src/states/FreeformBlendTree";
 import type { LinearAction } from "../../src/states/LinearBlendTree";
 import type { PolarAction } from "../../src/states/PolarBlendTree";
@@ -9,7 +10,10 @@ export function buildMockLinearAction(
   loop?: AnimationActionLoopStyles,
   duration?: number,
 ): LinearAction {
-  return { action: buildMockAnimationAction(1, loop, duration), value };
+  return {
+    action: buildMockAnimationAction(1, loop, duration),
+    value,
+  };
 }
 
 export function buildMockPolarAction(

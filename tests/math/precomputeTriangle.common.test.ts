@@ -1,4 +1,5 @@
 import { expect, test } from "vitest";
+
 import { precomputeTriangle } from "../../src/miscellaneous/math";
 
 test("precomputeTriangle: should validate a.x parameter", () => {

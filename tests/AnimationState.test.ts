@@ -1,5 +1,5 @@
 import { expect, test } from "vitest";
-import { AnimationStateEvent } from "../src/miscellaneous/AnimationStateEvent";
+
 import { AnimationStateProxy } from "./proxies/AnimationStateProxy";
 
 test("events: should emit ENTER event when onEnterInternal is called", () => {
@@ -7,7 +7,7 @@ test("events: should emit ENTER event when onEnterInternal is called", () => {
   let eventFired = false;
   let eventData: any = null;
 
-  state.on(AnimationStateEvent.ENTER, (data) => {
+  state.signalEnter.on((data) => {
     eventFired = true;
     eventData = data;
   });
@@ -23,7 +23,7 @@ test("events: should emit EXIT event when onExitInternal is called", () => {
   let eventFired = false;
   let eventData: any = null;
 
-  state.on(AnimationStateEvent.EXIT, (data) => {
+  state.signalExit.on((data) => {
     eventFired = true;
     eventData = data;
   });
@@ -38,11 +38,11 @@ test("events: should emit multiple events correctly", () => {
   const state = new AnimationStateProxy();
   const events: string[] = [];
 
-  state.on(AnimationStateEvent.ENTER, () => {
+  state.signalEnter.on(() => {
     events.push("enter");
   });
 
-  state.on(AnimationStateEvent.EXIT, () => {
+  state.signalExit.on(() => {
     events.push("exit");
   });
 
@@ -72,11 +72,11 @@ test("events: should pass correct state instance data to both ENTER and EXIT eve
   let enterEventData: any = null;
   let exitEventData: any = null;
 
-  state.on(AnimationStateEvent.ENTER, (data) => {
+  state.signalEnter.on((data) => {
     enterEventData = data;
   });
 
-  state.on(AnimationStateEvent.EXIT, (data) => {
+  state.signalExit.on((data) => {
     exitEventData = data;
   });
 

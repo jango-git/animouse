@@ -1,7 +1,7 @@
 import type { AnimationActionLoopStyles } from "three";
 import { LoopOnce, LoopRepeat } from "three";
-import { AnimationStateEvent } from "../../src/miscellaneous/AnimationStateEvent";
-import { getNextAnchorIndex, type Anchor } from "../../src/miscellaneous/miscellaneous";
+
+import { type Anchor, getNextAnchorIndex } from "../../src/miscellaneous/miscellaneous";
 import { buildMockAnimationAction } from "./buildMockAnimationAction";
 
 export function buildMockAnchor(
@@ -18,7 +18,8 @@ export function buildMockAnchor(
     weight: anchorWeight,
     duration: clipDuration,
     invDuration: 1 / clipDuration,
-    iterationEventType:
-      action.loop === LoopOnce ? AnimationStateEvent.FINISH : AnimationStateEvent.ITERATE,
+    isLoopOnce: action.loop === LoopOnce,
+    isSynchronized: false,
+    phaseOffset: 0,
   };
 }

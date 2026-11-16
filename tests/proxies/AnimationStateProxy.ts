@@ -8,12 +8,4 @@ export class AnimationStateProxy extends AnimationState {
   public invokeOnExit(): void {
     this.onExitInternal();
   }
-
-  protected onTickInternal(deltaTime: number): void {
-    void deltaTime;
-  }
-
-  protected setInfluenceInternal(influence: number): void {
-    void influence;
-  }
 }

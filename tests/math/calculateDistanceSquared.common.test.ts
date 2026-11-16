@@ -1,4 +1,5 @@
 import { expect, test } from "vitest";
+
 import { calculateDistanceSquared } from "../../src/miscellaneous/math";
 
 test("calculateDistanceSquared: should validate 'x1' value", () => {

@@ -1,4 +1,5 @@
 import { FreeformBlendTree } from "../../src/states/FreeformBlendTree";
+import { tickState } from "./tickState";
 
 export class FreeformBlendTreeProxy extends FreeformBlendTree {
   public invokeSetInfluence(influence: number): void {
@@ -6,7 +7,7 @@ export class FreeformBlendTreeProxy extends FreeformBlendTree {
   }
 
   public invokeOnTick(deltaTime: number): void {
-    this.onTickInternal(deltaTime);
+    tickState(this, deltaTime);
   }
 
   public invokeOnEnter(): void {

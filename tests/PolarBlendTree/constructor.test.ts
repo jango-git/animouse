@@ -1,5 +1,6 @@
 import { LoopRepeat } from "three";
 import { expect, test } from "vitest";
+
 import { assertEqualWithTolerance } from "../miscellaneous/miscellaneous";
 import { buildMockPolarAction } from "../mocks/buildMockAction";
 import { buildMockAnimationAction } from "../mocks/buildMockAnimationAction";
@@ -24,7 +25,7 @@ test("constructor: should throw error when action duration is less than or equal
   expect(() => {
     new PolarBlendTreeProxy(
       [buildMockPolarAction(1, -1, LoopRepeat, 1), buildMockPolarAction(1, 1, LoopRepeat, 1)],
-      buildMockAnimationAction(1, LoopRepeat, 0),
+      { action: buildMockAnimationAction(1, LoopRepeat, 0) },
     );
   }, "value must be greater or equal to").toThrow();
 });
@@ -134,7 +135,7 @@ test("constructor: should initialize actions to stopped state", () => {
   central.time = 0.1;
   central.weight = 0.5;
 
-  new PolarBlendTreeProxy([action1, action2], central);
+  new PolarBlendTreeProxy([action1, action2], { action: central });
 
   assertEqualWithTolerance(action1.action.time, 0, "action1 time");
   assertEqualWithTolerance(action1.action.weight, 0, "action1 weight");

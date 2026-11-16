@@ -1,5 +1,6 @@
 import { LoopRepeat } from "three";
 import { expect, test } from "vitest";
+
 import { assertEqualWithTolerance } from "../miscellaneous/miscellaneous";
 import { buildMockFreeformAction } from "../mocks/buildMockAction";
 import { FreeformBlendTreeProxy } from "../proxies/FreeformBlendTreeProxy";

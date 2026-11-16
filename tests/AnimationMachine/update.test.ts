@@ -1,4 +1,5 @@
 import { expect, test } from "vitest";
+
 import { MIXER } from "../mocks/buildMockAnimationAction";
 import { AnimationMachineProxy } from "../proxies/AnimationMachineProxy";
 import { AnimationTreeProxy } from "../proxies/AnimationTreeProxy";

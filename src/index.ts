@@ -1,11 +1,13 @@
 export { AnimationMachine } from "./AnimationMachine.js";
-export { AnimationStateEvent } from "./miscellaneous/AnimationStateEvent.js";
 export type { Anchor } from "./miscellaneous/miscellaneous.js";
+export type { SyncOptions, TimeEventCallback } from "./states/AnimationState.js";
 export { AnimationState } from "./states/AnimationState.js";
+export type { BlendAction } from "./states/AnimationTree.js";
 export { ClipState } from "./states/ClipState.js";
-export { FreeformBlendTree } from "./states/FreeformBlendTree.js";
 export type { FreeformAction } from "./states/FreeformBlendTree.js";
-export { LinearBlendTree } from "./states/LinearBlendTree.js";
+export { FreeformBlendTree } from "./states/FreeformBlendTree.js";
 export type { LinearAction } from "./states/LinearBlendTree.js";
+export { LinearBlendTree } from "./states/LinearBlendTree.js";
+export type { PolarAction } from "./states/PolarBlendTree.js";
 export { PolarBlendTree } from "./states/PolarBlendTree.js";
-export type { PolarAction, PolarBlendTreeOptions } from "./states/PolarBlendTree.js";
+export { SyncGroup } from "./SyncGroup.js";

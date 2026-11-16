@@ -1,4 +1,5 @@
 import { test } from "vitest";
+
 import { precomputeTriangle } from "../../src/miscellaneous/math";
 import { assertEqualWithTolerance } from "../miscellaneous/miscellaneous";
 
@@ -6,42 +7,6 @@ test("precomputeTriangle: should correctly save origin", () => {
   const result1 = precomputeTriangle({ x: 0, y: 0 }, { x: 1, y: 0 }, { x: 0, y: 1 });
   assertEqualWithTolerance(result1.origin.x, 0, "origin.x");
   assertEqualWithTolerance(result1.origin.y, 0, "origin.y");
-});
-
-test("precomputeTriangle: should correctly compute circumcenter", () => {
-  // Right triangle at origin: (0,0), (1,0), (0,1)
-  // Circumcenter should be at the midpoint of hypotenuse: (0.5, 0.5)
-  const result1 = precomputeTriangle({ x: 0, y: 0 }, { x: 1, y: 0 }, { x: 0, y: 1 });
-  assertEqualWithTolerance(result1.circumcenter.x, 0.5, "circumcenter.x");
-  assertEqualWithTolerance(result1.circumcenter.y, 0.5, "circumcenter.y");
-
-  // Simple triangle: (0,0), (2,0), (1,1)
-  // This forms an isosceles triangle, circumcenter should be on y-axis at x=1
-  const result2 = precomputeTriangle({ x: 0, y: 0 }, { x: 2, y: 0 }, { x: 1, y: 1 });
-  assertEqualWithTolerance(result2.circumcenter.x, 1, "circumcenter.x");
-  // y-coordinate should be 0 for this specific triangle
-  assertEqualWithTolerance(result2.circumcenter.y, 0, "circumcenter.y");
-});
-
-test("precomputeTriangle: should correctly compute circumradiusSquared", () => {
-  // Right triangle: (0,0), (1,0), (0,1)
-  // Distance from circumcenter (0.5, 0.5) to any vertex should be sqrt(0.5)
-  // So circumradiusSquared should be 0.5
-  const result1 = precomputeTriangle({ x: 0, y: 0 }, { x: 1, y: 0 }, { x: 0, y: 1 });
-  assertEqualWithTolerance(result1.circumradiusSquared, 0.5, "circumradiusSquared");
-
-  // Unit square triangle: (0,0), (1,0), (0,1) - same as above
-  // Verify by checking distance from circumcenter to each vertex
-  const cx = result1.circumcenter.x;
-  const cy = result1.circumcenter.y;
-  const distSq1 = (0 - cx) ** 2 + (0 - cy) ** 2;
-  const distSq2 = (1 - cx) ** 2 + (0 - cy) ** 2;
-  const distSq3 = (0 - cx) ** 2 + (1 - cy) ** 2;
-
-  // All distances should be equal and match circumradiusSquared
-  assertEqualWithTolerance(distSq1, result1.circumradiusSquared, "distance to vertex a");
-  assertEqualWithTolerance(distSq2, result1.circumradiusSquared, "distance to vertex b");
-  assertEqualWithTolerance(distSq3, result1.circumradiusSquared, "distance to vertex c");
 });
 
 test("precomputeTriangle: should correctly compute u vector", () => {

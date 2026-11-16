@@ -1,5 +1,6 @@
 import tsPlugin from "@typescript-eslint/eslint-plugin";
 import tsParser from "@typescript-eslint/parser";
+import simpleImportSort from "eslint-plugin-simple-import-sort";
 
 export default [
   {
@@ -93,6 +94,9 @@ export default [
           format: ["camelCase"],
           leadingUnderscore: "allow",
         },
+        // A property key that requires quotes (a hyphenated string, a reserved word) carries an
+        // external contract/ABI shape - it is data, not an identifier - so casing does not apply.
+        { selector: "property", modifiers: ["requiresQuotes"], format: null },
         {
           selector: "classProperty",
           format: ["camelCase"],
@@ -126,6 +130,14 @@ export default [
       "@typescript-eslint/no-non-null-assertion": "off",
       "@typescript-eslint/explicit-function-return-type": "off",
       "@typescript-eslint/no-unused-vars": ["error", { argsIgnorePattern: "^_" }],
+    },
+  },
+  {
+    files: ["src/**/*.ts", "tests/**/*.ts"],
+    plugins: { "simple-import-sort": simpleImportSort },
+    rules: {
+      "simple-import-sort/imports": "error",
+      "simple-import-sort/exports": "error",
     },
   },
 ];

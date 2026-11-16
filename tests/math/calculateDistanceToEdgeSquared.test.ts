@@ -1,4 +1,5 @@
 import { test } from "vitest";
+
 import { calculateDistanceToEdgeSquared } from "../../src/miscellaneous/math";
 import { assertEqualWithTolerance } from "../miscellaneous/miscellaneous";
 

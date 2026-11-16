@@ -1,5 +1,5 @@
-import { LoopOnce, LoopRepeat, type AnimationAction } from "three";
-import { AnimationStateEvent } from "../../src/miscellaneous/AnimationStateEvent";
+import { type AnimationAction, LoopOnce, LoopRepeat } from "three";
+
 import type { Anchor } from "../../src/miscellaneous/miscellaneous";
 import { AnimationTree } from "../../src/states/AnimationTree";
 import { buildMockAnimationAction } from "../mocks/buildMockAnimationAction";
@@ -22,18 +22,18 @@ export class AnimationTreeProxy extends AnimationTree {
   public invokeIterateEvent(
     action: AnimationAction = buildMockAnimationAction(1, LoopRepeat),
   ): void {
-    this.emit(AnimationStateEvent.ITERATE, action, this);
+    this.signalIterateInternal.emit(action, this);
   }
 
   public invokeFinishEvent(action: AnimationAction = buildMockAnimationAction(1, LoopOnce)): void {
-    this.emit(AnimationStateEvent.FINISH, action, this);
+    this.signalFinishInternal.emit(action, this);
   }
 
-  protected updateAnchorsInfluence(): void {
+  protected override updateAnchorsInfluence(): void {
     this.updateAnchorsInfluenceCallCountInternal += 1;
   }
 
-  protected onTickInternal(deltaTime: number): void {
+  protected override onTickInternal(deltaTime: number): void {
     void deltaTime;
   }
 }

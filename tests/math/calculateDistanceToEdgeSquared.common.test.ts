@@ -1,4 +1,5 @@
 import { expect, test } from "vitest";
+
 import { calculateDistanceToEdgeSquared } from "../../src/miscellaneous/math";
 
 test("calculateDistanceToEdgeSquared: should validate 'edge[0].x' value", () => {

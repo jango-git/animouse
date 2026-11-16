@@ -1,4 +1,5 @@
 import { test } from "vitest";
+
 import { calculateTriangleCentroid, type Vector2Like } from "../../src/miscellaneous/math";
 import { assertEqualWithTolerance } from "../miscellaneous/miscellaneous";
 

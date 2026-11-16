@@ -1,8 +1,8 @@
-import type { Callback } from "eventail";
-import { LoopOnce, type AnimationAction } from "three";
-import { AnimationStateEvent } from "../miscellaneous/AnimationStateEvent.js";
-import { assertValidPositiveNumber, assertValidUnitRange } from "../miscellaneous/assertions.js";
-import { getNextAnchorIndex, type Anchor } from "../miscellaneous/miscellaneous.js";
+import type { AnimationAction } from "three";
+
+import { buildAnchor } from "../miscellaneous/buildAnchor.js";
+import type { Anchor } from "../miscellaneous/miscellaneous.js";
+import type { SyncOptions, TimeEventCallback } from "./AnimationState.js";
 import { AnimationState } from "./AnimationState.js";
 
 /**
@@ -24,32 +24,20 @@ export class ClipState extends AnimationState {
    * based on the animation's loop type.
    *
    * @param animationAction - The Three.js AnimationAction to wrap
+   * @param options - How the action follows the phase of the sync group. It plays at its own
+   *                  time by default.
    * @throws {Error} When the animation clip duration is not a positive finite number
+   * @throws {Error} When the phase offset is not a finite number
+   * @throws {Error} When a synchronized action does not use LoopRepeat
    */
-  constructor(animationAction: AnimationAction) {
+  constructor(animationAction: AnimationAction, options: SyncOptions = {}) {
     super();
-    const duration = animationAction.getClip().duration;
-    assertValidPositiveNumber(duration, "Clip duration");
-
-    animationAction.stop();
-    animationAction.time = 0;
-    animationAction.weight = 0;
-    animationAction.paused = false;
-    animationAction.enabled = false;
-
-    this.anchor = {
-      index: getNextAnchorIndex(),
-      action: animationAction,
-      get weight(): number {
-        throw new Error("ClipState weight is not accessible");
-      },
-      duration,
-      invDuration: 1 / duration,
-      iterationEventType:
-        animationAction.loop === LoopOnce
-          ? AnimationStateEvent.FINISH
-          : AnimationStateEvent.ITERATE,
-    };
+    this.anchor = buildAnchor(
+      animationAction,
+      options.isSynchronized ?? false,
+      options.phaseOffset ?? 0,
+    );
+    this.updateAnchorWeight(this.anchor, 1);
   }
 
   /**
@@ -59,7 +47,7 @@ export class ClipState extends AnimationState {
    * @param unitTime - Time in unit range [0, 1] when the callback should be invoked
    * @param callback - Function to call when the time event occurs, receives the action and state as parameters
    */
-  public onTimeEvent(unitTime: number, callback: Callback): void {
+  public onTimeEvent(unitTime: number, callback: TimeEventCallback): void {
     this.onTimeEventInternal(this.anchor, unitTime, callback, false);
   }
 
@@ -70,7 +58,7 @@ export class ClipState extends AnimationState {
    * @param unitTime - Time in unit range [0, 1] when the callback should be invoked
    * @param callback - Function to call when the time event occurs, receives the action and state as parameters
    */
-  public onceTimeEvent(unitTime: number, callback: Callback): void {
+  public onceTimeEvent(unitTime: number, callback: TimeEventCallback): void {
     this.onTimeEventInternal(this.anchor, unitTime, callback, true);
   }
 
@@ -81,67 +69,7 @@ export class ClipState extends AnimationState {
    * @param unitTime - Time in unit range [0, 1] where the callback was registered
    * @param callback - The callback function to remove
    */
-  public offTimeEvent(unitTime: number, callback: Callback): void {
+  public offTimeEvent(unitTime: number, callback: TimeEventCallback): void {
     this.offTimeEventInternal(this.anchor, unitTime, callback);
-  }
-
-  /**
-   * Sets the influence of this animation state.
-   * Starts animation when influence becomes positive, stops when zero.
-   * Resets animation time on playback transitions.
-   *
-   * @param influence - The new influence value in range [0, 1]
-   * @throws {Error} When influence is not a finite number or is outside the range [0, 1]
-   * @internal Called only by the animation state machine
-   */
-  protected ["setInfluenceInternal"](influence: number): void {
-    assertValidUnitRange(influence, "Influence");
-
-    if (this.influenceInternal === influence) {
-      return;
-    }
-
-    this.influenceInternal = influence;
-    const anchor = this.anchor;
-    const animationAction = anchor.action;
-
-    if (influence > 0 && animationAction.weight === 0) {
-      animationAction.enabled = true;
-      animationAction.paused = false;
-      animationAction.time = 0;
-      animationAction.play();
-      this.emit(AnimationStateEvent.PLAY, animationAction, this);
-    } else if (influence === 0 && animationAction.weight > 0) {
-      animationAction.stop();
-      animationAction.time = 0;
-      animationAction.paused = false;
-      animationAction.enabled = false;
-      this.emit(AnimationStateEvent.STOP, animationAction, this);
-    }
-
-    animationAction.weight = influence;
-  }
-
-  /**
-   * Called on each frame to update animation state.
-   * Handles time tracking and iteration event emission.
-   *
-   * @internal Called only by the animation state machine
-   */
-  protected ["onTickInternal"](deltaTime: number): void {
-    if (this.influence === 0) {
-      throw new Error(
-        `${this.name}: cannot update anchor time because the animation influence is zero`,
-      );
-    }
-    this.processTimeEvents(this.anchor, deltaTime);
-    this.updateAnchorTime(this.anchor, deltaTime);
-  }
-
-  protected override ["onEnterInternal"](): void {
-    super.onEnterInternal();
-    if (this.influence > 0) {
-      this.resetFinishedAction(this.anchor);
-    }
   }
 }

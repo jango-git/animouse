@@ -1,4 +1,4 @@
-import { assertValidAzimuth, assertValidNumber, assertValidPositiveNumber } from "./assertions.js";
+import { assertValidAzimuth, assertValidNumber } from "./assertions.js";
 import { EPSILON, PI2 } from "./miscellaneous.js";
 
 export interface Vector2Like {
@@ -15,10 +15,6 @@ export const TRIANGLE_VERTEX_COUNT = 3;
 export interface TriangleCache {
   /** A vertex of the triangle. */
   readonly origin: Vector2Like;
-  /** The circumcenter of the triangle. */
-  readonly circumcenter: Vector2Like;
-  /** The squared circumradius of the triangle. */
-  readonly circumradiusSquared: number;
   /** Vector from vertex A to vertex B. */
   readonly u: Vector2Like;
   /** Vector from vertex A to vertex C. */
@@ -39,7 +35,7 @@ export interface TriangleCache {
 
 /**
  * Precomputes triangle data for efficient operations.
- * Calculates circumcenter, bounding box, and barycentric coordinate helpers.
+ * Calculates the bounding box and barycentric coordinate helpers.
  *
  * @param a - First vertex of the triangle
  * @param b - Second vertex of the triangle
@@ -70,16 +66,8 @@ export function precomputeTriangle(a: Vector2Like, b: Vector2Like, c: Vector2Lik
     );
   }
 
-  const cDet = 2 * (u.x * v.y - u.y * v.x);
-  const circumcenter = {
-    x: a.x + (v.y * d00 - u.y * d11) / cDet,
-    y: a.y + (u.x * d11 - v.x * d00) / cDet,
-  };
-
   return {
     origin: a,
-    circumcenter,
-    circumradiusSquared: (a.x - circumcenter.x) ** 2 + (a.y - circumcenter.y) ** 2,
     u,
     v,
     d00,
@@ -202,30 +190,6 @@ export function calculateTriangleCentroid(
     x: (a.x + b.x + c.x) / TRIANGLE_VERTEX_COUNT,
     y: (a.y + b.y + c.y) / TRIANGLE_VERTEX_COUNT,
   };
-}
-
-/**
- * Determines if a point is strictly inside a circle (excluding the boundary).
- * Uses squared distance comparison to avoid square root operations.
- *
- * @param origin - The center point of the circle
- * @param radiusSquared - The squared radius of the circle
- * @param point - The point to test
- * @returns True if the point is strictly inside the circle, false otherwise
- * @throws {Error} When coordinates are invalid or radius is not positive
- */
-export function isPointInsideCircle(
-  origin: Vector2Like,
-  radiusSquared: number,
-  point: Vector2Like,
-): boolean {
-  assertValidNumber(origin.x, "origin.x");
-  assertValidNumber(origin.y, "origin.y");
-  assertValidPositiveNumber(radiusSquared, "radiusSquared");
-  assertValidNumber(point.x, "point.x");
-  assertValidNumber(point.y, "point.y");
-
-  return (point.x - origin.x) ** 2 + (point.y - origin.y) ** 2 < radiusSquared - EPSILON;
 }
 
 /**

@@ -1,5 +1,5 @@
 import { expect, test } from "vitest";
-import { AnimationStateEvent } from "../../src/miscellaneous/AnimationStateEvent";
+
 import { buildMockAnchor } from "../mocks/buildMockAnchor";
 import { AnimationTreeProxy } from "../proxies/AnimationTreeProxy";
 
@@ -11,7 +11,7 @@ test("events: should emit PLAY event when combined weight becomes positive", () 
   let eventFired = false;
   let eventAction: any = null;
   let eventState: any = null;
-  tree.on(AnimationStateEvent.PLAY, (action, state) => {
+  tree.signalPlay.on((action, state) => {
     eventFired = true;
     eventAction = action;
     eventState = state;
@@ -31,7 +31,7 @@ test("events: should emit STOP event when combined weight becomes zero", () => {
   let eventFired = false;
   let eventAction: any = null;
   let eventState: any = null;
-  tree.on(AnimationStateEvent.STOP, (action, state) => {
+  tree.signalStop.on((action, state) => {
     eventFired = true;
     eventAction = action;
     eventState = state;

@@ -1,17 +1,12 @@
-import type { AnimationAction } from "three";
-import { LoopOnce } from "three";
-import { AnimationStateEvent } from "../miscellaneous/AnimationStateEvent.js";
-import { assertValidNumber, assertValidPositiveNumber } from "../miscellaneous/assertions.js";
-import { EPSILON, getNextAnchorIndex, type Anchor } from "../miscellaneous/miscellaneous.js";
-import { AnimationTree } from "./AnimationTree.js";
+import { assertValidNumber } from "../miscellaneous/assertions.js";
+import { type Anchor, EPSILON } from "../miscellaneous/miscellaneous.js";
+import { AnimationTree, type BlendAction } from "./AnimationTree.js";
 
 /**
  * Configuration for a linear animation action in the blend tree.
  * Associates an animation action with a position value on the linear blend axis.
  */
-export interface LinearAction {
-  /** The animation action to be played */
-  action: AnimationAction;
+export interface LinearAction extends BlendAction {
   /** Position value on the linear blend axis where this action is positioned */
   value: number;
 }
@@ -49,9 +44,7 @@ interface LinearAnchor extends Anchor {
  */
 export class LinearBlendTree extends AnimationTree {
   private readonly anchors: LinearAnchor[] = [];
-
-  private lastLeftAnchor?: LinearAnchor;
-  private lastRightAnchor?: LinearAnchor;
+  private readonly tempAnchorMap = new Map<LinearAnchor, number>();
 
   private currentBlend = 0;
 
@@ -90,32 +83,10 @@ export class LinearBlendTree extends AnimationTree {
     }
 
     for (const linearAction of linearActions) {
-      const animationAction = linearAction.action;
-
-      animationAction.stop();
-      animationAction.time = 0;
-      animationAction.weight = 0;
-      animationAction.paused = false;
-      animationAction.enabled = false;
-
-      const duration = animationAction.getClip().duration;
-      assertValidPositiveNumber(duration, "Clip duration");
-
-      const anchor = {
-        index: getNextAnchorIndex(),
-        action: animationAction,
-        weight: 0,
-        duration,
-        invDuration: 1 / duration,
-        iterationEventType:
-          animationAction.loop === LoopOnce
-            ? AnimationStateEvent.FINISH
-            : AnimationStateEvent.ITERATE,
+      const anchor = Object.assign(this.buildBlendAnchor(linearAction), {
         value: linearAction.value,
-      };
-
+      });
       this.anchors.push(anchor);
-      this.actionToAnchor.set(animationAction, anchor);
     }
 
     this.anchors.sort((a, b) => a.value - b.value);
@@ -144,92 +115,19 @@ export class LinearBlendTree extends AnimationTree {
   }
 
   /**
-   * Called by the animation state machine on each frame update.
-   * Tracks animation progress and emits iteration events when animations
-   * complete or restart.
-   *
-   * @internal Called only by the animation state machine
-   */
-  protected ["onTickInternal"](deltaTime: number): void {
-    if (this.influence === 0) {
-      throw new Error(
-        `${this.name}: cannot update anchor time because the animation influence is zero`,
-      );
-    }
-
-    if (this.lastLeftAnchor?.weight !== undefined) {
-      this.processTimeEvents(this.lastLeftAnchor, deltaTime);
-      this.updateAnchorTime(this.lastLeftAnchor, deltaTime);
-    }
-    if (this.lastRightAnchor?.weight !== undefined) {
-      this.processTimeEvents(this.lastRightAnchor, deltaTime);
-      this.updateAnchorTime(this.lastRightAnchor, deltaTime);
-    }
-  }
-
-  protected override ["onEnterInternal"](): void {
-    super.onEnterInternal();
-    if (this.influence > 0) {
-      if (this.lastLeftAnchor) {
-        this.resetFinishedAction(this.lastLeftAnchor);
-      }
-      if (this.lastRightAnchor) {
-        this.resetFinishedAction(this.lastRightAnchor);
-      }
-    }
-  }
-
-  /**
-   * Updates the influence for all anchors in the linear blend tree.
-   * Called when the tree's influence changes but relative weights remain the same.
-   */
-  protected updateAnchorsInfluence(): void {
-    if (this.lastLeftAnchor) {
-      this.updateAnchorWeight(this.lastLeftAnchor);
-    }
-    if (this.lastRightAnchor) {
-      this.updateAnchorWeight(this.lastRightAnchor);
-    }
-  }
-
-  /**
    * Recalculates and updates animation weights based on the current blend value.
    * Performs linear interpolation between the two actions closest to the blend point.
    */
   private updateAnchors(): void {
+    const weights = this.tempAnchorMap;
     const firstAnchor = this.anchors[0];
-    if (this.currentBlend <= firstAnchor.value) {
-      if (this.lastLeftAnchor && this.lastLeftAnchor !== firstAnchor) {
-        this.updateAnchorWeight(this.lastLeftAnchor, 0);
-      }
-
-      if (this.lastRightAnchor) {
-        this.updateAnchorWeight(this.lastRightAnchor, 0);
-      }
-
-      this.updateAnchorWeight(firstAnchor, 1);
-      this.lastLeftAnchor = firstAnchor;
-      this.lastRightAnchor = undefined;
-      return;
-    }
-
     const lastAnchor = this.anchors[this.anchors.length - 1];
-    if (this.currentBlend >= lastAnchor.value) {
-      if (this.lastRightAnchor && this.lastRightAnchor !== lastAnchor) {
-        this.updateAnchorWeight(this.lastRightAnchor, 0);
-      }
 
-      if (this.lastLeftAnchor) {
-        this.updateAnchorWeight(this.lastLeftAnchor, 0);
-      }
-
-      this.updateAnchorWeight(lastAnchor, 1);
-      this.lastRightAnchor = lastAnchor;
-      this.lastLeftAnchor = undefined;
-      return;
-    }
-
-    {
+    if (this.currentBlend <= firstAnchor.value) {
+      weights.set(firstAnchor, 1);
+    } else if (this.currentBlend >= lastAnchor.value) {
+      weights.set(lastAnchor, 1);
+    } else {
       let l = 1;
       let r = this.anchors.length - 1;
 
@@ -240,29 +138,11 @@ export class LinearBlendTree extends AnimationTree {
 
       const lAnchor = this.anchors[l - 1];
       const rAnchor = this.anchors[l];
-
-      if (
-        this.lastLeftAnchor &&
-        this.lastLeftAnchor !== lAnchor &&
-        this.lastLeftAnchor !== rAnchor
-      ) {
-        this.updateAnchorWeight(this.lastLeftAnchor, 0);
-      }
-
-      if (
-        this.lastRightAnchor &&
-        this.lastRightAnchor !== lAnchor &&
-        this.lastRightAnchor !== rAnchor
-      ) {
-        this.updateAnchorWeight(this.lastRightAnchor, 0);
-      }
-
       const difference = (this.currentBlend - lAnchor.value) / (rAnchor.value - lAnchor.value);
-      this.updateAnchorWeight(lAnchor, 1 - difference);
-      this.updateAnchorWeight(rAnchor, difference);
-
-      this.lastLeftAnchor = lAnchor;
-      this.lastRightAnchor = rAnchor;
+      weights.set(lAnchor, 1 - difference);
+      weights.set(rAnchor, difference);
     }
+
+    this.commitWeights(weights);
   }
 }

@@ -1,4 +1,5 @@
 import { expect, test } from "vitest";
+
 import { isAzimuthBetween } from "../../src/miscellaneous/math";
 
 test("isAzimuthBetween: should throw for 'value' value", () => {
