@@ -1,0 +1,20 @@
+{
+  "name": "animouse-pages",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node build.js"
+  },
+  "dependencies": {
+    "@lume/kiwi": "^0.4.4",
+    "animouse": "^0.10.0",
+    "ferrsign": "^0.0.6",
+    "laymur": "^0.27.1",
+    "three": "~0.187.0"
+  },
+  "devDependencies": {
+    "@fontsource/space-grotesk": "^5.2.0",
+    "@fontsource/ubuntu-sans-mono": "^5.2.0",
+    "esbuild": "^0.25.0"
+  }
+}

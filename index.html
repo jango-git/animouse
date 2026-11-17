@@ -1,324 +1,51 @@
 <!doctype html>
 <html lang="en">
-    <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Animouse Examples</title>
-        <style>
-            :root {
-                --primary-color: #4caf50;
-                --primary-hover: #45a049;
-                --secondary-color: #3498db;
-                --secondary-hover: #2980b9;
-                --accent-color: #81c784;
-                --bg-dark: #1a1a1a;
-                --bg-panel: #2d2d2d;
-                --text-primary: #ffffff;
-                --text-secondary: #e0e0e0;
-                --text-muted: rgba(255, 255, 255, 0.7);
-                --border-color: rgba(255, 255, 255, 0.1);
-                --card-border: #4caf50;
-            }
-
-            body {
-                font-family:
-                    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-                    Oxygen, Ubuntu, Cantarell, sans-serif;
-                max-width: 800px;
-                margin: 0 auto;
-                padding: 2rem;
-                line-height: 1.6;
-                background: var(--bg-dark);
-                color: var(--text-secondary);
-            }
-            h1 {
-                color: var(--primary-color);
-                border-bottom: 3px solid var(--primary-color);
-                padding-bottom: 0.5rem;
-                text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-            }
-            .description {
-                background: var(--bg-panel);
-                padding: 1.5rem;
-                border-radius: 12px;
-                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-                margin-bottom: 2rem;
-                border: 1px solid var(--border-color);
-            }
-            .examples-grid {
-                display: grid;
-                gap: 1rem;
-                margin-top: 2rem;
-            }
-            .example-card {
-                background: var(--bg-panel);
-                border-radius: 12px;
-                padding: 1.5rem;
-                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-                transition:
-                    transform 0.2s ease,
-                    box-shadow 0.2s ease;
-                border-left: 4px solid var(--card-border);
-                border: 1px solid var(--border-color);
-            }
-            .example-card:hover {
-                transform: translateY(-4px);
-                box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
-                border-left-color: var(--primary-color);
-            }
-            .example-title {
-                font-size: 1.2rem;
-                font-weight: 600;
-                color: var(--primary-color);
-                margin-bottom: 0.5rem;
-            }
-            .example-description {
-                color: var(--text-muted);
-                margin-bottom: 1rem;
-                line-height: 1.5;
-            }
-            .example-link {
-                display: inline-block;
-                background: var(--primary-color);
-                color: white;
-                text-decoration: none;
-                padding: 0.6rem 1.2rem;
-                border-radius: 6px;
-                font-weight: 500;
-                transition: all 0.2s ease;
-                box-shadow: 0 2px 8px rgba(76, 175, 80, 0.3);
-            }
-            .example-link:hover {
-                background: var(--primary-hover);
-                transform: translateY(-1px);
-                box-shadow: 0 4px 12px rgba(76, 175, 80, 0.4);
-            }
-            .tech-stack {
-                background: rgba(255, 255, 255, 0.1);
-                padding: 0.3rem 0.6rem;
-                border-radius: 6px;
-                font-size: 0.85rem;
-                color: var(--text-secondary);
-                display: inline-block;
-                margin-right: 0.5rem;
-                margin-top: 0.5rem;
-                border: 1px solid var(--border-color);
-                font-weight: 500;
-            }
-            .github-link {
-                text-align: center;
-                margin-top: 3rem;
-                padding-top: 2rem;
-                border-top: 1px solid var(--border-color);
-            }
-            .github-link a {
-                color: var(--primary-color);
-                text-decoration: none;
-                font-weight: 500;
-                transition: color 0.2s ease;
-            }
-            .github-link a:hover {
-                color: var(--primary-hover);
-                text-decoration: underline;
-            }
-        </style>
-    </head>
-    <body>
-        <h1>🐭 Animouse Examples</h1>
-
-        <div class="description">
-            <p>
-                <strong>Animouse</strong> is a lightweight animation state
-                machine for Three.js that makes it easy to manage complex
-                character animations and transitions.
-            </p>
-            <p>
-                The library supports various state types: simple clip states,
-                linear and polar blend trees, freeform 2D blending, as well as
-                event-driven, automatic state transitions, and more.
-            </p>
-            <p>
-                Explore the examples below to see how to integrate Animouse into
-                your Three.js projects.
-            </p>
-            <p
-                style="
-                    font-size: 14px;
-                    color: #f39c12;
-                    margin-top: 16px;
-                    background: rgba(243, 156, 18, 0.1);
-                    padding: 12px 16px;
-                    border-radius: 8px;
-                    border-left: 3px solid #f39c12;
-                    border: 1px solid rgba(243, 156, 18, 0.2);
-                "
-            >
-                📋 <strong>Note:</strong> Documentation is actively being
-                expanded with more detailed guides, API references, and advanced
-                usage examples.
-            </p>
-            <p style="font-size: 12px; opacity: 0.7; margin-top: 16px">
-                <em
-                    >Character models and animations in examples are provided by
-                    <a
-                        href="https://www.mixamo.com/"
-                        target="_blank"
-                        style="color: var(--primary-color)"
-                        >Adobe Mixamo</a
-                    ></em
-                >
-            </p>
-        </div>
-
-        <div class="examples-grid">
-            <div class="example-card">
-                <div class="example-title">00. Clip State</div>
-                <div class="example-description">
-                    Simplest example showing how to play a single animation
-                    using ClipState. Demonstrates basic Animouse functionality
-                    with a character in idle state.
-                </div>
-                <div>
-                    <span class="tech-stack">Three.js</span>
-                    <span class="tech-stack">Clip State</span>
-                    <span class="tech-stack">GLTFLoader</span>
-                    <span class="tech-stack">Animouse</span>
-                </div>
-                <br /><br />
-                <a href="00_clip_state.html" class="example-link"
-                    >View Example</a
-                >
-            </div>
-
-            <div class="example-card">
-                <div class="example-title">01. Linear Blend Tree</div>
-                <div class="example-description">
-                    Interactive demonstration of Linear Blend Tree for 1D
-                    animation blending. Slider allows smooth transitions between
-                    5 states: run backward, walk backward, idle, walk forward,
-                    run forward.
-                </div>
-                <div>
-                    <span class="tech-stack">Three.js</span>
-                    <span class="tech-stack">Linear Blend Tree</span>
-                    <span class="tech-stack">GLTFLoader</span>
-                    <span class="tech-stack">Animouse</span>
-                </div>
-                <br /><br />
-                <a href="01_linear_blend_tree.html" class="example-link"
-                    >View Example</a
-                >
-            </div>
-
-            <div class="example-card">
-                <div class="example-title">02. Polar Blend Tree</div>
-                <div class="example-description">
-                    Advanced 2D animation blending using polar coordinates.
-                    Circular control allows managing movement direction
-                    (left-right-forward) and intensity (idle-walk-run).
-                </div>
-                <div>
-                    <span class="tech-stack">Three.js</span>
-                    <span class="tech-stack">Polar Blend Tree</span>
-                    <span class="tech-stack">2D Blending</span>
-                    <span class="tech-stack">Animouse</span>
-                </div>
-                <br /><br />
-                <a href="02_polar_blend_tree.html" class="example-link"
-                    >View Example</a
-                >
-            </div>
-
-            <div class="example-card">
-                <div class="example-title">03. Freeform Blend Tree</div>
-                <div class="example-description">
-                    Interactive 2D blending with arbitrary animation
-                    positioning. Cursor control in a square area for blending 4
-                    dance styles and idle state.
-                </div>
-                <div>
-                    <span class="tech-stack">Three.js</span>
-                    <span class="tech-stack">Freeform Blend Tree</span>
-                    <span class="tech-stack">2D Control</span>
-                    <span class="tech-stack">Animouse</span>
-                </div>
-                <br /><br />
-                <a href="03_freeform_blend_tree.html" class="example-link"
-                    >View Example</a
-                >
-            </div>
-
-            <div class="example-card">
-                <div class="example-title">04. Event-Driven Transitions</div>
-                <div class="example-description">
-                    Demonstration of event-driven and automatic state
-                    transitions. Slider controls movement (idle-walk-run),
-                    button triggers jump with automatic return to movement.
-                </div>
-                <div>
-                    <span class="tech-stack">Three.js</span>
-                    <span class="tech-stack">Event Transitions</span>
-                    <span class="tech-stack">State Machine</span>
-                    <span class="tech-stack">Animouse</span>
-                </div>
-                <br /><br />
-                <a href="04_event_driven_transitions.html" class="example-link"
-                    >View Example</a
-                >
-            </div>
-
-            <div class="example-card">
-                <div class="example-title">05. Automatic Transitions</div>
-                <div class="example-description">
-                    Pure automatic transitions that occur when animations
-                    naturally complete their cycles. Character continuously
-                    cycles through 4 different animations with seamless
-                    blending.
-                </div>
-                <div>
-                    <span class="tech-stack">Three.js</span>
-                    <span class="tech-stack">Automatic Transitions</span>
-                    <span class="tech-stack">Animation Cycling</span>
-                    <span class="tech-stack">Animouse</span>
-                </div>
-                <br /><br />
-                <a href="05_automatic_transitions.html" class="example-link"
-                    >View Example</a
-                >
-            </div>
-
-            <div class="example-card">
-                <div class="example-title">06. Time-Based Events</div>
-                <div class="example-description">
-                    Demonstration of time-based events that trigger callbacks at
-                    specific points during animation playback. Features footstep
-                    events with visual indicators that glow when left/right foot
-                    touches the ground.
-                </div>
-                <div>
-                    <span class="tech-stack">Three.js</span>
-                    <span class="tech-stack">Time Events</span>
-                    <span class="tech-stack">Event Callbacks</span>
-                    <span class="tech-stack">Animouse</span>
-                </div>
-                <br /><br />
-                <a href="06_time_based_events.html" class="example-link"
-                    >View Example</a
-                >
-            </div>
-        </div>
-
-        <div class="github-link">
-            <p>
-                📚
-                <a href="https://github.com/jango-git/animouse" target="_blank"
-                    >View Source on GitHub</a
-                >
-                | 📦
-                <a href="https://www.npmjs.com/package/animouse" target="_blank"
-                    >NPM Package</a
-                >
-            </p>
-        </div>
-    </body>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Animouse</title>
+    <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+    <meta
+      name="description"
+      content="Examples of animouse, an animation state machine for three.js"
+    />
+    <style>
+      @font-face {
+        font-family: "Space Grotesk";
+        src: url(fonts/space-grotesk-400.woff2) format("woff2");
+      }
+      @font-face {
+        font-family: "Ubuntu Sans Mono";
+        src: url(fonts/ubuntu-sans-mono-500.woff2) format("woff2");
+        font-weight: 500;
+      }
+      html,
+      body {
+        margin: 0;
+        height: 100%;
+        background: #050505;
+        overflow: hidden;
+        touch-action: none;
+        user-select: none;
+        -webkit-user-select: none;
+      }
+      canvas {
+        display: block;
+      }
+    </style>
+  </head>
+  <body>
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "./vendor/three.js",
+          "three/addons/loaders/GLTFLoader.js": "./vendor/GLTFLoader.js",
+          "three/addons/libs/meshopt_decoder.module.js": "./vendor/meshopt_decoder.js",
+          "laymur": "./vendor/laymur.js",
+          "animouse": "./vendor/animouse.js"
+        }
+      }
+    </script>
+    <script type="module" src="src/main.js"></script>
+  </body>
 </html>
