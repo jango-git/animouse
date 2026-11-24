@@ -3,6 +3,16 @@
 Notable changes to animouse from 0.9.0 on. Versions follow semver; while the major is 0, a minor
 release may break the API. Breaking changes are marked.
 
+## Unreleased
+
+### Changed
+
+- `private` class members and members marked `@internal` are emitted with a `_private_` prefix,
+  so that a minifier can shorten them. Add a property mangling rule for the prefix to the
+  minifier of the app (terser `mangle: { properties: { regex: /^_private_/ } }`, esbuild
+  `--mangle-props=^_private_`). Without the rule the minified code is larger than before. Code
+  that reached into such members by name stops working.
+
 ## 0.10.0 - 2026-11-16
 
 ### Added

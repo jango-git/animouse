@@ -31,6 +31,12 @@
 npm install animouse
 ```
 
+### Private members
+
+The published code prefixes class members outside the API with `_private_`. A minifier shortens
+them when given the prefix: terser `mangle: { properties: { regex: /^_private_/ } }`, esbuild
+`--mangle-props=^_private_`.
+
 ## Requirements
 
 - Three.js >=0.157.0 <0.188.0 (peer dependency)
